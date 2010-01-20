@@ -1,6 +1,4 @@
-/* $Id$
- * 
- * (c) 2010 Alessandro Colantonio
+/* (c) 2010 Alessandro Colantonio
  * <mailto:colanton@mat.uniroma3.it>
  * <http://ricerca.mat.uniroma3.it/users/colanton>
  *  
@@ -34,9 +32,12 @@ import java.util.SortedSet;
 /**
  * An implementation of {@link SortedSet} with fast
  * intersection/union/difference and other set operations.
+ * <p>
+ * It collects all the basic functionalities and the interface of
+ * {@link ConciseSet}, {@link FastSet}, and {@link IndexedSet}.
  * 
  * @author Alessandro Colantonio
- * @version 1.0
+ * @version $Id$
  * 
  * @param <T>
  *            the type of elements maintained by this set
@@ -317,10 +318,9 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	}
 
 	/**
-	 * Generates the complement set (bitwise <tt>not</tt>)
-	 * <p>
-	 * The returned set is represented by all the elements strictly less than
-	 * {@link #last()} that do not exist in the current set.
+	 * Generates the complement set (bitwise <tt>not</tt>). The returned set
+	 * is represented by all the elements strictly less than {@link #last()}
+	 * that do not exist in the current set.
 	 * 
 	 * @return the complement set
 	 * 
@@ -333,15 +333,17 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	}
 
 	/**
-	 * Complements the current set (bitwise <tt>not</tt>)
+	 * Complements the current set (bitwise <tt>not</tt>). The modified set
+	 * is represented by all the elements strictly less than {@link #last()}
+	 * that do not exist in the current set.
 	 * 
 	 * @see ExtendedSet#getComplement()
 	 */
 	public abstract void complement();
 
 	/**
-	 * Returns <code>true</code> if the specified {@link ExtendedSet}
-	 * contains any element that are also contained within this
+	 * Returns <code>true</code> if the specified {@link ExtendedSet} instance
+	 * contains any elements that are also contained within this
 	 * {@link ExtendedSet} instance
 	 * 
 	 * @param other
@@ -354,7 +356,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	}
 
 	/**
-	 * Returns <code>true</code> if the specified {@link ExtendedSet}
+	 * Returns <code>true</code> if the specified {@link ExtendedSet} instance
 	 * contains at least <code>minElements</code> elements that are also
 	 * contained within this {@link ExtendedSet} instance
 	 * 
@@ -493,7 +495,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 
 	/**
 	 * Computes the compression factor of the bitmap representation (1 means not
-	 * compressed, similar to {@link BitSet})
+	 * compressed, namely similar to {@link BitSet})
 	 * 
 	 * @return the compression factor 
 	 */ 
@@ -501,14 +503,14 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 
 	/**
 	 * Computes the compression factor of the integer collection (1 means not
-	 * compressed, similar to {@link ArrayList})
+	 * compressed, namely similar to {@link ArrayList})
 	 * 
 	 * @return the compression factor 
 	 */
 	public abstract double collectionCompressionRatio();
 
 	/**
-	 * Get the descending order iterator
+	 * Gets the descending order iterator over the elements of type <code>T</code>
 	 * 
 	 * @return descending iterator
 	 */
@@ -537,7 +539,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	}
 
 	/**
-	 * Allows to use the "for-each" statement in descending order
+	 * Allows to use the Java "for-each" statement in descending order
 	 * 
 	 * @return {@link Iterable} instance to iterate items in descending order
 	 */
@@ -638,7 +640,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	}
 
 	/**
-	 * Computes the power-set size of the current set
+	 * Computes the power-set size of the current set.
 	 * <p>
 	 * The power-set does <i>not</i> contains the empty set.
 	 * 
@@ -710,7 +712,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	}
 
 	/**
-	 * Adds to the current set the last item of the given set
+	 * Adds the last item of the given set to the current set 
 	 * 
 	 * @param set
 	 *            set where to pick the last item
@@ -722,7 +724,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	}
 
 	/**
-	 * Adds to the current set the first item of the given set
+	 * Adds the first item of the given set to the current set
 	 * 
 	 * @param set
 	 *            set where to pick the first item
@@ -734,7 +736,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	}
 
 	/**
-	 * Removes to the current set the last item of the given set
+	 * Removes the last item of the given set from the current set 
 	 * 
 	 * @param set
 	 *            set where to pick the last item
@@ -746,7 +748,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	}
 
 	/**
-	 * Removes to the current set the first item of the given set
+	 * Removes the first item of the given set from the current set 
 	 * 
 	 * @param set
 	 *            set where to pick the first item
@@ -768,8 +770,8 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	 * {@inheritDoc}
 	 * <p>
 	 * <b>NOTE:</b> it supposes that items of type <code>T</code> implements
-	 * the interface {@link Comparable}... If this is not the case, override
-	 * the method (similar to {@link IndexedSet#compareTo(ExtendedSet)})
+	 * the interface {@link Comparable}. When this is not the case, subclasses
+	 * override the method (i.e. {@link IndexedSet#compareTo(ExtendedSet)})
 	 */
 	@SuppressWarnings("unchecked")
 	@Override

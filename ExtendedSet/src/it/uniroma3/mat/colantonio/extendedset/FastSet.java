@@ -1,6 +1,4 @@
-/* $Id$
- * 
- * (c) 2010 Alessandro Colantonio
+/* (c) 2010 Alessandro Colantonio
  * <mailto:colanton@mat.uniroma3.it>
  * <http://ricerca.mat.uniroma3.it/users/colanton>
  *  
@@ -29,10 +27,10 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
- * Map each bit position with an integer greater or equal to zero
+ * An {@link ExtendedSet} implementation based on {@link BitSet}
  * 
  * @author Alessandro Colantonio
- * @version 1.0
+ * @version $Id$
  * 
  * @see ExtendedSet
  * @see ConciseSet

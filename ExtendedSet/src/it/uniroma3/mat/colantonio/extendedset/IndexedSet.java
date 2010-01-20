@@ -1,6 +1,4 @@
-/* $Id$
- * 
- * (c) 2010 Alessandro Colantonio
+/* (c) 2010 Alessandro Colantonio
  * <mailto:colanton@mat.uniroma3.it>
  * <http://ricerca.mat.uniroma3.it/users/colanton>
  *  
@@ -33,12 +31,14 @@ import java.util.Set;
 import java.util.SortedSet;
 
 /**
- * Map each bit position with an integer greater or equal to zero
+ * An {@link ExtendedSet} implementation that maps elements to an integer set
+ * referred to as "indices".
  * 
  * @author Alessandro Colantonio
- * @version 1.0
+ * @version $Id$
  * 
- * @param <T> the type of elements maintained by this set
+ * @param <T>
+ *            the type of elements maintained by this set
  * 
  * @see ExtendedSet
  * @see ConciseSet

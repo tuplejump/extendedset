@@ -1,6 +1,4 @@
-/* $Id$
- * 
- * (c) 2010 Alessandro Colantonio
+/* (c) 2010 Alessandro Colantonio
  * <mailto:colanton@mat.uniroma3.it>
  * <http://ricerca.mat.uniroma3.it/users/colanton>
  *  
@@ -40,13 +38,14 @@ import java.util.SortedSet;
  * by compressed bitmaps though a RLE (Run-Length Encoding) compression
  * algorithm.
  * <p>
- * The RLE compression method is similar to WAH. However, when compared to WAH,
- * this approach avoids that sparse sets generates sequences of one literal word
- * followed by one sequence word. In this way, we have at most one word for each
- * item to represent plus one word for the first 0's sequence. Put another way,
- * the memory footprint required by a representation of <code>n</code>
- * elements is at most the same as an array of <code>n + 1</code> elements. In
- * WAH, this requires an array of size <code>2 * n</code> elements.
+ * The RLE compression method is similar to WAH (<i>Word-Aligned Hybrid
+ * compression</i>). However, when compared to WAH, this approach avoids that
+ * sparse sets generates sequences of one literal word followed by one sequence
+ * word. In this way, we have at most one word for each item to represent plus
+ * one word for the first 0's sequence. Put another way, the memory footprint
+ * required by a representation of <code>n</code> elements is at most the same
+ * as an array of <code>n + 1</code> elements. In WAH, this requires an array
+ * of size <code>2 * n</code> elements.
  * <p>
  * Notice that the returned iterator is <i>fail-fast</i>, similar to most
  * {@link Collection}-derived classes. If the set is structurally modified at
@@ -60,7 +59,7 @@ import java.util.SortedSet;
  * iterators should be used only to detect bugs.</i>
  * 
  * @author Alessandro Colantonio
- * @version 1.0
+ * @version $Id$
  * 
  * @see ExtendedSet
  * @see FastSet

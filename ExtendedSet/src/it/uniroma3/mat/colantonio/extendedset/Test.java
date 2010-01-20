@@ -1,6 +1,4 @@
-/* $Id$
- * 
- * (c) 2010 Alessandro Colantonio
+/* (c) 2010 Alessandro Colantonio
  * <mailto:colanton@mat.uniroma3.it>
  * <http://ricerca.mat.uniroma3.it/users/colanton>
  *  
@@ -30,10 +28,10 @@ import java.util.TreeSet;
 
 
 /**
- * Test class for {@link ConciseSet}, {@link FastSet}, and {@link IndexedSet}
+ * Test class for {@link ConciseSet}, {@link FastSet}, and {@link IndexedSet}.
  * 
  * @author Alessandro Colantonio
- * @version 1.0
+ * @version $Id$
  */
 public class Test {
 	/**
@@ -51,7 +49,7 @@ public class Test {
 	 * @return <code>true</code> if the given {@link ConciseSet} and
 	 *         {@link TreeSet} are equals in terms of contained elements
 	 */
-	public static <T> boolean checkContent(ExtendedSet<T> bits, TreeSet<T> items) {
+	private static <T> boolean checkContent(ExtendedSet<T> bits, TreeSet<T> items) {
 		if (bits.size() != items.size())
 			return false;
 		if (bits.isEmpty() && items.isEmpty())
@@ -1152,9 +1150,9 @@ public class Test {
 	}
 	
 	/**
-	 * Main Test
+	 * Test launcher
 	 * 
-	 * @param args
+	 * @param args ID of the test to execute (from 1 to 24)
 	 */
 	public static void main(String[] args) {
 		int testCase = 24;
