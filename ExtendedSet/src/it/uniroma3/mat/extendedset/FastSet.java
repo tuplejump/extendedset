@@ -30,7 +30,7 @@ import java.util.NoSuchElementException;
  * An {@link ExtendedSet} implementation based on {@link BitSet}
  * 
  * @author Alessandro Colantonio
- * @version $Id: FastSet.java 17 2010-01-20 00:52:01Z cocciasik $
+ * @version $Id$
  * 
  * @see ExtendedSet
  * @see ConciseSet

@@ -59,7 +59,7 @@ import java.util.SortedSet;
  * iterators should be used only to detect bugs.</i>
  * 
  * @author Alessandro Colantonio
- * @version $Id: ConciseSet.java 17 2010-01-20 00:52:01Z cocciasik $
+ * @version $Id$
  * 
  * @see ExtendedSet
  * @see FastSet
