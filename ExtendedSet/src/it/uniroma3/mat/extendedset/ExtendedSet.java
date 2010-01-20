@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */ 
     	
-package it.uniroma3.mat.colantonio.extendedset;
+package it.uniroma3.mat.extendedset;
 
 import java.util.AbstractSet;
 import java.util.ArrayList;
@@ -37,7 +37,7 @@ import java.util.SortedSet;
  * {@link ConciseSet}, {@link FastSet}, and {@link IndexedSet}.
  * 
  * @author Alessandro Colantonio
- * @version $Id$
+ * @version $Id: ExtendedSet.java 17 2010-01-20 00:52:01Z cocciasik $
  * 
  * @param <T>
  *            the type of elements maintained by this set
@@ -514,6 +514,8 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	 * 
 	 * @return descending iterator
 	 */
+	// TODO: override this method in ConciseSet and FastSet (not in IndexedSet)
+	// to improve performances
 	@SuppressWarnings("unchecked")
 	public Iterator<T> descendingIterator() {
 		return new Iterator<T>() {

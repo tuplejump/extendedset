@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */ 
 
-package it.uniroma3.mat.colantonio.extendedset;
+package it.uniroma3.mat.extendedset;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,7 +35,7 @@ import java.util.SortedSet;
  * referred to as "indices".
  * 
  * @author Alessandro Colantonio
- * @version $Id$
+ * @version $Id: IndexedSet.java 17 2010-01-20 00:52:01Z cocciasik $
  * 
  * @param <T>
  *            the type of elements maintained by this set
@@ -295,7 +295,40 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 			public void remove() {
 				indexIterator.remove();
 			}
+		};
+	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Iterator<T> descendingIterator() {
+		return new Iterator<T>() {
+			private final Iterator<Integer> indexIterator = items.descendingIterator();
+
+			/**
+			 * {@inheritDoc}
+			 */
+			@Override
+			public boolean hasNext() {
+				return indexIterator.hasNext();
+			}
+
+			/**
+			 * {@inheritDoc}
+			 */
+			@Override
+			public T next() {
+				return indexToItem[indexIterator.next()];
+			}
+
+			/**
+			 * {@inheritDoc}
+			 */
+			@Override
+			public void remove() {
+				indexIterator.remove();
+			}
 		};
 	}
 

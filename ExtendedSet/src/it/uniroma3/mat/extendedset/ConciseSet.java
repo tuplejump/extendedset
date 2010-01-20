@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */ 
 
-package it.uniroma3.mat.colantonio.extendedset;
+package it.uniroma3.mat.extendedset;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -59,7 +59,7 @@ import java.util.SortedSet;
  * iterators should be used only to detect bugs.</i>
  * 
  * @author Alessandro Colantonio
- * @version $Id$
+ * @version $Id: ConciseSet.java 17 2010-01-20 00:52:01Z cocciasik $
  * 
  * @see ExtendedSet
  * @see FastSet

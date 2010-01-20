@@ -16,9 +16,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */ 
 
-package it.uniroma3.mat.colantonio.extendedset;
+package it.uniroma3.mat.extendedset;
 
-import it.uniroma3.mat.colantonio.extendedset.ExtendedSet.Statistics;
+import it.uniroma3.mat.extendedset.ExtendedSet.Statistics;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,7 +31,7 @@ import java.util.TreeSet;
  * Test class for {@link ConciseSet}, {@link FastSet}, and {@link IndexedSet}.
  * 
  * @author Alessandro Colantonio
- * @version $Id$
+ * @version $Id: Test.java 17 2010-01-20 00:52:01Z cocciasik $
  */
 public class Test {
 	/**
