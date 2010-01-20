@@ -1,4 +1,4 @@
-/* $Id: ExtendedSet.java 6 2010-01-19 18:21:06Z cocciasik $
+/* $Id$
  * 
  * (c) 2010 Alessandro Colantonio
  * <mailto:colanton@mat.uniroma3.it>
