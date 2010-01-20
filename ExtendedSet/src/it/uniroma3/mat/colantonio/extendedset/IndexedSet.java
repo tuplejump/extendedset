@@ -1,6 +1,8 @@
 /* $Id: IndexedSet.java 6 2010-01-19 18:21:06Z cocciasik $
  * 
  * (c) 2010 Alessandro Colantonio
+ * <mailto:colanton@mat.uniroma3.it>
+ * <http://ricerca.mat.uniroma3.it/users/colanton>
  *  
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by 
@@ -34,9 +36,6 @@ import java.util.SortedSet;
  * Map each bit position with an integer greater or equal to zero
  * 
  * @author Alessandro Colantonio
- * @author <a href="mailto:colanton@mat.uniroma3.it">colanton@mat.uniroma3.it</a>
- * @author <a href="http://ricerca.mat.uniroma3.it/users/colanton">http://ricerca.mat.uniroma3.it/users/colanton</a>
- * 
  * @version 1.0
  * 
  * @param <T> the type of elements maintained by this set
@@ -54,7 +53,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	private final T[] indexToItem;
 
 	/**
-	 * Create an empty {@link IndexedSet} based on a given collection that
+	 * Creates an empty {@link IndexedSet} based on a given collection that
 	 * represents the set of <i>all</i> possible items that can be added to the
 	 * {@link IndexedSet} instance.
 	 * <p>
@@ -93,7 +92,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	}
 
 	/**
-	 * create a {@link IndexedSet} instance from a given universe
+	 * Creates a {@link IndexedSet} instance from a given universe
 	 * mapping
 	 * 
 	 * @param itemToIndex
@@ -110,7 +109,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	}
 	
 	/**
-	 * Check if the given collection is a instance of {@link IndexedSet} with
+	 * Checks if the given collection is a instance of {@link IndexedSet} with
 	 * the same index mappings
 	 * 
 	 * @param c
@@ -245,7 +244,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean containsAny(ExtendedSet<T> other) {
+	public boolean containsAny(Collection<? extends T> other) {
 		return this.items.containsAny(asIndexedSet(other).items);
 	}
 
@@ -253,7 +252,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean containsAtLeast(ExtendedSet<T> other, int minElements) {
+	public boolean containsAtLeast(Collection<? extends T> other, int minElements) {
 		return this.items.containsAtLeast(asIndexedSet(other).items, minElements);
 	}
 
@@ -339,7 +338,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public IndexedSet<T> getIntersection(ExtendedSet<T> other) {
+	public IndexedSet<T> getIntersection(Collection<? extends T> other) {
 		return new IndexedSet<T>(itemToIndex, indexToItem, 
 				this.items.getIntersection(asIndexedSet(other).items));
 	}
@@ -348,7 +347,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public IndexedSet<T> getUnion(ExtendedSet<T> other) {
+	public IndexedSet<T> getUnion(Collection<? extends T> other) {
 		return new IndexedSet<T>(itemToIndex, indexToItem, 
 				this.items.getUnion(asIndexedSet(other).items));
 	}
@@ -357,7 +356,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public IndexedSet<T> getDifference(ExtendedSet<T> other) {
+	public IndexedSet<T> getDifference(Collection<? extends T> other) {
 		return new IndexedSet<T>(itemToIndex, indexToItem, 
 				this.items.getDifference(asIndexedSet(other).items));
 	}
@@ -366,7 +365,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public IndexedSet<T> getSymmetricDifference(ExtendedSet<T> other) {
+	public IndexedSet<T> getSymmetricDifference(Collection<? extends T> other) {
 		return new IndexedSet<T>(itemToIndex, indexToItem, 
 				this.items.getSymmetricDifference(asIndexedSet(other).items));
 	}
@@ -392,7 +391,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public int intersectionSize(ExtendedSet<T> other) {
+	public int intersectionSize(Collection<? extends T> other) {
 		return this.items.intersectionSize(asIndexedSet(other).items);
 	}
 
@@ -400,7 +399,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public int unionSize(ExtendedSet<T> other) {
+	public int unionSize(Collection<? extends T> other) {
 		return this.items.unionSize(asIndexedSet(other).items);
 	}
 
@@ -408,7 +407,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public int symmetricDifferenceSize(ExtendedSet<T> other) {
+	public int symmetricDifferenceSize(Collection<? extends T> other) {
 		return this.items.symmetricDifferenceSize(asIndexedSet(other).items);
 	}
 
@@ -416,7 +415,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public int differenceSize(ExtendedSet<T> other) {
+	public int differenceSize(Collection<? extends T> other) {
 		return this.items.differenceSize(asIndexedSet(other).items);
 	}
 
@@ -429,7 +428,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	}
 
 	/**
-	 * Return the collection of all possible elements
+	 * Returns the collection of all possible elements
 	 * 
 	 * @return the collection of all possible elements
 	 */
@@ -442,7 +441,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	}
 
 	/**
-	 * Return the index of the given item
+	 * Returns the index of the given item
 	 * 
 	 * @param item
 	 * @return the index of the given item
@@ -452,10 +451,10 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	}
 
 	/**
-	 * Return the index of the given item
+	 * Returns the item corresponding to the given index
 	 * 
-	 * @param i the given item
-	 * @return the index of the given item
+	 * @param i index
+	 * @return the item 
 	 */
 	public T get(int i) {
 		return indexToItem[i];
@@ -526,7 +525,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	}
 
 	/**
-	 * Convert a given {@link Collection} instance to a {@link IndexedSet}
+	 * Converts a given {@link Collection} instance to a {@link IndexedSet}
 	 * instance
 	 * 
 	 * @param c
@@ -551,7 +550,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	}
 
 	/**
-	 * Convert the given integers to a {@link ConciseSet} instance
+	 * Converts the given integers to a {@link ConciseSet} instance
 	 * 
 	 * @param e
 	 *            integers to put within the new instance of
@@ -587,61 +586,11 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	}
 
 	/**
-	 * Test
-	 * 
-	 * @param args
+	 * {@inheritDoc}
 	 */
-	@SuppressWarnings("unchecked")
-	public static void main(String[] args) {
-		Collection<String> allStrings = new ArrayList<String>();
-		allStrings.add("One");
-		allStrings.add("Two");
-		allStrings.add("Three");
-		allStrings.add("Four");
-
-		ExtendedSet<String> empty = new IndexedSet<String>(allStrings, false);
-
-		ExtendedSet<String> s1 = empty.clone();
-		System.out.println(s1);
-
-		s1.add("Two");
-		System.out.println(s1);
-
-		s1.add("One");
-		System.out.println(s1);
-
-		s1.add("Three");
-		System.out.println(s1);
-
-		s1.remove("One");
-		System.out.println(s1);
-
-		ExtendedSet<String> s2 = empty.clone();
-		s2.add("Four");
-		s2.add("Three");
-		System.out.println(s2);
-
-		s2.retainAll(s1);
-		System.out.println(s2);
-
-		s2.add("Four");
-		System.out.println(s2);
-
-		s1.addAll(s2);
-		System.out.println(s1);
-		
-		/**
-		 * Expected output:
-		 * 
-		 * []
-		 * [Two]
-		 * [One, Two]
-		 * [One, Two, Three]
-		 * [Two, Three]
-		 * [Three, Four]
-		 * [Three]
-		 * [Three, Four]
-		 * [Two, Three, Four]
-		 */
+	@Override
+	public String debugInfo() {
+		return String.format("items = %s\nitemToIndex = %s\nindexToItem = %s\n", 
+				items.debugInfo(), itemToIndex.toString(), indexToItem.toString());
 	}
 }

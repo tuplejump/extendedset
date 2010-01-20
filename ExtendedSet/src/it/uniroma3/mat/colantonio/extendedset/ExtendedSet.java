@@ -1,6 +1,8 @@
 /* $Id: ExtendedSet.java 6 2010-01-19 18:21:06Z cocciasik $
  * 
  * (c) 2010 Alessandro Colantonio
+ * <mailto:colanton@mat.uniroma3.it>
+ * <http://ricerca.mat.uniroma3.it/users/colanton>
  *  
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by 
@@ -30,16 +32,14 @@ import java.util.ListIterator;
 import java.util.SortedSet;
 
 /**
- * An implementation {@link SortedSet} with fast intersection/union/difference
- * and other operations
+ * An implementation of {@link SortedSet} with fast
+ * intersection/union/difference and other set operations.
  * 
  * @author Alessandro Colantonio
- * @author <a href="mailto:colanton@mat.uniroma3.it">colanton@mat.uniroma3.it</a>
- * @author <a href="http://ricerca.mat.uniroma3.it/users/colanton">http://ricerca.mat.uniroma3.it/users/colanton</a>
- * 
  * @version 1.0
  * 
- * @param <T> the type of elements maintained by this set
+ * @param <T>
+ *            the type of elements maintained by this set
  * 
  * @see ConciseSet
  * @see FastSet
@@ -53,18 +53,18 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	 * In particular:
 	 * <ul>
 	 * <li> {@link #getIntersectionCount()} counts the calls to
-	 * {@link ExtendedSet#getIntersection(ExtendedSet)}
+	 * {@link ExtendedSet#getIntersection(Collection)}
 	 * <li> {@link #getUnionCount()} counts the calls to
-	 * {@link ExtendedSet#getUnion(ExtendedSet)}
+	 * {@link ExtendedSet#getUnion(Collection)}
 	 * <li> {@link #getSymmetricDifferenceCount()} counts the calls to
-	 * {@link ExtendedSet#getSymmetricDifference(ExtendedSet)}
+	 * {@link ExtendedSet#getSymmetricDifference(Collection)}
 	 * <li> {@link #getDifferenceCount()} counts the calls to
-	 * {@link ExtendedSet#getDifference(ExtendedSet)}
+	 * {@link ExtendedSet#getDifference(Collection)}
 	 * <li> {@link #getSizeCheckCount()} counts the calls to
-	 * {@link ExtendedSet#intersectionSize(ExtendedSet)},
-	 * {@link ExtendedSet#unionSize(ExtendedSet)},
-	 * {@link ExtendedSet#symmetricDifferenceSize(ExtendedSet)},
-	 * {@link ExtendedSet#differenceSize(ExtendedSet)}
+	 * {@link ExtendedSet#intersectionSize(Collection)},
+	 * {@link ExtendedSet#unionSize(Collection)},
+	 * {@link ExtendedSet#symmetricDifferenceSize(Collection)},
+	 * {@link ExtendedSet#differenceSize(Collection)}
 	 * <li> {@link #getEqualsCount()} counts the calls to
 	 * {@link ExtendedSet#equals(Object)}
 	 * </ul>
@@ -81,7 +81,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		private static long equalsCount = 0;
 
 		/**
-		 * Reset all counters
+		 * Resets all counters
 		 */
 		public static void resetAll() {
 			intersectionCount = 0;
@@ -93,91 +93,91 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		}
 
 		/**
-		 * Reset the counter of intersections
+		 * Resets the counter of intersections
 		 */
 		public static void resetIntersectionCount() {
 			intersectionCount = 0;
 		}
 
 		/**
-		 * Reset the counter of unions
+		 * Resets the counter of unions
 		 */
 		public static void resetUnionCount() {
 			unionCount = 0;
 		}
 
 		/**
-		 * Reset the counter of symmetric differences
+		 * Resets the counter of symmetric differences
 		 */
 		public static void resetSymmetricDifferenceCount() {
 			symmetricDifferenceCount = 0;
 		}
 
 		/**
-		 * Reset the counter of differences
+		 * Resets the counter of differences
 		 */
 		public static void resetDifferenceCount() {
 			differenceCount = 0;
 		}
 
 		/**
-		 * Reset the counter of size checks
+		 * Resets the counter of size checks
 		 */
 		public static void resetSizeCheckCount() {
 			sizeCheckCount = 0;
 		}
 
 		/**
-		 * Reset the counter of equals
+		 * Resets the counter of equals
 		 */
 		public static void resetEqualsCount() {
 			equalsCount = 0;
 		}
 
 		/**
-		 * Increase the counter of intersections
+		 * Increases the counter of intersections
 		 */
 		public static void increaseIntersectionCount() {
 			intersectionCount++;
 		}
 
 		/**
-		 * Increase the counter of unions
+		 * Increases the counter of unions
 		 */
 		public static void increaseUnionCount() {
 			unionCount++;
 		}
 
 		/**
-		 * Increase the counter of symmetric differences
+		 * Increases the counter of symmetric differences
 		 */
 		public static void increaseSymmetricDifferenceCount() {
 			symmetricDifferenceCount++;
 		}
 
 		/**
-		 * Increase the counter of differences
+		 * Increases the counter of differences
 		 */
 		public static void increaseDifferenceCount() {
 			differenceCount++;
 		}
 
 		/**
-		 * Increase the counter of size checks
+		 * Increases the counter of size checks
 		 */
 		public static void increaseSizeCheckCount() {
 			sizeCheckCount++;
 		}
 
 		/**
-		 * Increase the counter of equals
+		 * Increases the counter of equals
 		 */
 		public static void increaseEqualsCount() {
 			equalsCount++;
 		}
 
 		/**
-		 * Get the counter of intersections
+		 * Gets the counter of intersections
 		 * 
 		 * @return the counter
 		 */
@@ -186,7 +186,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		}
 
 		/**
-		 * Get the counter of unions
+		 * Gets the counter of unions
 		 * 
 		 * @return the counter
 		 */
@@ -195,7 +195,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		}
 
 		/**
-		 * Get the counter of symmetric differences
+		 * Gets the counter of symmetric differences
 		 * 
 		 * @return the counter
 		 */
@@ -204,7 +204,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		}
 
 		/**
-		 * Get the counter of differences
+		 * Gets the counter of differences
 		 * 
 		 * @return the counter
 		 */
@@ -213,7 +213,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		}
 
 		/**
-		 * Get the counter of size checks
+		 * Gets the counter of size checks
 		 * 
 		 * @return the counter
 		 */
@@ -222,7 +222,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		}
 
 		/**
-		 * Get the counter of equals
+		 * Gets the counter of equals
 		 * 
 		 * @return the counter
 		 */
@@ -231,9 +231,9 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		}
 
 		/**
-		 * Generate summary information string
+		 * Gets summary information
 		 * 
-		 * @return summary information string
+		 * @return the summary information string
 		 */
 		public static String getSummary() {
 			final StringBuilder s = new StringBuilder();
@@ -251,16 +251,16 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	}
 
 	/**
-	 * Generate the intersection set (bitwise <tt>and</tt>)
+	 * Generates the intersection set (bitwise <tt>and</tt>)
 	 * 
 	 * @param other
-	 *            {@link ExtendedSet} instance that represent the right
+	 *            {@link ExtendedSet} instance that represents the right
 	 *            operand
-	 * @return result of the operation
+	 * @return the result of the operation
 	 * 
 	 * @see #retainAll(java.util.Collection)
 	 */
-	public ExtendedSet<T> getIntersection(ExtendedSet<T> other) {
+	public ExtendedSet<T> getIntersection(Collection<? extends T> other) {
 		Statistics.increaseIntersectionCount();
 		ExtendedSet<T> clone = clone();
 		clone.retainAll(other);
@@ -268,16 +268,16 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	}
 
 	/**
-	 * Generate the union set (bitwise <tt>or</tt>)
+	 * Generates the union set (bitwise <tt>or</tt>)
 	 * 
 	 * @param other
-	 *            {@link ExtendedSet} instance that represent the right
+	 *            {@link ExtendedSet} instance that represents the right
 	 *            operand
-	 * @return result of the operation
+	 * @return the result of the operation
 	 * 
 	 * @see #addAll(java.util.Collection)
 	 */
-	public ExtendedSet<T> getUnion(ExtendedSet<T> other) {
+	public ExtendedSet<T> getUnion(Collection<? extends T> other) {
 		Statistics.increaseUnionCount();
 		ExtendedSet<T> clone = clone();
 		clone.addAll(other);
@@ -285,16 +285,16 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	}
 
 	/**
-	 * Generate the difference set (bitwise <tt>and not</tt>)
+	 * Generates the difference set (bitwise <tt>and not</tt>)
 	 * 
 	 * @param other
-	 *            {@link ExtendedSet} instance that represent the right
+	 *            {@link ExtendedSet} instance that represents the right
 	 *            operand
-	 * @return result of the operation
+	 * @return the result of the operation
 	 * 
 	 * @see #removeAll(java.util.Collection)
 	 */
-	public ExtendedSet<T> getDifference(ExtendedSet<T> other) {
+	public ExtendedSet<T> getDifference(Collection<? extends T> other) {
 		Statistics.increaseDifferenceCount();
 		ExtendedSet<T> clone = clone();
 		clone.removeAll(other);
@@ -302,27 +302,27 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	}
 
 	/**
-	 * Generate the symmetric difference set (bitwise <tt>xor</tt>)
+	 * Generates the symmetric difference set (bitwise <tt>xor</tt>)
 	 * 
 	 * @param other
-	 *            {@link ExtendedSet} instance that represent the right
+	 *            {@link ExtendedSet} instance that represents the right
 	 *            operand
-	 * @return result of the operation
+	 * @return the result of the operation
 	 */
-	public ExtendedSet<T> getSymmetricDifference(ExtendedSet<T> other) {
+	public ExtendedSet<T> getSymmetricDifference(Collection<? extends T> other) {
 		Statistics.increaseSymmetricDifferenceCount();
-		ExtendedSet<T> res = this.getDifference(other);
-		res.addAll(other.getDifference(this));
+		ExtendedSet<T> res = this.getUnion(other);
+		res.removeAll(this.getIntersection(other));
 		return res;
 	}
 
 	/**
-	 * Generate the complement set (bitwise <tt>not</tt>)
+	 * Generates the complement set (bitwise <tt>not</tt>)
 	 * <p>
 	 * The returned set is represented by all the elements strictly less than
 	 * {@link #last()} that do not exist in the current set.
 	 * 
-	 * @return complement set
+	 * @return the complement set
 	 * 
 	 * @see ExtendedSet#complement()
 	 */
@@ -333,7 +333,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	}
 
 	/**
-	 * Complement the current set (bitwise <tt>not</tt>)
+	 * Complements the current set (bitwise <tt>not</tt>)
 	 * 
 	 * @see ExtendedSet#getComplement()
 	 */
@@ -346,10 +346,10 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	 * 
 	 * @param other
 	 *            {@link ExtendedSet} to intersect with
-	 * @return boolean indicating whether this {@link ExtendedSet} intersects
+	 * @return a boolean indicating whether this {@link ExtendedSet} intersects
 	 *         the specified {@link ExtendedSet}.
 	 */
-	public boolean containsAny(ExtendedSet<T> other) {
+	public boolean containsAny(Collection<? extends T> other) {
 		return intersectionSize(other) > 0;
 	}
 
@@ -363,94 +363,94 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	 * @param minElements
 	 *            minimum number of elements to be contained within this
 	 *            {@link ExtendedSet} instance
-	 * @return boolean indicating whether this {@link ExtendedSet} intersects
+	 * @return a boolean indicating whether this {@link ExtendedSet} intersects
 	 *         the specified {@link ExtendedSet}.
 	 * @throws IllegalArgumentException
 	 *             if <code>minElements &lt; 1</code>
 	 */
-	public boolean containsAtLeast(ExtendedSet<T> other, int minElements) {
+	public boolean containsAtLeast(Collection<? extends T> other, int minElements) {
 		if (minElements < 1)
 			throw new IllegalArgumentException();
 		return intersectionSize(other) >= minElements;
 	}
 
 	/**
-	 * Compute the intersection set size.
+	 * Computes the intersection set size.
 	 * <p>
-	 * This is faster than calling {@link #getIntersection(ExtendedSet)} and
+	 * This is faster than calling {@link #getIntersection(Collection)} and
 	 * then {@link #size()}
 	 * 
 	 * @param other
 	 *            {@link ExtendedSet} instance that represent the right
 	 *            operand
-	 * @return result of the operation
+	 * @return the size
 	 */
-	public int intersectionSize(ExtendedSet<T> other) {
+	public int intersectionSize(Collection<? extends T> other) {
 		Statistics.increaseIntersectionCount();
 		return this.getIntersection(other).size();
 	}
 
 	/**
-	 * Compute the union set size.
+	 * Computes the union set size.
 	 * <p>
-	 * This is faster than calling {@link #getUnion(ExtendedSet)} and then
+	 * This is faster than calling {@link #getUnion(Collection)} and then
 	 * {@link #size()}
 	 * 
 	 * @param other
 	 *            {@link ExtendedSet} instance that represent the right
 	 *            operand
-	 * @return result of the operation
+	 * @return the size
 	 */
-	public int unionSize(ExtendedSet<T> other) {
+	public int unionSize(Collection<? extends T> other) {
 		return this.size() + other.size() - intersectionSize(other);
 	}
 
 	/**
-	 * Compute the symmetric difference set size.
+	 * Computes the symmetric difference set size.
 	 * <p>
-	 * This is faster than calling {@link #getSymmetricDifference(ExtendedSet)} and
+	 * This is faster than calling {@link #getSymmetricDifference(Collection)} and
 	 * then {@link #size()}
 	 * 
 	 * @param other
 	 *            {@link ExtendedSet} instance that represent the right
 	 *            operand
-	 * @return result of the operation
+	 * @return the size
 	 */
-	public int symmetricDifferenceSize(ExtendedSet<T> other) {
+	public int symmetricDifferenceSize(Collection<? extends T> other) {
 		return this.size() + other.size() - 2 * intersectionSize(other);
 	}
 
 	/**
-	 * Compute the difference set size.
+	 * Computes the difference set size.
 	 * <p>
-	 * This is faster than calling {@link #getDifference(ExtendedSet)} and
+	 * This is faster than calling {@link #getDifference(Collection)} and
 	 * then {@link #size()}
 	 * 
 	 * @param other
 	 *            {@link ExtendedSet} instance that represent the right
 	 *            operand
-	 * @return result of the operation
+	 * @return the size
 	 */
-	public int differenceSize(ExtendedSet<T> other) {
+	public int differenceSize(Collection<? extends T> other) {
 		return this.size() - intersectionSize(other);
 	}
 
 	/**
-	 * Compute the complement set size.
+	 * Computes the complement set size.
 	 * <p>
 	 * This is faster than calling {@link #getComplement()} and then
 	 * {@link #size()}
 	 * 
-	 * @return result of the operation
+	 * @return the size
 	 */
 	public int complementSize() {
 		return getComplement().size();
 	}
 
 	/**
-	 * Generate an empty set object
+	 * Generates an empty set
 	 * 
-	 * @return new empty set
+	 * @return the empty set
 	 */
 	public abstract ExtendedSet<T> emptySet();
 
@@ -492,23 +492,23 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	}
 
 	/**
-	 * Compute the compression factor of the bitmap representation (1 means not
+	 * Computes the compression factor of the bitmap representation (1 means not
 	 * compressed, similar to {@link BitSet})
 	 * 
-	 * @return compression factor 
+	 * @return the compression factor 
 	 */ 
 	public abstract double bitmapCompressionRatio();
 
 	/**
-	 * Compute the compression factor of the integer collection (1 means not
+	 * Computes the compression factor of the integer collection (1 means not
 	 * compressed, similar to {@link ArrayList})
 	 * 
-	 * @return compression factor 
+	 * @return the compression factor 
 	 */
 	public abstract double collectionCompressionRatio();
 
 	/**
-	 * Descending order iterator
+	 * Get the descending order iterator
 	 * 
 	 * @return descending iterator
 	 */
@@ -676,14 +676,14 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	}
 
 	/**
-	 * Compute the sum of binomial coefficients from
+	 * Computes the sum of binomial coefficients ranging from
 	 * <code>(n choose kMax)</code> to <code>(n choose kMin)</code> using
-	 * dynamic programming
+	 * <i>dynamic programming</i>
 	 * 
 	 * @param n
 	 * @param kMax
 	 * @param kMin
-	 * @return
+	 * @return the sum of binomial coefficients
 	 */
 	private static int binomialSum(int n, int kMax, int kMin) {
 		// illegal parameters
@@ -710,7 +710,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	}
 
 	/**
-	 * Add to the current set the last item of the given set
+	 * Adds to the current set the last item of the given set
 	 * 
 	 * @param set
 	 *            set where to pick the last item
@@ -722,7 +722,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	}
 
 	/**
-	 * Add to the current set the first item of the given set
+	 * Adds to the current set the first item of the given set
 	 * 
 	 * @param set
 	 *            set where to pick the first item
@@ -734,7 +734,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	}
 
 	/**
-	 * Remove to the current set the last item of the given set
+	 * Removes to the current set the last item of the given set
 	 * 
 	 * @param set
 	 *            set where to pick the last item
@@ -746,7 +746,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	}
 
 	/**
-	 * Remove to the current set the first item of the given set
+	 * Removes to the current set the first item of the given set
 	 * 
 	 * @param set
 	 *            set where to pick the first item
@@ -757,6 +757,35 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		return remove(set.first());
 	}
 
+	/**
+	 * Prints debug info
+	 * 
+	 * @return a string that describes the internal representation of the instance
+	 */
+	public abstract String debugInfo();
+
+	/**
+	 * {@inheritDoc}
+	 * <p>
+	 * <b>NOTE:</b> it supposes that items of type <code>T</code> implements
+	 * the interface {@link Comparable}... If this is not the case, override
+	 * the method (similar to {@link IndexedSet#compareTo(ExtendedSet)})
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public int compareTo(ExtendedSet<T> o) {
+		Iterator<T> thisIterator = this.descendingIterator();
+		Iterator<T> otherIterator = o.descendingIterator();
+		while (thisIterator.hasNext() && otherIterator.hasNext()) {
+			T thisItem = thisIterator.next();
+			T otherItem = otherIterator.next();
+			int res = ((Comparable) thisItem).compareTo(otherItem);
+			if (res != 0)
+				return res;
+		}
+		return thisIterator.hasNext() ? 1 : (otherIterator.hasNext() ? -1 : 0);
+	}
+	
 	/**
 	 * Used by {@link ExtendedSet#headSet(T)},
 	 * {@link ExtendedSet#tailSet(T)} and {@link ExtendedSet#subSet(T, T)}
@@ -777,7 +806,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		private final ExtendedSet<T> mask;
 
 		/**
-		 * Create the subset
+		 * Creates the subset
 		 * 
 		 * @param min
 		 *            minimun allowed element (<i>included</i>)
@@ -819,6 +848,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		 */
 		private final Comparator<? super T> localComparator;
 
+		// initialize the comparator
 		{
 			final Comparator<? super T> c = ExtendedSet.this.comparator();
 			if (c != null) {
@@ -835,7 +865,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		}
 
 		/**
-		 * Check if a given set is completely contained within {@link #min} and
+		 * Checks if a given set is completely contained within {@link #min} and
 		 * {@link #max}
 		 * 
 		 * @param other
@@ -850,7 +880,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		}
 
 		/**
-		 * Check if a given element is completely contained within {@link #min}
+		 * Checks if a given element is completely contained within {@link #min}
 		 * and {@link #max}
 		 * 
 		 * @param e
@@ -864,7 +894,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		}
 
 		/**
-		 * Generate a set that represent a subview of the given set, namely
+		 * Generates a set that represent a subview of the given set, namely
 		 * elements from {@link #min} (included) to {@link #max} (excluded)
 		 * 
 		 * @param toFilter
@@ -880,7 +910,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		}
 
 		/**
-		 * Clear the bit of the given set according to the mask
+		 * Clears the bits of the given set according to the mask
 		 * 
 		 * @param other
 		 *            set to clear
@@ -1033,6 +1063,14 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		/**
 		 * {@inheritDoc}
 		 */
+		@Override
+		public Iterator<T> descendingIterator() {
+			return filterByMask(ExtendedSet.this).descendingIterator();
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
 		@SuppressWarnings("unchecked")
 		@Override
 		public boolean remove(Object o) {
@@ -1052,8 +1090,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 			if (c.isEmpty())
 				return false;
 			if (c instanceof ExtendedSet) {
-				return ExtendedSet.this
-						.removeAll(filterByMask((ExtendedSet) c));
+				return ExtendedSet.this.removeAll(filterByMask((ExtendedSet) c));
 			} 
 			
 			return super.removeAll(c);
@@ -1097,8 +1134,6 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		 */
 		@Override
 		public boolean equals(Object o) {
-			if (completelyContains(ExtendedSet.this))
-				return ExtendedSet.this.equals(o);
 			return filterByMask(ExtendedSet.this).equals(o);
 		}
 
@@ -1107,8 +1142,6 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		 */
 		@Override
 		public int hashCode() {
-			if (completelyContains(ExtendedSet.this))
-				return ExtendedSet.this.hashCode();
 			return filterByMask(ExtendedSet.this).hashCode();
 		}
 
@@ -1117,8 +1150,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		 */
 		@Override
 		public int compareTo(ExtendedSet<T> o) {
-			//TODO: sistemare!!!
-			return ExtendedSet.this.compareTo(o);
+			return filterByMask(ExtendedSet.this).compareTo(o);
 		}
 		
 		/**
@@ -1158,7 +1190,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		 * <code>max</code> bounds
 		 */
 		@Override
-		public ExtendedSet<T> getDifference(ExtendedSet<T> other) {
+		public ExtendedSet<T> getDifference(Collection<? extends T> other) {
 			return filterByMask(ExtendedSet.this.getDifference(other));
 		}
 
@@ -1182,7 +1214,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		 * <code>max</code> bounds
 		 */
 		@Override
-		public ExtendedSet<T> getSymmetricDifference(ExtendedSet<T> other) {
+		public ExtendedSet<T> getSymmetricDifference(Collection<? extends T> other) {
 			return filterByMask(ExtendedSet.this.getSymmetricDifference(other));
 		}
 
@@ -1194,7 +1226,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		 * <code>max</code> bounds
 		 */
 		@Override
-		public ExtendedSet<T> getIntersection(ExtendedSet<T> other) {
+		public ExtendedSet<T> getIntersection(Collection<? extends T> other) {
 			return filterByMask(ExtendedSet.this.getIntersection(other));
 		}
 
@@ -1206,16 +1238,19 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		 * <code>max</code> bounds
 		 */
 		@Override
-		public ExtendedSet<T> getUnion(ExtendedSet<T> other) {
+		public ExtendedSet<T> getUnion(Collection<? extends T> other) {
 			return filterByMask(ExtendedSet.this.getUnion(other));
 		}
 
 		/**
 		 * {@inheritDoc}
 		 */
+		@SuppressWarnings("unchecked")
 		@Override
-		public int intersectionSize(ExtendedSet<T> other) {
-			return ExtendedSet.this.intersectionSize(filterByMask(other));
+		public int intersectionSize(Collection<? extends T> other) {
+			if (other instanceof ExtendedSet)
+				return ExtendedSet.this.intersectionSize(filterByMask((ExtendedSet) other));
+			return ExtendedSet.this.getIntersection(other).size();
 		}
 
 		/**
@@ -1232,6 +1267,15 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		@Override
 		public double collectionCompressionRatio() {
 			return filterByMask(ExtendedSet.this).collectionCompressionRatio();
+		}
+		
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public String debugInfo() {
+			return String.format("min = %s, max = %s\nmask = %s\nelements = %s", 
+					min.toString(), max.toString(), mask.debugInfo(), ExtendedSet.this.toString());
 		}
 	}
 }

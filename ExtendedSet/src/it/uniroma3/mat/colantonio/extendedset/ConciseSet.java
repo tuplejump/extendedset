@@ -1,6 +1,8 @@
 /* $Id: ConciseSet.java 6 2010-01-19 18:21:06Z cocciasik $
  * 
  * (c) 2010 Alessandro Colantonio
+ * <mailto:colanton@mat.uniroma3.it>
+ * <http://ricerca.mat.uniroma3.it/users/colanton>
  *  
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by 
@@ -29,25 +31,26 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
-import java.util.Random;
 import java.util.SortedSet;
-import java.util.TreeSet;
 
 /**
- * COncISE: <i>COmpressed Integer SEt</i>
+ * CONCISE: <i>COmpressed 'N' Composable Integer SEt</i>
  * <p>
- * {@link SortedSet} of integers, internally represented by compressed bitmaps
- * though a RLE (Run-Length Encoding) compression algorithm.
+ * This class is a {@link SortedSet} of integers that are internally represented
+ * by compressed bitmaps though a RLE (Run-Length Encoding) compression
+ * algorithm.
  * <p>
- * Benefits: When compared to WAH, this approach avoids that sparse sets
- * generates 1 literal followed by 1 sequence word. In this way, we have at most
- * 1 word for each item to represent + 1 word for the first 0 sequence---that
- * is, the memory footprint required by a representation of the elements through
- * an array such as int[#elements] + 1. In WAH, this requires an array of size 2 *
- * #elements.
+ * The RLE compression method is similar to WAH. However, when compared to WAH,
+ * this approach avoids that sparse sets generates sequences of one literal word
+ * followed by one sequence word. In this way, we have at most one word for each
+ * item to represent plus one word for the first 0's sequence. Put another way,
+ * the memory footprint required by a representation of <code>n</code>
+ * elements is at most the same as an array of <code>n + 1</code> elements. In
+ * WAH, this requires an array of size <code>2 * n</code> elements.
  * <p>
- * The returned iterator is <i>fail-fast</i>: if the collection is structurally
- * modified at any time after the iterator is created, the iterator will throw a
+ * Notice that the returned iterator is <i>fail-fast</i>, similar to most
+ * {@link Collection}-derived classes. If the set is structurally modified at
+ * any time after the iterator is created, the iterator will throw a
  * {@link ConcurrentModificationException}. Thus, in the face of concurrent
  * modification, the iterator fails quickly and cleanly, rather than risking
  * arbitrary, non-deterministic behavior at an undetermined time in the future.
@@ -57,9 +60,6 @@ import java.util.TreeSet;
  * iterators should be used only to detect bugs.</i>
  * 
  * @author Alessandro Colantonio
- * @author <a href="mailto:colanton@mat.uniroma3.it">colanton@mat.uniroma3.it</a>
- * @author <a href="http://ricerca.mat.uniroma3.it/users/colanton">http://ricerca.mat.uniroma3.it/users/colanton</a>
- * 
  * @version 1.0
  * 
  * @see ExtendedSet
@@ -110,32 +110,30 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	 * User for <i>fail-fast</i> iterator. It counts the number of operations
 	 * that <i>do</i> modify {@link #words}
 	 */
-	private int modCount = 0;
+	protected int modCount = 0;
 
 	/**
-	 * Highest representable bit within a literal.
+	 * Highest representable integer.
 	 * <p>
-	 * The number of bits required to represent the longest sequence of 0's or
-	 * 1's is 27, namely
-	 * <tt>ceil(log<sub>2</sub>((Integer.MAX_VALUE - 31) / 31)) = 27</tt>.
+	 * Its value is computed as follows. The number of bits required to
+	 * represent the longest sequence of 0's or 1's is
+	 * <tt>ceil(log<sub>2</sub>(({@link Integer#MAX_VALUE} - 31) / 31)) = 27</tt>.
 	 * Indeed, at least one literal exists, and the other bits may all be 0's or
-	 * 1's, that is <tt>Integer.MAX_VALUE - 31</tt>
-	 * 
-	 * If we use:
+	 * 1's, that is <tt>{@link Integer#MAX_VALUE} - 31</tt>. If we use:
 	 * <ul>
-	 * <li> 2 bits for the sequence type;
+	 * <li> 2 bits for the sequence type; 
 	 * <li> 5 bits to indicate which bit is set;
 	 * </ul>
 	 * then <tt>32 - 5 - 2 = 25</tt> is the number of available bits to
 	 * represent the maximum sequence of 0's and 1's. Thus, the maximal bit that
 	 * can be set is represented by a number of 0's equals to
 	 * <tt>31 * (1 << 25)</tt>, followed by a literal with 30 0's and the
-	 * MSB (31st bit) equal to 1
+	 * MSB (31<sup>st</sup> bit) equal to 1
 	 */
 	public final static int MAX_ALLOWED_SET_BIT = 31 * (1 << 25) + 30;
 
 	/** 
-	 * Lowest representable bit within a literal.
+	 * Lowest representable integer.
 	 */
 	public final static int MIN_ALLOWED_SET_BIT = 0;
 	
@@ -165,15 +163,15 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	private final static int ALL_ZEROS_WITHOUT_MSB = 0x00000000;
 
 	/**
-	 * Create an empty bit-string
+	 * Creates an empty integer set
 	 */
 	public ConciseSet() {
 		clear();
 	}
 
 	/**
-	 * Create a new bit-string and populate it from an existing integer
-	 * collection
+	 * Creates an empty {@link ConciseSet} instance and then populates it from
+	 * an existing integer collection
 	 * 
 	 * @param c
 	 */
@@ -194,7 +192,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	}
 
 	/**
-	 * Check if a word is a literal one
+	 * Checks whether a word is a literal one
 	 * 
 	 * @param word
 	 *            word to check
@@ -206,7 +204,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	}
 
 	/**
-	 * Check if a word contains a sequence of 1's
+	 * Checks whether a word contains a sequence of 1's
 	 * 
 	 * @param word
 	 *            word to check
@@ -218,7 +216,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	}
 
 	/**
-	 * Check if a word contains a sequence of 0's
+	 * Checks whether a word contains a sequence of 0's
 	 * 
 	 * @param word
 	 *            word to check
@@ -230,8 +228,8 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	}
 
 	/**
-	 * Check if a word contains a sequence of 0's with no set bit, or 1's with
-	 * no unset bit
+	 * Checks whether a word contains a sequence of 0's with no set bit, or 1's
+	 * with no unset bit
 	 * 
 	 * @param word
 	 *            word to check
@@ -244,11 +242,11 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	}
 	
 	/**
-	 * Get the number of blocks of 1's or 0's stored in a sequence word
+	 * Gets the number of blocks of 1's or 0's stored in a sequence word
 	 * 
 	 * @param word
 	 *            word to check
-	 * @return number of blocks that follow the first block of 31 bits
+	 * @return the number of blocks that follow the first block of 31 bits
 	 */
 	private static int getSequenceCount(int word) {
 		// get the 25 LSB bits
@@ -256,7 +254,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	}
 
 	/**
-	 * Clear the (un)set bit in a sequence
+	 * Clears the (un)set bit in a sequence
 	 * 
 	 * @param word
 	 *            word to check
@@ -269,8 +267,8 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	}
 	
 	/**
-	 * Get a literal word that represents the first 31 bits of the given the
-	 * word.
+	 * Gets the literal word that represents the first 31 bits of the given the
+	 * word (i.e. the first block of a sequence word, or the bits of a literal word).
 	 * <p>
 	 * If the word is a literal, it returns the unmodified word. In case of a
 	 * sequence, it returns a literal that represents the first 31 bits of the
@@ -295,7 +293,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	}
 
 	/**
-	 * Generate a sequence word.
+	 * Generates a sequence word.
 	 * 
 	 * @param bitPosition
 	 *            position of the (un)set bit (0 = it does not exist, 1 = LSB,
@@ -320,18 +318,18 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	}
 	
 	/**
-	 * Number of set bit within the literal word
+	 * Gets the number of set bits within the literal word
 	 * 
 	 * @param word
 	 *            literal word
-	 * @return number of set bit within the literal word
+	 * @return the number of set bits within the literal word
 	 */
 	private static int literalBitCount(int word) {
 		return Integer.bitCount(word) - 1;
 	}
 
 	/**
-	 * Get the bits contained within the literal word
+	 * Gets the bits contained within the literal word
 	 * 
 	 * @param word literal word
 	 * @return the literal word with the most significant bit cleared
@@ -341,7 +339,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	}
 	
 	/**
-	 * Index of the last word in {@code #words}
+	 * Gets the index of the last word in {@code #words}
 	 * 
 	 * @return the index to use with {@link #words} to get the last word
 	 */
@@ -350,22 +348,27 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	}
 	
 	/**
-	 * Set the bit at the given absolute position within the uncompressed bit string.
+	 * Sets the bit at the given absolute position within the uncompressed bit
+	 * string. The bit <i>must</i> be appendable, that is it must represent an
+	 * integer that is strictly greater than the maximum integer in the set.
+	 * Note that the parameter range check is performed by the public method
+	 * {@link #add(Integer)} and <i>not</i> in this method.
 	 * <p>
-	 * <b>NOTE:</b> The parameter range check is performed by {@link #add(Integer)}.
-	 * <p>
-	 * <b>NOTE:</b> This method assumes that words[lastWordIndex()] <i>must</i> be:
+	 * <b>NOTE:</b> This method assumes that the last element of {@link #words}
+	 * (i.e. <code>words[lastWordIndex()]</code>) <i>must</i> be one of the
+	 * following:
 	 * <ul>
-	 * <li> a literal word with some bit set;
-	 * <li> a one sequence.
+	 * <li> a literal word with <i>at least one</i> set bit;
+	 * <li> a sequence of ones.
 	 * </ul>
-	 * Hence, the last word should <i>not</i> be:
+	 * Hence, the last word in {@link #words} <i>cannot</i> be:
 	 * <ul>
 	 * <li> a literal word containing only zeros;
-	 * <li> a zero sequence.
+	 * <li> a sequence of zeros.
 	 * </ul>
 	 * 
-	 * @param newSetBit absolute position of the bit to set
+	 * @param newSetBit
+	 *            the absolute position of the bit to set (i.e., the integer to add) 
 	 */
 	private void append(int newSetBit) {
 		// position of the next bit to set within the current literal
@@ -410,15 +413,15 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		maxSetBit = newSetBit;
 		size++;
 
-		// if we have appended the 31th bit within the literal, it is possible that
-		// we generated a sequence of 1's --> try to generate a one sequence
-		if (lastSetBitOfLastWord == (MAX_LITERAL_LENGHT - 1) && compact(lastWordIndex())) {
+		// if we have appended the 31st bit within the literal, it is possible that
+		// we generated a sequence of 1's --> try to generate the sequence
+		if (lastSetBitOfLastWord == (MAX_LITERAL_LENGHT - 1) && compact(lastWordIndex()))
 			resizeWords(-1);
-		}
 	}
 
 	/**
-	 * Change the length of {@link #words}
+	 * Changes the length of {@link #words}, by appending "empty" words or by
+	 * discarding words at the end.
 	 * 
 	 * @param wordsToAdd
 	 *            number of words to add/remove. If it is greater than zero, we
@@ -444,13 +447,13 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	}
 
 	/**
-	 * Iterate over words.
+	 * Iterates over words, from LSB to MSB.
 	 * <p>
 	 * It iterates over the <i>literals</i> represented by
-	 * {@link ConciseSet#words}. In particular, when a word is a
-	 * sequence, it "expands" the sequence to all the represented literals. It
-	 * also maintains a modified copy of the sequence that stores the number of
-	 * the remaining blocks to iterate.
+	 * {@link ConciseSet#words}. In particular, when a word is a sequence, it
+	 * "expands" the sequence to all the represented literals. It also maintains
+	 * a modified copy of the sequence that stores the number of the remaining
+	 * blocks to iterate.
 	 */
 	private class WordIterator {
 		private int currentWordIndex;	// index of the current word
@@ -458,6 +461,9 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		private int currentLiteral;		// literal contained within the current word
 		private int remainingWords;		// remaining words from "index" to the end
 		
+		/*
+		 * Initialize data 
+		 */
 		{
 			if (words != null) {
 				currentWordIndex = 0;
@@ -465,6 +471,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 				currentLiteral = getLiteral(currentWordCopy);
 				remainingWords = words.length - 1;
 			} else {
+				// empty set
 				currentWordIndex = 0;
 				currentWordCopy = 0;
 				currentLiteral = 0;
@@ -473,7 +480,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		}
 		
 		/**
-		 * Check whether other literals to analyze exist
+		 * Checks whether other literals to analyze exist
 		 * 
 		 * @return <code>true</code> if {@link #currentWordIndex} is out of
 		 *         the bounds of {@link #words}
@@ -483,7 +490,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		}
 
 		/**
-		 * Check whether other literals to analyze exist
+		 * Checks whether other literals to analyze exist
 		 * 
 		 * @return <code>true</code> if there are literals to iterate
 		 */
@@ -493,7 +500,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		}
 
 		/**
-		 * Check whether other words to analyze exist
+		 * Checks whether other words to analyze exist
 		 * 
 		 * @return <code>true</code> if there are words to iterate
 		 */
@@ -502,10 +509,10 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		}
 		
 		/**
-		 * Prepare the next literal {@link #currentLiteral}, increase
-		 * {@link #currentWordIndex} and decrease {@link #remainingWords} if
-		 * necessary, and modify the copy of the current word
-		 * {@link #currentWordCopy}
+		 * Prepares the next literal {@link #currentLiteral}, increases
+		 * {@link #currentWordIndex}, decreases {@link #remainingWords} if
+		 * necessary, and modifies the copy of the current word
+		 * {@link #currentWordCopy}.
 		 */ 
 		public final void computeNextLiteral() {
 			if (isLiteral(currentWordCopy) || getSequenceCount(currentWordCopy) == 0) {
@@ -524,7 +531,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	}
 	
 	/**
-	 * When both word iterators currently point to sequence words, decrease
+	 * When both word iterators currently point to sequence words, it decreases
 	 * these sequences by the least sequence count between them and return such
 	 * a count.
 	 * 
@@ -534,33 +541,33 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	 *            second word iterator
 	 * @return the least sequence count between the sequence word pointed by the
 	 *         given iterators
-	 * @see #skipSequence(WordIterator)       
+	 * @see #skipSequence(WordIterator)
 	 */
-	private static int skipTheSmallerSequence(WordIterator itr1, WordIterator itr2) {
-		int leastCount = 0;
+	private static int skipSequence(WordIterator itr1, WordIterator itr2) {
+		int count = 0;
 		if (isSequenceWithNoBits(itr1.currentWordCopy) 
 				&& isSequenceWithNoBits(itr2.currentWordCopy)) {
-			leastCount = Math.min(
+			count = Math.min(
 					getSequenceCount(itr1.currentWordCopy),
 					getSequenceCount(itr2.currentWordCopy));
-			if (leastCount > 0) {
+			if (count > 0) {
 				// increase sequence counter
-				itr1.currentWordCopy -= leastCount;
-				itr2.currentWordCopy -= leastCount;
+				itr1.currentWordCopy -= count;
+				itr2.currentWordCopy -= count;
 			}
 		} 
-		return leastCount;
+		return count;
 	}
 	
 	/**
 	 * When the given word iterator currently points to a sequence word,
-	 * decrease this sequence to 0 and return such a count.
+	 * it decreases this sequence to 0 and return such a count.
 	 * 
 	 * @param itr
 	 *            word iterator
 	 * @return the sequence count of the sequence word pointed by the given
 	 *         iterator
-	 * @see #skipTheSmallerSequence(WordIterator, WordIterator)
+	 * @see #skipSequence(WordIterator, WordIterator)
 	 */
 	private static int skipSequence(WordIterator itr) {
 		int count = 0;
@@ -573,18 +580,17 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	}
 	
 	/**
-	 * Append to {@code #words} the content of {@code #words} from another word
-	 * array
+	 * Appends to {@code #words} the content of another word array
 	 * 
 	 * @param itr
 	 *            iterator that represents the words to copy. The copy will
-	 *            start from the current index of the iterator
+	 *            start from the current index of the iterator.
 	 * @param currentWordIndex
-	 *            index of the destination word array that represent the first
-	 *            word to override
-	 * @return index of the word after the last copied word
+	 *            index of {@code #words} that represent the first word to
+	 *            overwrite
+	 * @return index of the word after the last copied one
 	 */
-	private int copyRemainingWords(WordIterator itr, int currentWordIndex) {
+	private int appendsRemainingWords(WordIterator itr, int currentWordIndex) {
 		if (itr.endOfWords())
 			return currentWordIndex;
 
@@ -612,7 +618,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	 * Possible operations
 	 */
 	private enum Operator {
-		/** bitwise <code>and</code> **/
+		/** bitwise <code>and</code> between literals **/
 		AND {
 			@Override 
 			public int combineLiterals(int literal1, int literal2) {
@@ -625,7 +631,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 			}
 		},
 		
-		/** bitwise <code>or</code> **/
+		/** bitwise <code>or</code> between literals **/
 		OR {
 			@Override 
 			public int combineLiterals(int literal1, int literal2) {
@@ -642,7 +648,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 			}
 		},
 
-		/** bitwise <code>xor</code> **/
+		/** bitwise <code>xor</code> between literals **/
 		XOR {
 			@Override 
 			public int combineLiterals(int literal1, int literal2) {
@@ -659,7 +665,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 			}
 		},
 
-		/** bitwise <code>and-not</code> **/
+		/** bitwise <code>and-not</code> between literals (i.e. <code>X and (not Y)</code>) **/
 		ANDNOT {
 			@Override 
 			public int combineLiterals(int literal1, int literal2) {
@@ -676,7 +682,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		;
 
 		/**
-		 * Perform the operation represented by the enum on the given literals
+		 * Performs the operation on the given literals
 		 * 
 		 * @param literal1
 		 *            left operand
@@ -687,9 +693,10 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		public abstract int combineLiterals(int literal1, int literal2); 
 		
 		/**
-		 * Perform the specified operation when one or both operands are empty set
+		 * Performs the operation when one or both operands are empty set
 		 * <p>
-		 * <b>NOTE: one or both the operands <i>MUST</i> be empty!!!</b>
+		 * <b>NOTE: the caller <i>MUST</i> assure that one or both the operands
+		 * are empty!!!</b>
 		 * 
 		 * @param op1
 		 *            left operand
@@ -701,17 +708,17 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	}
 	
 	/**
-	 * Perform the given operation over the bit-sets
+	 * Performs the given operation over the bit-sets
 	 * 
 	 * @param other
-	 *            {@link ConciseSet} instance that represent the right
+	 *            {@link ConciseSet} instance that represents the right
 	 *            operand
 	 * @param operator
 	 *            operator
-	 * @return result of the operation
+	 * @return the result of the operation
 	 */
-	private ConciseSet performOperation(ExtendedSet<Integer> other, Operator operator) {
-		ConciseSet otherSet = asCompressedIntegerSet(other);
+	private ConciseSet performOperation(Collection<?> other, Operator operator) {
+		ConciseSet otherSet = asConciseSet(other);
 		
 		// non-empty arguments
 		if (this.isEmpty() || other.isEmpty()) 
@@ -732,9 +739,9 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 			if (res.compact(resIndex)) 
 				resIndex--;
 			
-			// Avoid loops when both are sequence and the result is a sequence
+			// avoid loops when both are sequences and the result is a sequence
 			if (!isLiteral(res.words[resIndex])) 
-				res.words[resIndex] += skipTheSmallerSequence(thisItr, otherItr);
+				res.words[resIndex] += skipSequence(thisItr, otherItr);
 
 			// next literal
 			resIndex++;
@@ -751,14 +758,14 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		case OR:
 		case XOR:
 			// NOTE: one iterator does not have more elements!
-			resIndex = res.copyRemainingWords(otherItr, resIndex);
-			resIndex = res.copyRemainingWords(thisItr, resIndex);
+			resIndex = res.appendsRemainingWords(otherItr, resIndex);
+			resIndex = res.appendsRemainingWords(thisItr, resIndex);
 			break;
 		case ANDNOT:
-			resIndex = res.copyRemainingWords(thisItr, resIndex);
+			resIndex = res.appendsRemainingWords(thisItr, resIndex);
 			break;
 		default:
-			throw new UnsupportedOperationException();
+			throw new UnsupportedOperationException("unknown operation");
 		}
 
 		// remove trailing zeros
@@ -782,8 +789,9 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	/**
 	 * {@inheritDoc}
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
-	public int intersectionSize(ExtendedSet<Integer> other) {
+	public int intersectionSize(Collection<? extends Integer> other) {
 		Statistics.increaseSizeCheckCount();
 		
 		// empty arguments
@@ -791,13 +799,13 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 			return 0;
 
 		// single-element intersection
-		if (other.size() == 1)
-			return contains(other.last()) ? 1 : 0;
+		if (other.size() == 1) 
+			return contains(getSingleElement(other)) ? 1 : 0;
 		if (size == 1)
 			return other.contains(maxSetBit) ? 1 : 0;
 		
 		// convert the other set in order to perform a more complex intersection
-		ConciseSet otherSet = asCompressedIntegerSet(other);
+		ConciseSet otherSet = asConciseSet(other);
 		
 		// resulting size
 		int res = 0;
@@ -810,9 +818,9 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 			int curRes = literalBitCount(thisItr.currentLiteral & otherItr.currentLiteral);
 			res += curRes;
 
-			// Avoid loops when both are sequence and the result is a sequence
+			// avoid loops when both are sequences and the result is a sequence
 			if (curRes == ALL_ZEROS_WITHOUT_MSB || curRes == ALL_ONES_WITHOUT_MSB) 
-				res += curRes * skipTheSmallerSequence(thisItr, otherItr);
+				res += curRes * skipSequence(thisItr, otherItr);
 
 			// next literals
 			thisItr.computeNextLiteral();
@@ -834,7 +842,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	}
 
 	/**
-	 * Update {@link #maxSetBit} and {@link #size} according to the content of
+	 * Updates {@link #maxSetBit} and {@link #size} according to the content of
 	 * {@link #words}
 	 */
 	private void updateSizeAndMaxSetBit() {
@@ -844,6 +852,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 			return;
 		}
 
+		// initialize data
 		maxSetBit = -1;
 		size = 0;
 		lastSetBitOfLastWord = MAX_LITERAL_LENGHT - 1;
@@ -874,9 +883,10 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	}
 
 	/**
-	 * Check if the <i>literal</i> contained within {@code #words[wordIndex]}
-	 * can be transformed into a sequence and merged with the sequences of 0's
-	 * and 1's of {@code #words[wordIndex - 1]}
+	 * Checks if the <i>literal</i> contained within {@code #words[wordIndex]}
+	 * can be merged with the previous word sequences (i.e.
+	 * {@code #words[wordIndex - 1]}), hence forming (or updating) a sequence
+	 * of 0's or 1's
 	 * 
 	 * @param wordIndex
 	 *            index of the word to check
@@ -932,17 +942,30 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	}
 
 	/**
+	 * Get the single element of a collection, supposing that it is a singleton!
+	 * 
+	 * @param other collection
+	 * @return single element
+	 */
+	@SuppressWarnings("unchecked")
+	private Integer getSingleElement(Collection<?> other) {
+		return (other instanceof SortedSet) 
+				? ((SortedSet<Integer>) other).last() 
+				: (Integer) other.iterator().next();
+	}
+	
+	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ConciseSet getIntersection(ExtendedSet<Integer> other) {
+	public ConciseSet getIntersection(Collection<? extends Integer> other) {
 		Statistics.increaseIntersectionCount();
 		if (other.size() != 1) 
 			return performOperation(other, Operator.AND);
 		
 		// the result definitely contains at most one set bit, thus it is
 		// faster to directly set such a bit
-		final Integer item = other.last();
+		final Integer item = getSingleElement(other);
 		final ConciseSet cloned = clone();
 		if (cloned.contains(item)) {
 			// if the cloned element already contains the item, return itself
@@ -961,13 +984,13 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ConciseSet getUnion(ExtendedSet<Integer> other) {
+	public ConciseSet getUnion(Collection<? extends Integer> other) {
 		Statistics.increaseUnionCount();
 		if (other.size() != 1) 
 			return performOperation(other, Operator.OR);
 
 		// it is faster to directly set the only set bit
-		final Integer item = other.last();
+		final Integer item = getSingleElement(other);
 		final ConciseSet cloned = clone();
 		cloned.add(item);
 		return cloned;
@@ -977,13 +1000,13 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ConciseSet getDifference(ExtendedSet<Integer> other) {
+	public ConciseSet getDifference(Collection<? extends Integer> other) {
 		Statistics.increaseDifferenceCount();
 		if (other.size() != 1) 
 			return performOperation(other, Operator.ANDNOT);
 
 		// it is faster to directly remove the only set bit
-		final Integer item = other.last();
+		final Integer item = getSingleElement(other);
 		final ConciseSet cloned = clone();
 		cloned.remove(item);
 		return cloned;
@@ -993,13 +1016,13 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ConciseSet getSymmetricDifference(ExtendedSet<Integer> other) {
+	public ConciseSet getSymmetricDifference(Collection<? extends Integer> other) {
 		Statistics.increaseSymmetricDifferenceCount();
 		if (other.size() != 1) 
 			return performOperation(other, Operator.XOR);
 		
 		// it is faster to directly flip the only set bit
-		final Integer item = other.last();
+		final Integer item = getSingleElement(other);
 		final ConciseSet cloned = clone();
 		if (cloned.contains(item)) 
 			cloned.remove(item);
@@ -1026,7 +1049,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		modCount++;
 		
 		if (isEmpty() || maxSetBit == MIN_ALLOWED_SET_BIT) {
-			replaceThis(new ConciseSet());
+			clear();
 			return;
 		}
 		
@@ -1063,7 +1086,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	}
 
 	/**
-	 * Remove trailing zeros
+	 * Removes trailing zeros
 	 * 
 	 * @param wordIndex
 	 *            index of the word of {@link #words} to check
@@ -1091,7 +1114,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	}
 	
 	/**
-	 * Iterator for set bits of {@link ConciseSet}
+	 * Iterator for set bits of {@link ConciseSet}, from LSB to MSB
 	 */
 	private class BitIterator implements Iterator<Integer> {
 		private WordIterator wordItr = new WordIterator();
@@ -1100,7 +1123,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		private int initialModCount = modCount;
 
 		/**
-		 * Get the next bit in the current literal
+		 * Gets the next bit in the current literal
 		 * 
 		 * @return 32 if there is no next bit, otherwise the next set bit within
 		 *         the current literal
@@ -1175,7 +1198,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		@Override
 		public void remove() {
 			// it is difficult to remove the current bit in a sequence word and
-			// contextually keep the word iterator updated!
+			// to contextually keep the word iterator updated!
 			throw new UnsupportedOperationException();
 		}
 	}
@@ -1207,7 +1230,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	 */
 	@Override
 	public Comparator<? super Integer> comparator() {
-		// natural order of integers
+		// natural order of Integer
 		return null;
 	}
 
@@ -1232,7 +1255,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	}
 
 	/**
-	 * Convert a given {@link Collection} instance to a {@link ConciseSet}
+	 * Converts a given {@link Collection} instance into a {@link ConciseSet}
 	 * instance
 	 * 
 	 * @param c
@@ -1241,10 +1264,10 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	 * @return the generated {@link ConciseSet} instance. <b>NOTE:</b> if
 	 *         the parameter is an instance of {@link ConciseSet}, the
 	 *         method returns this instance.
-	 * @see #asCompressedIntegerSet(Object[])
+	 * @see #asConciseSet(Object[])
 	 */
 	@SuppressWarnings("unchecked")
-	public static ConciseSet asCompressedIntegerSet(Collection<?> c) {
+	public static ConciseSet asConciseSet(Collection<?> c) {
 		// useless to convert...
 		if (c instanceof ConciseSet)
 			return (ConciseSet) c;
@@ -1274,23 +1297,23 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	}
 
 	/**
-	 * Convert a given integer element to a {@link ConciseSet}
+	 * Converts a given integer array into a {@link ConciseSet}
 	 * instance
 	 * 
 	 * @param e
-	 *            integer to put within the new instance of
+	 *            integers to put within the new instance of
 	 *            {@link ConciseSet}
 	 * @return new instance of {@link ConciseSet}
-	 * @see #asCompressedIntegerSet(Collection)
+	 * @see #asConciseSet(Collection)
 	 */
-	public static ConciseSet asCompressedIntegerSet(Object... e) {
+	public static ConciseSet asConciseSet(Object... e) {
 		if (e.length == 1) {
 			ConciseSet res = new ConciseSet();
 			res.append((Integer) e[0]);
 			return res;
 		} 
 		
-		return asCompressedIntegerSet(Arrays.asList(e));
+		return asConciseSet(Arrays.asList(e));
 	}
 
 	/**
@@ -1298,7 +1321,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	 * 
 	 * @param other {@link ConciseSet} instance to use to replace the current one
 	 */
-	private void replaceThis(ConciseSet other) {
+	private void becomeAliasOf(ConciseSet other) {
 		if (this == other)
 			return;
 		this.words = other.words;
@@ -1383,7 +1406,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		// become a sequence, thus the "easiest" way to add it is by ORing
 		int sizeBefore = size;
 		Statistics.increaseUnionCount();
-		replaceThis(performOperation(asCompressedIntegerSet(b), Operator.OR));
+		becomeAliasOf(performOperation(asConciseSet(b), Operator.OR));
 		return size != sizeBefore;
 	}
 
@@ -1462,7 +1485,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		// become a sequence, thus the "easiest" way to remove it by ANDNOTing
 		int sizeBefore = size;
 		Statistics.increaseDifferenceCount();
-		replaceThis(performOperation(asCompressedIntegerSet(b), Operator.ANDNOT));
+		becomeAliasOf(performOperation(asConciseSet(b), Operator.ANDNOT));
 		return size != sizeBefore;
 	}
 
@@ -1529,7 +1552,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 			return contains(c.iterator().next());
 		}
 		
-		final ConciseSet otherSet = asCompressedIntegerSet(c);
+		final ConciseSet otherSet = asConciseSet(c);
 		
 		if (otherSet.maxSetBit > maxSetBit)
 			return false;
@@ -1547,7 +1570,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 
 			// Avoid loops when both are sequence and the result is a sequence
 			if (curRes == ALL_ZEROS_WITHOUT_MSB || curRes == ALL_ONES_WITHOUT_MSB) 
-				skipTheSmallerSequence(thisItr, otherItr);
+				skipSequence(thisItr, otherItr);
 
 			// next literals
 			thisItr.computeNextLiteral();
@@ -1562,15 +1585,15 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean containsAny(ExtendedSet<Integer> other) {
+	public boolean containsAny(Collection<? extends Integer> other) {
 		Statistics.increaseSizeCheckCount();
 
 		if (other == null || other.isEmpty() || this.isEmpty())
 			return false;
 		if (other.size() == 1)
-			return contains(other.last());
+			return contains(getSingleElement(other));
 		
-		final ConciseSet otherSet = asCompressedIntegerSet(other);
+		final ConciseSet otherSet = asConciseSet(other);
 		
 		// scan "this" and "other"
 		WordIterator thisItr = this.new WordIterator();
@@ -1584,7 +1607,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 				return true;
 
 			// Avoid loops when both are sequence and the result is a sequence
-			skipTheSmallerSequence(thisItr, otherItr);
+			skipSequence(thisItr, otherItr);
 
 			// next literals
 			thisItr.computeNextLiteral();
@@ -1599,7 +1622,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean containsAtLeast(ExtendedSet<Integer> other, int minElements) {
+	public boolean containsAtLeast(Collection<? extends Integer> other, int minElements) {
 		if (minElements < 1)
 			throw new IllegalArgumentException();
 		
@@ -1611,12 +1634,12 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 
 		// single-element intersection
 		if (minElements == 1 && other.size() == 1)
-			return contains(other.last());
+			return contains(getSingleElement(other));
 		if (minElements == 1 && this.size == 1)
 			return other.contains(maxSetBit);
 		
 		// convert the other set in order to perform a more complex intersection
-		ConciseSet otherSet = asCompressedIntegerSet(other);
+		ConciseSet otherSet = asConciseSet(other);
 		
 		// resulting size
 		int res = 0;
@@ -1633,7 +1656,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 
 			// Avoid loops when both are sequence and the result is a sequence
 			if (curRes == ALL_ZEROS_WITHOUT_MSB || curRes == ALL_ONES_WITHOUT_MSB) 
-				res += curRes * skipTheSmallerSequence(thisItr, otherItr);
+				res += curRes * skipSequence(thisItr, otherItr);
 
 			// next literals
 			thisItr.computeNextLiteral();
@@ -1682,7 +1705,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		}
 		
 		int sizeBefore = size;
-		replaceThis(performOperation(asCompressedIntegerSet(c), Operator.AND));
+		becomeAliasOf(performOperation(asConciseSet(c), Operator.AND));
 		return size != sizeBefore;
 	}
 
@@ -1702,7 +1725,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		}
 		
 		int sizeBefore = size;
-		replaceThis(performOperation(asCompressedIntegerSet(c), Operator.OR));
+		becomeAliasOf(performOperation(asConciseSet(c), Operator.OR));
 		return size != sizeBefore;
 	}
 
@@ -1721,7 +1744,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		}
 		
 		int sizeBefore = size;
-		replaceThis(performOperation(asCompressedIntegerSet(c), Operator.ANDNOT));
+		becomeAliasOf(performOperation(asConciseSet(c), Operator.ANDNOT));
 		return size != sizeBefore;
 	}
 
@@ -1782,25 +1805,6 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	/**
 	 * {@inheritDoc}
 	 */
-	@Override
-	public int compareTo(ExtendedSet<Integer> o) {
-		//TODO: controllare che funzioni...
-		Iterator<Integer> thisIterator = this.descendingIterator();
-		Iterator<Integer> otherIterator = o.descendingIterator();
-		while (thisIterator.hasNext() && otherIterator.hasNext()) {
-			Integer thisItem = thisIterator.next();
-			Integer otherItem = otherIterator.next();
-			int res = thisItem.compareTo(otherItem);
-			if (res != 0)
-				return res;
-		}
-		return thisIterator.hasNext() ? 1 : (otherIterator.hasNext() ? -1 : 0);
-	}
-
-	
-	/**
-	 * {@inheritDoc}
-	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public List<? extends ConciseSet> powerSet() {
@@ -1812,24 +1816,8 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	public List<? extends ConciseSet> powerSet(int min,
-			int max) {
+	public List<? extends ConciseSet> powerSet(int min, int max) {
 		return (List<? extends ConciseSet>) super.powerSet(min, max);
-	}
-	
-	/**
-	 * Generate the 32-bit binary representation of a given word (debug only)
-	 * 
-	 * @param word
-	 *            word to represent
-	 * @return 32-character string that represents the given word
-	 */
-	private static String toBinaryString(int word) {
-		String lsb = Integer.toBinaryString(word);
-		StringBuilder pad = new StringBuilder();
-		for (int i = lsb.length(); i < 32; i++) 
-			pad.append('0');
-		return pad.append(lsb).toString();
 	}
 	
 	/**
@@ -1858,12 +1846,25 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	 */
 	
 	/**
-	 * Print debug info (used by {@link #main(String[])})
+	 * Generates the 32-bit binary representation of a given word (debug only)
 	 * 
-	 * @return a string that describes the internal representation of the instance
+	 * @param word
+	 *            word to represent
+	 * @return 32-character string that represents the given word
 	 */
-	@SuppressWarnings("unused")
-	private String debugInfo() {
+	private static String toBinaryString(int word) {
+		String lsb = Integer.toBinaryString(word);
+		StringBuilder pad = new StringBuilder();
+		for (int i = lsb.length(); i < 32; i++) 
+			pad.append('0');
+		return pad.append(lsb).toString();
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String debugInfo() {
 		final StringBuilder s = new StringBuilder("INTERNAL REPRESENTATION:\n");
 		final Formatter f = new Formatter(s, Locale.ENGLISH);
 
@@ -1928,1006 +1929,5 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		f.format("collection compression: %.2f%%\n", 100D * collectionCompressionRatio());
 
 		return s.toString();
-	}
-
-	/**
-	 * Check if a {@link ConciseSet} and a {@link TreeSet} contains
-	 * the same elements
-	 * 
-	 * @param bits
-	 *            bit-set to check
-	 * @param items
-	 *            {@link TreeSet} instance that must contain the same elements
-	 *            of the bit-set
-	 * @return <code>true</code> if the given {@link ConciseSet} and
-	 *         {@link TreeSet} are equals in terms of contained elements
-	 */
-	@SuppressWarnings("unused")
-	private static boolean checkContent(ConciseSet bits, TreeSet<Integer> items) {
-		if (bits.size() != items.size())
-			return false;
-		if (bits.isEmpty())
-			return true;
-		for (Integer i : bits) 
-			if (!items.contains(i)) 
-				return false;
-		return bits.last().equals(items.last());
-	}
-	
-	/**
-	 * Simple test for the method {@link #append(int)}
-	 * <p>
-	 * It appends sequential numbers, thus generating 2 blocks of 1's
-	 */
-	@SuppressWarnings("unused")
-	private static void testForAppendSimple() {
-		ConciseSet bits = new ConciseSet();
-		for (int i = 0; i < 62; i++) {
-			System.out.format("Appending %d...\n", i);
-			bits.append(i);
-			System.out.println(bits.debugInfo());
-		}
-	}
-	
-	/**
-	 * Another test for the method {@link #append(int)}
-	 * <p>
-	 * It tests some particular cases
-	 */
-	@SuppressWarnings("unused")
-	private static void testForAppendComplex() {
-		ConciseSet bits = new ConciseSet();
-		TreeSet<Integer> items = new TreeSet<Integer>();
-
-		// elements to append
-		items.add(1000);
-		items.add(1001);
-		items.add(1023);
-		items.add(2000);
-		items.add(2046);
-		for (int i = 0; i < 62; i++) 
-			items.add(2048 + i);
-		items.add(2158);
-		items.add(MAX_ALLOWED_SET_BIT);
-
-		// append elements
-		for (Integer i : items) {
-			System.out.format("Appending %d...\n", i);
-			bits.append(i);
-			System.out.println(bits.debugInfo());
-		}
-		
-		// check the result
-		if (checkContent(bits, items)) {
-			System.out.println("OK!");
-		} else {
-			System.out.println("ERRORS!");
-		}
-	}
-	
-	/**
-	 * Random test for the method {@link #append(int)}
-	 * <p>
-	 * It adds randomly generated numbers
-	 */
-	@SuppressWarnings("unused")
-	private static void testForAppendRandom() {
-		ConciseSet bits = new ConciseSet();
-		TreeSet<Integer> items = new TreeSet<Integer>();
-
-		// random number generator
-		Random rnd = new Random();
-
-		bits.clear();
-		items.clear();
-		System.out.println("SPARSE ITEMS");
-		for (int i = 0; i < 10000; i++)
-			items.add(rnd.nextInt(1000000000 + 1));
-		for (Integer i : items)
-			bits.append(i);
-		System.out.println("Correct: " + checkContent(bits, items));
-		System.out.println("Original items: " + items);
-		System.out.println(bits.debugInfo());
-
-		bits.clear();
-		items.clear();
-		System.out.println("DENSE ITEMS");
-		for (int i = 0; i < 10000; i++)
-			items.add(rnd.nextInt(10000 + 1));
-		for (Integer i : items)
-			bits.append(i);
-		System.out.println("Correct: " + checkContent(bits, items));
-		System.out.println("Original items: " + items);
-		System.out.println(bits.debugInfo());
-
-		bits.clear();
-		items.clear();
-		System.out.println("MORE DENSE ITEMS");
-		for (int i = 0; i < 2000; i++)
-			items.add(rnd.nextInt(310 + 1));
-		for (int i = 0; i < 2000; i++)
-			items.add(714 + rnd.nextInt(805 - 714 + 1));
-		for (int i = 0; i < 2000; i++)
-			items.add(850 + rnd.nextInt(900 - 850 + 1));
-		for (int i = 0; i < 4000; i++)
-			items.add(700 + rnd.nextInt(100000 - 700 + 1));
-		for (Integer e : items)
-			bits.append(e);
-		System.out.println("Correct: " + checkContent(bits, items));
-		System.out.println("Original items: " + items);
-		System.out.println(bits.debugInfo());
-	}
-	
-	/**
-	 * Simple test for the method {@link #getIntersection(ExtendedSet)}
-	 */
-	@SuppressWarnings("unused")
-	private static void testForIntersectionSimple() {
-		System.out.println("FIRST SET");
-		ConciseSet bitsLeft = new ConciseSet();
-		TreeSet<Integer> itemsLeft = new TreeSet<Integer>();
-		itemsLeft.add(1);
-		itemsLeft.add(2);
-		itemsLeft.add(3);
-		itemsLeft.add(100);
-		itemsLeft.add(1000);
-		for (Integer i : itemsLeft)
-			bitsLeft.append(i);
-		System.out.println("Correct: " + checkContent(bitsLeft, itemsLeft));
-		System.out.println("Original items: " + itemsLeft);
-		System.out.println(bitsLeft.debugInfo());
-
-		System.out.println("SECOND SET");
-		ConciseSet bitsRight = new ConciseSet();
-		TreeSet<Integer> itemsRight = new TreeSet<Integer>();
-		itemsRight.add(100);
-		itemsRight.add(101);
-		for (Integer i : itemsRight)
-			bitsRight.append(i);
-		System.out.println("Correct: " + checkContent(bitsRight, itemsRight));
-		System.out.println("Original items: " + itemsRight);
-		System.out.println(bitsRight.debugInfo());
-
-		System.out.println("INTERSECTION SET");
-		ConciseSet bitsIntersection = bitsLeft.getIntersection(bitsRight);
-		TreeSet<Integer> itemsIntersection = new TreeSet<Integer>(itemsLeft);
-		itemsIntersection.retainAll(itemsRight);
-		System.out.println("Correct: " + checkContent(bitsIntersection, itemsIntersection));
-		System.out.println("Original items: " + itemsIntersection);
-		System.out.println(bitsIntersection.debugInfo());
-	}
-	
-	/**
-	 * More complex test for the methods {@link #getIntersection(ExtendedSet)}
-	 * and {@link #intersectionSize(ExtendedSet)}
-	 */
-	@SuppressWarnings("unused")
-	private static void testForIntersectionComplex() {
-		// generate items to intersect completely at random
-		Random rnd = new Random();
-
-		System.out.println("FIRST SET");
-		ConciseSet bitsLeft = new ConciseSet();
-		TreeSet<Integer> itemsLeft = new TreeSet<Integer>();
-		for (int i = 0; i < 30; i++)
-			itemsLeft.add(rnd.nextInt(1000 + 1));
-		for (int i = 0; i < 1000; i++)
-			itemsLeft.add(rnd.nextInt(200 + 1));
-		bitsLeft.addAll(itemsLeft);
-		System.out.println("Correct: " + checkContent(bitsLeft, itemsLeft));
-		System.out.println("Original items: " + itemsLeft);
-		System.out.println(bitsLeft.debugInfo());
-
-		System.out.println("SECOND SET");
-		ConciseSet bitsRight = new ConciseSet();
-		TreeSet<Integer> itemsRight = new TreeSet<Integer>();
-		for (int i = 0; i < 30; i++)
-			itemsRight.add(rnd.nextInt(1000 + 1));
-		for (int i = 0; i < 1000; i++)
-			itemsRight.add(150 + rnd.nextInt(300 - 150 + 1));
-		bitsRight.addAll(itemsRight);
-		System.out.println("Correct: " + checkContent(bitsRight, itemsRight));
-		System.out.println("Original items: " + itemsRight);
-		System.out.println(bitsRight.debugInfo());
-
-		System.out.println("INTERSECTION SET");
-		ConciseSet bitsIntersection = bitsLeft.getIntersection(bitsRight);
-		TreeSet<Integer> itemsIntersection = new TreeSet<Integer>(itemsLeft);
-		itemsIntersection.retainAll(itemsRight);
-		System.out.println("Correct: " + checkContent(bitsIntersection, itemsIntersection));
-		System.out.println("Original items: " + itemsIntersection);
-		System.out.println(bitsIntersection.debugInfo());
-		
-		System.out.println("INTERSECTION SIZE");
-		System.out.println("Correct: " + (itemsIntersection.size() == bitsLeft.intersectionSize(bitsRight)));	
-	}
-	
-	/**
-	 * Simple test for the method {@link #getUnion(ExtendedSet)}
-	 */
-	@SuppressWarnings("unused")
-	private static void testForUnionSimple() {
-		System.out.println("FIRST SET");
-		ConciseSet bitsLeft = new ConciseSet();
-		TreeSet<Integer> itemsLeft = new TreeSet<Integer>();
-		itemsLeft.add(1);
-		itemsLeft.add(2);
-		itemsLeft.add(30000);
-		for (Integer i : itemsLeft)
-			bitsLeft.append(i);
-		System.out.println("Correct: " + checkContent(bitsLeft, itemsLeft));
-		System.out.println("Original items: " + itemsLeft);
-		System.out.println(bitsLeft.debugInfo());
-
-		System.out.println("SECOND SET");
-		ConciseSet bitsRight = new ConciseSet();
-		TreeSet<Integer> itemsRight = new TreeSet<Integer>();
-		itemsRight.add(100);
-		itemsRight.add(101);
-		itemsRight.add(MAX_ALLOWED_SET_BIT);
-		for (int i = 0; i < 62; i++)
-			itemsRight.add(341 + i);
-		for (Integer i : itemsRight) 
-			bitsRight.append(i);
-		System.out.println("Correct: " + checkContent(bitsRight, itemsRight));
-		System.out.println("Original items: " + itemsRight);
-		System.out.println(bitsRight.debugInfo());
-
-		System.out.println("UNION SET");
-		ConciseSet bitsUnion = bitsLeft.getUnion(bitsRight);
-		TreeSet<Integer> itemsUnion = new TreeSet<Integer>(itemsLeft);
-		itemsUnion.addAll(itemsRight);
-		System.out.println("Correct: " + checkContent(bitsUnion, itemsUnion));
-		System.out.println("Original items: " + itemsUnion);
-		System.out.println(bitsUnion.debugInfo());
-		
-		System.out.println("UNION SIZE");
-		System.out.println("Correct: " + (itemsUnion.size() == bitsLeft.unionSize(bitsRight)));
-	}
-	
-	/**
-	 * Simple test for the method {@link #getComplement()}
-	 */
-	@SuppressWarnings("unused")
-	private static void testForComplement() {
-		System.out.println("Original");
-		ConciseSet bits = new ConciseSet();
-		bits.append(1);
-		bits.append(2);
-		bits.append(30000);
-		System.out.println(bits.debugInfo());
-
-		System.out.format("Complement size: %d\n", bits.complementSize());
-		System.out.println("Complement");
-		bits = bits.getComplement();
-		System.out.println(bits.debugInfo());
-
-		System.out.format("Complement size: %d\n", bits.complementSize());
-		System.out.println("Complement");
-		bits = bits.getComplement();
-		System.out.println(bits.debugInfo());
-
-		System.out.format("Complement size: %d\n", bits.complementSize());
-		System.out.println("Complement");
-		bits = bits.getComplement();
-		System.out.println(bits.debugInfo());
-
-		System.out.format("Complement size: %d\n", bits.complementSize());
-		System.out.println("Complement");
-		bits = bits.getComplement();
-		System.out.println(bits.debugInfo());
-	}
-	
-	/**
-	 * Simple test for the methods:
-	 * <ul>
-	 * <li> {@link #add(Integer)}
-	 * <li> {@link #remove(Object)}
-	 * <li> {@link #addAll(Collection)}
-	 * <li> {@link #removeAll(Collection)}
-	 * <li> {@link #retainAll(Collection)}
-	 * <li> {@link #getSymmetricDifference(ExtendedSet)}
-	 * <li> {@link #getComplement()}
-	 * </ul>
-	 */
-	@SuppressWarnings("unused")
-	private static void testForMixedStuff() {
-		ConciseSet bitsLeft = new ConciseSet();
-		bitsLeft.add(1);
-		bitsLeft.add(100);
-		bitsLeft.add(2);
-		bitsLeft.add(3);
-		bitsLeft.add(2);
-		bitsLeft.add(100);
-		System.out.println("A: " + bitsLeft);
-		System.out.println(bitsLeft.debugInfo());
-
-		ConciseSet bitsRight = new ConciseSet();
-		bitsRight.add(1);
-		bitsRight.add(1000000);
-		bitsRight.add(2);
-		bitsRight.add(30000);
-		bitsRight.add(1000000);
-		System.out.println("B: " + bitsRight);
-		System.out.println(bitsRight.debugInfo());
-
-		System.out.println("A.getSymmetricDifference(B): " + bitsLeft.getSymmetricDifference(bitsRight));
-		System.out.println(bitsLeft.getSymmetricDifference(bitsRight).debugInfo());
-
-		System.out.println("A.getComplement(): " + bitsLeft.getComplement());
-		System.out.println(bitsLeft.getComplement().debugInfo());
-
-		bitsLeft.removeAll(bitsRight);
-		System.out.println("A.removeAll(B): " + bitsLeft);
-		System.out.println(bitsLeft.debugInfo());
-
-		bitsLeft.addAll(bitsRight);
-		System.out.println("A.addAll(B): " + bitsLeft);
-		System.out.println(bitsLeft.debugInfo());
-
-		bitsLeft.retainAll(bitsRight);
-		System.out.println("A.retainAll(B): " + bitsLeft);
-		System.out.println(bitsLeft.debugInfo());
-
-		bitsLeft.remove(1);
-		System.out.println("A.remove(1): " + bitsLeft);
-		System.out.println(bitsLeft.debugInfo());
-	}
-	
-	/**
-	 * Stress test for {@link #add(Integer)}
-	 * <p> 
-	 * It starts from a very sparse set (most of the words will be 0's 
-	 * sequences) and progressively become very dense (words first
-	 * become 0's sequences with 1 set bit and there will be almost one 
-	 * word per item, then words become literals, and finally they 
-	 * become 1's sequences and drastically reduce in number)
-	 */
-	@SuppressWarnings("unused")
-	private static void testForAdditionStress() {
-		ConciseSet previousBits = new ConciseSet();
-		ConciseSet currentBits = new ConciseSet();
-		TreeSet<Integer> currentItems = new TreeSet<Integer>();
-
-		Random rnd = new Random(System.currentTimeMillis());
-
-		// add 100000 random numbers
-		for (int i = 0; i < 100000; i++) {
-			// random number to add
-			int item = rnd.nextInt(10000 + 1);
-
-			// keep the previous results
-			previousBits = currentBits;
-			currentBits = currentBits.clone();
-
-			// add the element
-			System.out.format("Adding %d...\n", item);
-			boolean itemExistsBefore = currentItems.contains(item);
-			boolean itemAdded = currentItems.add(item);
-			boolean itemExistsAfter = currentItems.contains(item);
-			boolean bitExistsBefore = currentBits.contains(item);
-			boolean bitAdded = currentBits.add(item);
-			boolean bitExistsAfter = currentBits.contains(item);
-			if (itemAdded ^ bitAdded) {
-				System.out.println("wrong add() result");
-				return;
-			}
-			if (itemExistsBefore ^ bitExistsBefore) {
-				System.out.println("wrong contains() before");
-				return;
-			}
-			if (itemExistsAfter ^ bitExistsAfter) {
-				System.out.println("wrong contains() after");
-				return;
-			}
-
-			// check the list of elements
-			if (!checkContent(currentBits, currentItems)) {
-				System.out.println("add() error");
-				System.out.println("Same elements: " + (currentItems.toString().equals(currentBits.toString())));
-				System.out.println("Original items: " + currentItems);
-				System.out.println(currentBits.debugInfo());
-				System.out.println(previousBits.debugInfo());
-				return;
-			}
-			
-			// check the representation
-			ConciseSet otherBits = asCompressedIntegerSet(currentItems);
-			if (otherBits.hashCode() != currentBits.hashCode()) {
-				System.out.println("Representation error");
-				System.out.println(currentBits.debugInfo());
-				System.out.println(otherBits.debugInfo());
-				System.out.println(previousBits.debugInfo());
-				return;
-			}
-
-			// check the union size
-			ConciseSet singleBitSet = new ConciseSet();
-			singleBitSet.add(item);
-			if (currentItems.size() != currentBits.unionSize(singleBitSet)) {
-				System.out.println("Size error");
-				System.out.println("Original items: " + currentItems);
-				System.out.println(currentBits.debugInfo());
-				System.out.println(previousBits.debugInfo());
-				return;
-			}
-		}
-
-		System.out.println("Final");
-		System.out.println(currentBits.debugInfo());
-		
-		System.out.println();
-		System.out.println(Statistics.getSummary());
-	}
-	
-	/**
-	 * Stress test for {@link #remove(Object)}
-	 * <p> 
-	 * It starts from a very dense set (most of the words will be 1's 
-	 * sequences) and progressively become very sparse (words first
-	 * become 1's sequences with 1 unset bit and there will be few 
-	 * words per item, then words become literals, and finally they 
-	 * become 0's sequences and drastically reduce in number)
-	 */
-	@SuppressWarnings("unused")
-	private static void testForRemovalStress() {
-		ConciseSet previousBits = new ConciseSet();
-		ConciseSet currentBits = new ConciseSet();
-		TreeSet<Integer> currentItems = new TreeSet<Integer>();
-
-		Random rnd = new Random(System.currentTimeMillis());
-
-		// create a 1-filled bitset
-		currentBits.append(10001);
-		currentBits.complement();
-		currentItems.addAll(currentBits);
-		if (currentItems.size() != 10001) {
-			System.out.println("Unexpected error!");
-			return;
-		}
-		
-		// remove 100000 random numbers
-		for (int i = 0; i < 100000 & !currentBits.isEmpty(); i++) {
-			// random number to remove
-			int item = rnd.nextInt(10000 + 1);
-
-			// keep the previous results
-			previousBits = currentBits;
-			currentBits = currentBits.clone();
-			
-			// remove the element
-			System.out.format("Removing %d...\n", item);
-			boolean itemExistsBefore = currentItems.contains(item);
-			boolean itemRemoved = currentItems.remove(item);
-			boolean itemExistsAfter = currentItems.contains(item);
-			boolean bitExistsBefore = currentBits.contains(item);
-			boolean bitRemoved = currentBits.remove(item);
-			boolean bitExistsAfter = currentBits.contains(item);
-			if (itemRemoved ^ bitRemoved) {
-				System.out.println("wrong remove() result");
-				return;
-			}
-			if (itemExistsBefore ^ bitExistsBefore) {
-				System.out.println("wrong contains() before");
-				return;
-			}
-			if (itemExistsAfter ^ bitExistsAfter) {
-				System.out.println("wrong contains() after");
-				return;
-			}
-
-			// check the list of elements
-			if (!checkContent(currentBits, currentItems)) {
-				System.out.println("remove() error");
-				System.out.println("Same elements: " + (currentItems.toString().equals(currentBits.toString())));
-				System.out.println("Original items: " + currentItems);
-				System.out.println(currentBits.debugInfo());
-				System.out.println(previousBits.debugInfo());
-				
-				return;
-			}
-			
-			// check the representation
-			ConciseSet otherBits = asCompressedIntegerSet(currentItems);
-			if (otherBits.hashCode() != currentBits.hashCode()) {
-				System.out.println("Representation error");
-				System.out.println(currentBits.debugInfo());
-				System.out.println(otherBits.debugInfo());
-				System.out.println(previousBits.debugInfo());
-
-				return;
-			}
-
-			// check the union size
-			ConciseSet singleBitSet = new ConciseSet();
-			singleBitSet.add(item);
-			if (currentItems.size() != currentBits.differenceSize(singleBitSet)) {
-				System.out.println("Size error");
-				System.out.println("Original items: " + currentItems);
-				System.out.println(currentBits.debugInfo());
-				System.out.println(previousBits.debugInfo());
-
-				return;
-			}
-		}
-
-		System.out.println("Final");
-		System.out.println(currentBits.debugInfo());
-
-		System.out.println();
-		System.out.println(Statistics.getSummary());
-	}
-	
-	/**
-	 * Random operations on random sets.
-	 * <p>
-	 * It randomly chooses among {@link #addAll(Collection)},
-	 * {@link #removeAll(Collection)}, and {@link #retainAll(Collection)}, and
-	 * perform the operation over random sets
-	 */
-	@SuppressWarnings("unused")
-	private static void testForRandomOperationsStress() {
-		ConciseSet bitsLeft = new ConciseSet();
-		ConciseSet bitsRight = new ConciseSet();
-		TreeSet<Integer> itemsLeft = new TreeSet<Integer>();
-		TreeSet<Integer> itemsRight = new TreeSet<Integer>();
-
-		Random rnd = new Random(System.currentTimeMillis());
-
-		// random operation loop
-		for (int i = 0; i < 100000; i++) {
-			System.out.print("Test " + i + ": ");
-			
-			// new set
-			itemsRight.clear();
-			bitsRight.clear();
-			final int size = 1 + rnd.nextInt(10000);
-			final int min = 1 + rnd.nextInt(10000 - 1);
-			final int max = min + rnd.nextInt(10000 - min + 1);
-			for (int j = 0; j < size; j++) {
-				int item = min + rnd.nextInt(max - min + 1);
-				itemsRight.add(item);
-				bitsRight.add(item);
-			}
-			if (!checkContent(bitsRight, itemsRight)) {
-				System.out.println("ERROR!");
-				System.out.println("Same elements: " + (itemsRight.toString().equals(bitsRight.toString())));
-				System.out.println("Original items: " + itemsRight);
-				System.out.println(bitsRight.debugInfo());
-				return;
-			}
-			
-			// perform the random operation with the previous set
-			int operationSize = 0;
-			switch (1 + rnd.nextInt(3)) {
-			case 1:
-				System.out.format(" union of %d elements with %d elements... ", itemsLeft.size(), itemsRight.size());
-				operationSize = bitsLeft.unionSize(bitsRight);
-				itemsLeft.addAll(itemsRight);
-				bitsLeft.addAll(bitsRight);
-				break;
-
-			case 2:
-				System.out.format(" difference of %d elements with %d elements... ", itemsLeft.size(), itemsRight.size());
-				operationSize = bitsLeft.differenceSize(bitsRight);
-				itemsLeft.removeAll(itemsRight);
-				bitsLeft.removeAll(bitsRight);
-				break;
-
-			case 3:
-				System.out.format(" intersection of %d elements with %d elements... ", itemsLeft.size(), itemsRight.size());
-				operationSize = bitsLeft.intersectionSize(bitsRight);
-				itemsLeft.retainAll(itemsRight);
-				bitsLeft.retainAll(bitsRight);
-				break;
-			}
-			
-			// check the list of elements
-			if (!checkContent(bitsLeft, itemsLeft)) {
-				System.out.println("OPERATION ERROR!");
-				System.out.println("Same elements: " + 
-						(itemsLeft.toString().equals(bitsLeft.toString())));
-				System.out.println("Original items: " + itemsLeft);
-				System.out.println(bitsLeft.debugInfo());
-				return;
-			}
-			
-			// check the representation
-			if (asCompressedIntegerSet(itemsLeft).hashCode() != bitsLeft.hashCode()) {
-				System.out.println("REPRESENTATION ERROR!");
-				System.out.println(bitsLeft.debugInfo());
-				System.out.println(asCompressedIntegerSet(itemsLeft).debugInfo());
-				return;
-			}
-
-			// check the union size
-			if (itemsLeft.size() != operationSize) {
-				System.out.println("SIZE ERROR");
-				System.out.println("Wrong size: " + operationSize);
-				System.out.println("Correct size: " + itemsRight.size());
-				System.out.println(bitsLeft.debugInfo());
-				return;
-			}
-			
-			System.out.println("done.");
-		}
-	}
-	
-	/**
-	 * Stress test (addition) for {@link #subSet(Integer, Integer)}
-	 */
-	@SuppressWarnings("unused")
-	private static void testForSubSetAdditionStress() {
-		ConciseSet previousBits = new ConciseSet();
-		ConciseSet currentBits = new ConciseSet();
-		TreeSet<Integer> currentItems = new TreeSet<Integer>();
-
-		Random rnd = new Random(System.currentTimeMillis());
-
-		for (int j = 0; j < 100000; j++) {
-			// keep the previous result
-			previousBits = currentBits;
-			currentBits = currentBits.clone();
-
-			// generate a new subview
-			int min = rnd.nextInt(10000);
-			int max = min + 1 + rnd.nextInt(10000 - (min + 1) + 1);
-			int item = min + rnd.nextInt((max - 1) - min + 1);
-			System.out.println("Adding " + item + " to the subview from " + min + " to " + max + " - 1");
-			SortedSet<Integer> subBits = currentBits.subSet(min, max);
-			SortedSet<Integer> subItems = currentItems.subSet(min, max);
-			boolean subBitsResult = subBits.add(item);
-			boolean subItemsResult = subItems.add(item);
-
-			if (subBitsResult != subItemsResult 
-					|| subBits.size() != subItems.size() 
-					|| !subBits.toString().equals(subItems.toString())) {
-				System.out.println("Subset error!");
-				return;
-			}			
-			
-			if (!checkContent(currentBits, currentItems)) {
-				System.out.println("Subview not correct!");
-				System.out.println("Same elements: " + (currentItems.toString().equals(currentBits.toString())));
-				System.out.println("Original items: " + currentItems);
-				System.out.println(currentBits.debugInfo());
-				System.out.println(previousBits.debugInfo());
-				return;
-			}
-			
-			// check the representation
-			ConciseSet otherBits = asCompressedIntegerSet(currentItems);
-			if (otherBits.hashCode() != currentBits.hashCode()) {
-				System.out.println("Representation not correct!");
-				System.out.println(currentBits.debugInfo());
-				System.out.println(otherBits.debugInfo());
-				System.out.println(previousBits.debugInfo());
-				return;
-			}
-		}
-
-		System.out.println(currentBits.debugInfo());
-		System.out.println(Statistics.getSummary());
-	}
-	
-	/**
-	 * Stress test (addition) for {@link #subSet(Integer, Integer)}
-	 */
-	@SuppressWarnings("unused")
-	private static void testForSubSetRemovalStress() {
-		ConciseSet previousBits = new ConciseSet();
-		ConciseSet currentBits = new ConciseSet();
-		TreeSet<Integer> currentItems = new TreeSet<Integer>();
-
-		// create a 1-filled bitset
-		currentBits.append(10001);
-		currentBits.complement();
-		currentItems.addAll(currentBits);
-		if (currentItems.size() != 10001) {
-			System.out.println("Unexpected error!");
-			return;
-		}
-
-		Random rnd = new Random(System.currentTimeMillis());
-
-		for (int j = 0; j < 100000; j++) {
-			// keep the previous result
-			previousBits = currentBits;
-			currentBits = currentBits.clone();
-
-			// generate a new subview
-			int min = rnd.nextInt(10000);
-			int max = min + 1 + rnd.nextInt(10000 - (min + 1) + 1);
-			int item = rnd.nextInt(10000 + 1);
-			System.out.println("Removing " + item + " from the subview from " + min + " to " + max + " - 1");
-			SortedSet<Integer> subBits = currentBits.subSet(min, max);
-			SortedSet<Integer> subItems = currentItems.subSet(min, max);
-			boolean subBitsResult = subBits.remove(item);
-			boolean subItemsResult = subItems.remove(item);
-
-			if (subBitsResult != subItemsResult 
-					|| subBits.size() != subItems.size() 
-					|| !subBits.toString().equals(subItems.toString())) {
-				System.out.println("Subset error!");
-				return;
-			}
-			
-			if (!checkContent(currentBits, currentItems)) {
-				System.out.println("Subview not correct!");
-				System.out.println("Same elements: " + (currentItems.toString().equals(currentBits.toString())));
-				System.out.println("Original items: " + currentItems);
-				System.out.println(currentBits.debugInfo());
-				System.out.println(previousBits.debugInfo());
-				return;
-			}
-			
-			// check the representation
-			ConciseSet otherBits = asCompressedIntegerSet(currentItems);
-			if (otherBits.hashCode() != currentBits.hashCode()) {
-				System.out.println("Representation not correct!");
-				System.out.println(currentBits.debugInfo());
-				System.out.println(otherBits.debugInfo());
-				System.out.println(previousBits.debugInfo());
-				return;
-			}
-		}
-
-		System.out.println(currentBits.debugInfo());
-		System.out.println(Statistics.getSummary());
-	}
-
-	/**
-	 * Random operations on random sub sets.
-	 * <p>
-	 * It randomly chooses among all operations and performs the operation over
-	 * random sets
-	 */
-	@SuppressWarnings("unused")
-	private static void testForSubSetRandomOperationsStress() {
-		ConciseSet bits = new ConciseSet();
-		ConciseSet bitsPrevious = new ConciseSet();
-		TreeSet<Integer> items = new TreeSet<Integer>();
-
-		Random rnd = new Random(System.currentTimeMillis());
-
-		// random operation loop
-		for (int i = 0; i < 100000; i++) {
-			System.out.print("Test " + i + ": ");
-			
-			// new set
-			bitsPrevious = bits.clone();
-			if (!bitsPrevious.toString().equals(bits.toString()))
-				throw new RuntimeException("clone() error!");
-			bits.clear();
-			items.clear();
-			final int size = 1 + rnd.nextInt(10000);
-			final int min = 1 + rnd.nextInt(10000 - 1);
-			final int max = min + rnd.nextInt(10000 - min + 1);
-			final int minSub = 1 + rnd.nextInt(10000 - 1);
-			final int maxSub = minSub + rnd.nextInt(10000 - minSub + 1);
-			for (int j = 0; j < size; j++) {
-				int item = min + rnd.nextInt(max - min + 1);
-				bits.add(item);
-				items.add(item);
-			}
-			
-			// perform base checks 
-			SortedSet<Integer> bitsSubSet = bits.subSet(minSub, maxSub);
-			SortedSet<Integer> itemsSubSet = items.subSet(minSub, maxSub);
-			if (!bitsSubSet.toString().equals(itemsSubSet.toString())) {
-				System.out.println("toString() difference!");
-				System.out.println("value: " + bitsSubSet.toString());
-				System.out.println("actual: " + itemsSubSet.toString());
-				return;
-			}
-			if (bitsSubSet.size() != itemsSubSet.size()) {
-				System.out.println("size() difference!");
-				System.out.println("value: " + bitsSubSet.size());
-				System.out.println("actual: " + itemsSubSet.size());
-				System.out.println("bits: " + bits.toString());
-				System.out.println("items: " + items.toString());
-				System.out.println("bitsSubSet: " + bitsSubSet.toString());
-				System.out.println("itemsSubSet: " + itemsSubSet.toString());
-				return;
-			}
-			if (!itemsSubSet.isEmpty() && (!bitsSubSet.first().equals(itemsSubSet.first()))) {
-				System.out.println("first() difference!");
-				System.out.println("value: " + bitsSubSet.first());
-				System.out.println("actual: " + itemsSubSet.first());
-				System.out.println("bits: " + bits.toString());
-				System.out.println("items: " + items.toString());
-				System.out.println("bitsSubSet: " + bitsSubSet.toString());
-				System.out.println("itemsSubSet: " + itemsSubSet.toString());
-				return;
-			}
-			if (!itemsSubSet.isEmpty() && (!bitsSubSet.last().equals(itemsSubSet.last()))) {
-				System.out.println("last() difference!");
-				System.out.println("value: " + bitsSubSet.last());
-				System.out.println("actual: " + itemsSubSet.last());
-				System.out.println("bits: " + bits.toString());
-				System.out.println("items: " + items.toString());
-				System.out.println("bitsSubSet: " + bitsSubSet.toString());
-				System.out.println("itemsSubSet: " + itemsSubSet.toString());
-				return;
-			}
-
-			// perform the random operation 
-			boolean resBits = false;
-			boolean resItems = false;
-			boolean exceptionBits = false;
-			boolean exceptionItems = false;
-			switch (1 + rnd.nextInt(4)) {
-			case 1:
-				System.out.format(" addAll() of %d elements on %d elements... ", bitsPrevious.size(), bits.size());
-				try {
-					resBits = bitsSubSet.addAll(bitsPrevious);
-				} catch (Exception e) {
-					bits.clear();
-					System.out.print("\n\tEXCEPTION on bitsSubSet: " + e.getClass() + " ");
-					exceptionBits = true;
-				}
-				try {
-					resItems = itemsSubSet.addAll(bitsPrevious);
-				} catch (Exception e) {
-					items.clear();
-					System.out.print("\n\tEXCEPTION on itemsSubSet: " + e.getClass() + " ");
-					exceptionItems = true;
-				}
-				break;
-
-			case 2:
-				System.out.format(" removeAll() of %d elements on %d elements... ", bitsPrevious.size(), bits.size());
-				try {
-					resBits = bitsSubSet.removeAll(bitsPrevious);
-				} catch (Exception e) {
-					bits.clear();
-					System.out.print("\n\tEXCEPTION on bitsSubSet: " + e.getClass() + " ");
-					exceptionBits = true;
-				}
-				try {
-					resItems = itemsSubSet.removeAll(bitsPrevious);
-				} catch (Exception e) {
-					items.clear();
-					System.out.print("\n\tEXCEPTION on itemsSubSet: " + e.getClass() + " ");
-					exceptionItems = true;
-				}
-				break;
-
-			case 3:
-				System.out.format(" retainAll() of %d elements on %d elements... ", bitsPrevious.size(), bits.size());
-				try {
-					resBits = bitsSubSet.retainAll(bitsPrevious);
-				} catch (Exception e) {
-					bits.clear();
-					System.out.print("\n\tEXCEPTION on bitsSubSet: " + e.getClass() + " ");
-					exceptionBits = true;
-				}
-				try {
-					resItems = itemsSubSet.retainAll(bitsPrevious);
-				} catch (Exception e) {
-					items.clear();
-					System.out.print("\n\tEXCEPTION on itemsSubSet: " + e.getClass() + " ");
-					exceptionItems = true;
-				}
-				break;
-
-			case 4:
-				System.out.format(" clear() of %d elements on %d elements... ", bitsPrevious.size(), bits.size());
-				try {
-					bitsSubSet.clear();
-				} catch (Exception e) {
-					bits.clear();
-					System.out.print("\n\tEXCEPTION on bitsSubSet: " + e.getClass() + " ");
-					exceptionBits = true;
-				}
-				try {
-					itemsSubSet.clear();
-				} catch (Exception e) {
-					items.clear();
-					System.out.print("\n\tEXCEPTION on itemsSubSet: " + e.getClass() + " ");
-					exceptionItems = true;
-				}
-				break;
-			}			
-			
-			if (exceptionBits != exceptionItems) {
-				System.out.println("Incorrect exception!");
-				return;
-			}
-
-			if (resBits != resItems) {
-				System.out.println("Incorrect results!");
-				System.out.println("resBits: " + resBits);
-				System.out.println("resItems: " + resItems);
-				return;
-			}
-			
-			if (!checkContent(bits, items)) {
-				System.out.println("Subview not correct!");
-				System.out.format("min: %d, max: %d, minSub: %d, maxSub: %d\n", min, max, minSub, maxSub);
-				System.out.println("Same elements: " + (items.toString().equals(bits.toString())));
-				System.out.println("Original items: " + items);
-				System.out.println(bits.debugInfo());
-				System.out.println(bitsPrevious.debugInfo());
-				return;
-			}
-			
-			// check the representation
-			ConciseSet otherBits = asCompressedIntegerSet(items);
-			if (otherBits.hashCode() != bits.hashCode()) {
-				System.out.println("Representation not correct!");
-				System.out.format("min: %d, max: %d, minSub: %d, maxSub: %d\n", min, max, minSub, maxSub);
-				System.out.println(bits.debugInfo());
-				System.out.println(otherBits.debugInfo());
-				System.out.println(bitsPrevious.debugInfo());
-				return;
-			}
-			
-			System.out.println("done.");
-		}
-	}
-	
-	/**
-	 * Test
-	 * 
-	 * @param args
-	 */
-	public static void main(String[] args) {
-		int testCase = 14;
-		
-		if (args != null && args.length == 1) {
-			try {
-				testCase = new Integer(args[0]);
-			} catch (NumberFormatException ignore) {
-				// nothing to do
-			}
-		}
-		
-		switch (testCase) {
-		case 1:
-			testForAppendSimple();
-			break;
-		case 2:
-			testForAppendComplex();
-			break;
-		case 3:
-			testForAppendRandom();
-			break;
-		case 4:
-			testForIntersectionSimple();
-			break;
-		case 5:
-			testForIntersectionComplex();
-			break;
-		case 6:
-			testForUnionSimple();
-			break;
-		case 7:
-			testForComplement();
-			break;
-		case 8:
-			testForMixedStuff();
-			break;
-		case 9:
-			testForAdditionStress();
-			break;
-		case 10:
-			testForRemovalStress();
-			break;
-		case 11:
-			testForRandomOperationsStress();
-			break;
-		case 12:
-			testForSubSetAdditionStress();
-			break;
-		case 13:
-			testForSubSetRemovalStress();
-			break;
-		case 14:
-			testForSubSetRandomOperationsStress();
-			break;
-		default:
-			System.out.println("Unknown test case!");
-		}
 	}
 }
