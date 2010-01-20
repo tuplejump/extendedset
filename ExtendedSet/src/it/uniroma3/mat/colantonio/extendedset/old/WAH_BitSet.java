@@ -12,8 +12,11 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 /**
- * Set of integers internally represented by bit-set compressed by a RLE
+ * Integer set internally represented by a bit-set, using a RLE compression
  * algorithm
+ * 
+ * @author Alessandro Colantonio
+ * @version $Id$
  */
 public class WAH_BitSet extends AbstractSet<Integer> implements
 		SortedSet<Integer>, Cloneable {
@@ -50,7 +53,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	private final static int NOT_VALID_INDEX = -1;
 
 	/**
-	 * Create an empty bit-string
+	 * Creates an empty bit-string
 	 */
 	public WAH_BitSet() {
 		words = null;
@@ -76,7 +79,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Check if a word is a literal
+	 * Checks if a word is a literal
 	 * 
 	 * @param word
 	 * @return
@@ -86,7 +89,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Check if a word is a sequence of 1's
+	 * Checks if a word is a sequence of 1's
 	 * 
 	 * @param word
 	 * @return
@@ -96,7 +99,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Check if a word is a sequence of 0's
+	 * Checks if a word is a sequence of 0's
 	 * 
 	 * @param word
 	 * @return
@@ -106,7 +109,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Check if a word is a sequence of 0's or 1's
+	 * Checks if a word is a sequence of 0's or 1's
 	 * 
 	 * @param word
 	 * @return
@@ -116,7 +119,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Get the number of blocks of 1's or 0's stored in a sequence word
+	 * Gets the number of blocks of 1's or 0's stored in a sequence word
 	 * 
 	 * @param word
 	 */
@@ -125,7 +128,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Get the bits of the given literal word
+	 * Gets the bits of the given literal word
 	 * 
 	 * @param word
 	 */
@@ -143,7 +146,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Generate the literal corresponding to the <code>bitIndex</code> bit
+	 * Generates the literal corresponding to the <code>bitIndex</code> bit
 	 * 
 	 * @param bitIndex
 	 * @return
@@ -153,7 +156,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Generate a word representing a sequence of <code>number</code> blocks
+	 * Generates a word representing a sequence of <code>number</code> blocks
 	 * of 1's
 	 * 
 	 * @param number
@@ -164,7 +167,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Generate a word representing a sequence of <code>number</code> blocks
+	 * Generates a word representing a sequence of <code>number</code> blocks
 	 * of 0's
 	 * 
 	 * @param number
@@ -175,7 +178,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Set the i-th bit
+	 * Sets the i-th bit
 	 * 
 	 * @param newBit
 	 */
@@ -231,7 +234,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Change the length of {@link #words}
+	 * Changes the length of {@link #words}
 	 * 
 	 * @param wordsToAdd
 	 *            number of words to add/remove.
@@ -278,7 +281,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Perform the given operation on the two words
+	 * Performs the given operation on the two words
 	 * 
 	 * @param word1
 	 * @param word2
@@ -309,7 +312,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Perform the given operation over the bit-sets
+	 * Performs the given operation over the bit-sets
 	 * 
 	 * @param other
 	 * @param opt
@@ -444,7 +447,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Compute the intersection size.
+	 * Computes the intersection size.
 	 * <p>
 	 * This is faster than calling {@link #getIntersection(WAH_BitSet)}
 	 * and then {@link #size()}
@@ -506,7 +509,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Compute the union size.
+	 * Computes the union size.
 	 * <p>
 	 * This is faster than calling {@link #getUnion(WAH_BitSet)}
 	 * and then {@link #size()}
@@ -519,7 +522,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Compute the symmetric difference size.
+	 * Computes the symmetric difference size.
 	 * <p>
 	 * This is faster than calling {@link #getSymmetricDifference(WAH_BitSet)}
 	 * and then {@link #size()}
@@ -532,7 +535,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Compute the difference size.
+	 * Computes the difference size.
 	 * <p>
 	 * This is faster than calling {@link #getDifference(WAH_BitSet)}
 	 * and then {@link #size()}
@@ -545,7 +548,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Compute the complement size.
+	 * Computes the complement size.
 	 * <p>
 	 * This is faster than calling {@link #getComplement()}
 	 * and then {@link #size()}
@@ -557,7 +560,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Update <code>maxSetBit</code> and <code>size</code> according to the
+	 * Updates <code>maxSetBit</code> and <code>size</code> according to the
 	 * <code>words</code> content
 	 */
 	private void updateSizeAndMaxElement() {
@@ -593,7 +596,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Check if the <i>literal</i> <code>currWords[currWordIndex]</code> can
+	 * Checks if the <i>literal</i> <code>currWords[currWordIndex]</code> can
 	 * be transformed to a sequence and merged with the sequences of 0's and 1's
 	 * of <code>currWords[currWordIndex - 1]</code>
 	 * 
@@ -636,7 +639,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Generate the intersection set (bitwise and)
+	 * Generates the intersection set (bitwise and)
 	 * 
 	 * @param other
 	 * @return intersection set
@@ -646,7 +649,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Generate the union set (bitwise or)
+	 * Generates the union set (bitwise or)
 	 * 
 	 * @param other
 	 * @return union set
@@ -656,7 +659,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Generate the difference set (bitwise and-not)
+	 * Generates the difference set (bitwise and-not)
 	 * 
 	 * @param other
 	 * @return difference set
@@ -666,7 +669,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Generate the symmetric difference set (bitwise xor)
+	 * Generates the symmetric difference set (bitwise xor)
 	 * 
 	 * @param other
 	 * @return symmetric difference set
@@ -676,7 +679,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Generate the complement set (bitwise not)
+	 * Generates the complement set (bitwise not)
 	 * 
 	 * @return complement set
 	 */
@@ -687,7 +690,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Complement the set representation, from 0 to <code>maxSetBit</code>
+	 * Complements the set representation, from 0 to <code>maxSetBit</code>
 	 * (bitwise not)
 	 */
 	public void complement() {
@@ -787,7 +790,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 		}
 
 		/**
-		 * Try to get the relative position of the next bit in the current word.
+		 * Tries to get the relative position of the next bit in the current word.
 		 * If there are no other set bits, returns <code>NOT_VALID_INDEX</code>
 		 * and advance the <code>currentWord</code> and
 		 * <code>maxSetBitInLastWord</code>.
@@ -968,13 +971,13 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Convert a given collection to a CompressedBitSet_old instance
+	 * Converts a given collection to a CompressedBitSet_old instance
 	 * 
 	 * @param c
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	private WAH_BitSet convert(Collection<?> c) {
+	private static WAH_BitSet asWAH_BitSet(Collection<?> c) {
 		if (c == null)
 			throw new NullPointerException();
 
@@ -1010,23 +1013,23 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Convert a given element to a CompressedBitSet_old instance
+	 * Converts a given element to a CompressedBitSet_old instance
 	 * 
 	 * @param e
 	 * @return
 	 */
-	private WAH_BitSet convert(Object e) {
+	private WAH_BitSet asWAH_BitSet(Object e) {
 		WAH_BitSet res = new WAH_BitSet();
 		res.append((Integer) e);
 		return res;
 	}
 
 	/**
-	 * Replace the current instance with another instance
+	 * Replaces the current instance with another instance
 	 * 
 	 * @param other
 	 */
-	private void replaceThis(WAH_BitSet other) {
+	private void becomeAliasOf(WAH_BitSet other) {
 		if (this == other)
 			return;
 		this.words = other.words;
@@ -1048,7 +1051,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 
 		// compute the "or" with the given element
 		int sizeBefore = size;
-		replaceThis(getUnion(convert(e)));
+		becomeAliasOf(getUnion(asWAH_BitSet(e)));
 		return size != sizeBefore;
 	}
 
@@ -1058,7 +1061,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	@Override
 	public boolean addAll(Collection<? extends Integer> c) {
 		int sizeBefore = size;
-		replaceThis(getUnion(convert(c)));
+		becomeAliasOf(getUnion(asWAH_BitSet(c)));
 		return size != sizeBefore;
 	}
 
@@ -1067,7 +1070,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	 */
 	@Override
 	public boolean contains(Object o) {
-		return intersectionSize(convert(o)) == 1;
+		return intersectionSize(asWAH_BitSet(o)) == 1;
 	}
 
 	/**
@@ -1079,7 +1082,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 			return true;
 		if (c.size() > size)
 			return false;
-		return intersectionSize(convert(c)) == c.size();
+		return intersectionSize(asWAH_BitSet(c)) == c.size();
 	}
 
 	/**
@@ -1096,7 +1099,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	@Override
 	public boolean remove(Object o) {
 		int sizeBefore = size;
-		replaceThis(getDifference(convert(o)));
+		becomeAliasOf(getDifference(asWAH_BitSet(o)));
 		return size != sizeBefore;
 	}
 
@@ -1106,7 +1109,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	@Override
 	public boolean removeAll(Collection<?> c) {
 		int sizeBefore = size;
-		replaceThis(getDifference(convert(c)));
+		becomeAliasOf(getDifference(asWAH_BitSet(c)));
 		return size != sizeBefore;
 	}
 
@@ -1116,7 +1119,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	@Override
 	public boolean retainAll(Collection<?> c) {
 		int sizeBefore = size;
-		replaceThis(getIntersection(convert(c)));
+		becomeAliasOf(getIntersection(asWAH_BitSet(c)));
 		return size != sizeBefore;
 	}
 
