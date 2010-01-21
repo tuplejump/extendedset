@@ -292,6 +292,10 @@ public class FastSet extends ExtendedSet<Integer> {
 		public Integer next() {
 			if (!hasNext())
 				throw new NoSuchElementException();
+
+			// NOTE: it searches for the next set bit. There is no faster way to
+			// get it, since there is no method similar to
+			// bits.nextSetBit(fromIndex) for scanning bits from MSB to LSB.
 			curr = next--;
 			while (hasNext() && !bits.get(next)) 
 				next--;
