@@ -16,8 +16,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
  */ 
 
-package it.uniroma3.mat.extendedset;
+package it.uniroma3.mat.extendedset.test;
 
+import it.uniroma3.mat.extendedset.ConciseSet;
+import it.uniroma3.mat.extendedset.ExtendedSet;
+import it.uniroma3.mat.extendedset.FastSet;
+import it.uniroma3.mat.extendedset.IndexedSet;
 import it.uniroma3.mat.extendedset.ExtendedSet.Statistics;
 
 import java.math.BigInteger;
@@ -33,9 +37,9 @@ import java.util.TreeSet;
  * Test class for {@link ConciseSet}, {@link FastSet}, and {@link IndexedSet}.
  * 
  * @author Alessandro Colantonio
- * @version $Id$
+ * @version $Id: Test.java 23 2010-01-21 01:23:40Z cocciasik $
  */
-public class Test {
+public class Debug {
 	/**
 	 * Checks if a {@link ExtendedSet} instance and a {@link TreeSet} instance
 	 * contains the same elements. {@link TreeSet} is used because it is the

@@ -514,8 +514,6 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	 * 
 	 * @return descending iterator
 	 */
-	// TODO: override this method in ConciseSet and FastSet (not in IndexedSet)
-	// to improve performances
 	@SuppressWarnings("unchecked")
 	public Iterator<T> descendingIterator() {
 		return new Iterator<T>() {
@@ -771,6 +769,8 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	/**
 	 * {@inheritDoc}
 	 * <p>
+	 * Compare sets according to their lexicographical order.
+	 * <p>
 	 * <b>NOTE:</b> it supposes that items of type <code>T</code> implements
 	 * the interface {@link Comparable}. When this is not the case, subclasses
 	 * override the method (i.e. {@link IndexedSet#compareTo(ExtendedSet)})
@@ -788,6 +788,23 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 				return res;
 		}
 		return thisIterator.hasNext() ? 1 : (otherIterator.hasNext() ? -1 : 0);
+	}
+	
+	/**
+	 * Compare sets according to their lexicographical order.
+	 * <p>
+	 * 
+	 * @param <X>
+	 *            the type of elements maintained the compared sets
+	 */
+	public static class ExtendedSetComparator<X> implements Comparator<ExtendedSet<X>> {
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public int compare(ExtendedSet<X> o1, ExtendedSet<X> o2) {
+			return o1.compareTo(o2);
+		}
 	}
 	
 	/**

@@ -21,6 +21,7 @@ package it.uniroma3.mat.extendedset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -493,6 +494,17 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 		return indexToItem[i];
 	}
 
+	/**
+	 * Returns a read-only <i>view</i> of all indices
+	 * 
+	 * @return the index set
+	 * @see #get(int)
+	 * @see #indexOf(Object)
+	 */
+	public SortedSet<Integer> indices() {
+		return Collections.unmodifiableSortedSet(items);
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 */
