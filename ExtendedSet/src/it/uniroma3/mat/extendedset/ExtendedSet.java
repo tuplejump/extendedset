@@ -625,7 +625,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 					List<ExtendedSet<T>> newPrefix = new ArrayList<ExtendedSet<T>>();
 					for (int j = i + 1; j < prefix.size(); j++) {
 						ExtendedSet<T> x = prefix.get(i).clone();
-						x.addLast(prefix.get(j));
+						x.addLastOf(prefix.get(j));
 						newPrefix.add(x);
 						if (l >= min)
 							res.add(x);
@@ -721,7 +721,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	 * @return <code>true</code> if this set did not already contain the
 	 *         specified element
 	 */
-	public boolean addLast(SortedSet<T> set) {
+	public boolean addLastOf(SortedSet<T> set) {
 		return add(set.last());
 	}
 
@@ -733,7 +733,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	 * @return <code>true</code> if this set did not already contain the
 	 *         specified element
 	 */
-	public boolean addFirst(SortedSet<T> set) {
+	public boolean addFirstOf(SortedSet<T> set) {
 		return add(set.first());
 	}
 
@@ -745,7 +745,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	 * @return <code>true</code> if this set already contained the specified
 	 *         element
 	 */
-	public boolean removeLast(SortedSet<T> set) {
+	public boolean removeLastOf(SortedSet<T> set) {
 		return remove(set.last());
 	}
 
@@ -757,7 +757,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 	 * @return <code>true</code> if this set already contained the specified
 	 *         element
 	 */
-	public boolean removeFirst(SortedSet<T> set) {
+	public boolean removeFirstOf(SortedSet<T> set) {
 		return remove(set.first());
 	}
 

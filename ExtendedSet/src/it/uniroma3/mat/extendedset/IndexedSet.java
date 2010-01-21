@@ -497,40 +497,40 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean addLast(SortedSet<T> set) {
+	public boolean addLastOf(SortedSet<T> set) {
 		if (hasSameIndices(set)) 
 			return items.add(((IndexedSet<?>) set).items.last());
-		return super.addLast(set);
+		return super.addLastOf(set);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean addFirst(SortedSet<T> set) {
+	public boolean addFirstOf(SortedSet<T> set) {
 		if (hasSameIndices(set)) 
 			return items.add(((IndexedSet<?>) set).items.first());
-		return super.addFirst(set);
+		return super.addFirstOf(set);
 	}
 	
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean removeLast(SortedSet<T> set) {
+	public boolean removeLastOf(SortedSet<T> set) {
 		if (hasSameIndices(set)) 
 			return items.remove(((IndexedSet<?>) set).items.last());
-		return super.removeLast(set);
+		return super.removeLastOf(set);
 	}
 	
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean removeFirst(SortedSet<T> set) {
+	public boolean removeFirstOf(SortedSet<T> set) {
 		if (hasSameIndices(set)) 
 			return items.remove(((IndexedSet<?>) set).items.first());
-		return super.removeFirst(set);
+		return super.removeFirstOf(set);
 	}
 	
 	/**

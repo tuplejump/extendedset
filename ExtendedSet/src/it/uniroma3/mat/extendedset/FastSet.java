@@ -260,6 +260,56 @@ public class FastSet extends ExtendedSet<Integer> {
 	}
 
 	/**
+	 * Iterates over bits
+	 */
+	private class ReverseBitIterator implements Iterator<Integer> {
+		// current bit
+		private Integer curr;
+		
+		// next bit to poll
+		private Integer next;
+
+		/**
+		 * Constructor
+		 */
+		public ReverseBitIterator() {
+			curr = -1;
+			next = bits.length() - 1;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public boolean hasNext() {
+			return next >= 0;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public Integer next() {
+			if (!hasNext())
+				throw new NoSuchElementException();
+			curr = next--;
+			while (hasNext() && !bits.get(next)) 
+				next--;
+			return curr;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public void remove() {
+			if (curr < 0 || !bits.get(curr))
+				throw new IllegalStateException();
+			bits.clear(curr);
+		}
+	}
+
+	/**
 	 * {@inheritDoc}
 	 */
 	@Override
@@ -267,6 +317,14 @@ public class FastSet extends ExtendedSet<Integer> {
 		return new BitIterator();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Iterator<Integer> descendingIterator() {
+		return new ReverseBitIterator();
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 */

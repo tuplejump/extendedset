@@ -20,8 +20,10 @@ package it.uniroma3.mat.extendedset;
 
 import it.uniroma3.mat.extendedset.ExtendedSet.Statistics;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Random;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -1100,7 +1102,7 @@ public class Test {
 	 * @param c class to test
 	 */
 	@SuppressWarnings("unchecked")
-	private static void testForComparator(Class<? extends ExtendedSet> c) {
+	private static void testForComparatorSimple(Class<? extends ExtendedSet> c) {
 		ExtendedSet<Integer> bitsLeft;
 		ExtendedSet<Integer> bitsRight;
 		try {
@@ -1150,12 +1152,108 @@ public class Test {
 	}
 	
 	/**
+	 * Another test for {@link ExtendedSet#compareTo(ExtendedSet)}
+	 * 
+	 * @param c class to test
+	 */
+	@SuppressWarnings("unchecked")
+	private static void testForComparatorComplex(Class<? extends ExtendedSet> c) {
+		ExtendedSet<Integer> bitsLeft;
+		ExtendedSet<Integer> bitsRight;
+		try {
+			bitsLeft = c.newInstance();
+			bitsRight = c.newInstance();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
+		Random rnd = new Random();
+		for (int i = 0; i < 10000; i++) {
+			// empty numbers
+			BigInteger correctLeft = BigInteger.ZERO;
+			BigInteger correctRight = BigInteger.ZERO;
+			bitsLeft.clear();
+			bitsRight.clear();
+			
+			// generate two random numbers
+			int size = 1 + rnd.nextInt(10000);
+			int left = 0, right = 0;
+			for (int j = 0; j < size; j++) {
+				left = Math.abs(rnd.nextDouble() > 0.001D ? (left - 1) : rnd.nextInt(size));
+				right = Math.abs(rnd.nextDouble() > 0.001D ? left : rnd.nextInt(size));
+				bitsLeft.add(left);
+				bitsRight.add(right);
+				correctLeft = correctLeft.setBit(left);
+				correctRight = correctRight.setBit(right);
+			}
+			
+			// compare them!
+			boolean correct = bitsLeft.compareTo(bitsRight) == correctLeft.compareTo(correctRight);
+			System.out.println(i + ": " + correct);
+			if (!correct) {
+				System.out.println("ERROR!");
+				System.out.println("bitsLeft:  " + bitsLeft);
+				System.out.println("           " + bitsLeft.debugInfo());
+				System.out.println("bitsRight: " + bitsRight);
+				System.out.println("           " + bitsRight.debugInfo());
+				int maxLength = Math.max(correctLeft.bitLength(), correctRight.bitLength());
+				System.out.format("correctLeft.toString(2):  %" + maxLength + "s\n", correctLeft.toString(2));
+				System.out.format("correctRight.toString(2): %" + maxLength + "s\n", correctRight.toString(2));
+				System.out.println("bitsLeft.compareTo(bitsRight):  " + bitsLeft.compareTo(bitsRight));
+				System.out.println("correctLeft.compareTo(correctRight): " + correctLeft.compareTo(correctRight));
+				return;
+			}
+		}
+		System.out.println("Done!");
+	}
+
+	/**
+	 * Stress test for {@link ExtendedSet#descendingIterator()}
+	 * 
+	 * @param c class to test
+	 */
+	@SuppressWarnings("unchecked")
+	private static void testForDescendingIterator(Class<? extends ExtendedSet> c) {
+		ExtendedSet<Integer> bits;
+		try {
+			bits = c.newInstance();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		
+		Random rnd = new Random();
+		for (int i = 0; i < 100000; i++) {
+			HashSet<Integer> x = new HashSet<Integer>(bits);
+			HashSet<Integer> y = new HashSet<Integer>();
+			for (Integer e : bits.descending())
+				y.add(e);
+			
+			boolean correct = x.equals(y);
+			System.out.print(i + ": " + correct);
+			if (!correct) {
+				System.out.println("ERRORE!");
+				System.out.println(bits.debugInfo());
+				for (Integer e : bits.descending())
+					System.out.print(e + ", ");
+			}
+
+			int n = rnd.nextInt(10000);
+			System.out.println(" + " + n);
+			bits.add(n);
+		}
+		
+		System.out.println(bits.debugInfo());
+		for (Integer e : bits.descending())
+			System.out.print(e + ", ");
+	}
+	
+	/**
 	 * Test launcher
 	 * 
 	 * @param args ID of the test to execute (from 1 to 24)
 	 */
 	public static void main(String[] args) {
-		int testCase = 24;
+		int testCase = 28;
 		
 		if (args != null && args.length == 1) {
 			try {
@@ -1233,10 +1331,22 @@ public class Test {
 			testForSubSetRandomOperationsStress();
 			break;
 		case 23:
-			testForComparator(ConciseSet.class);
+			testForComparatorSimple(ConciseSet.class);
 			break;
 		case 24:
-			testForComparator(FastSet.class);
+			testForComparatorSimple(FastSet.class);
+			break;
+		case 25:
+			testForComparatorComplex(ConciseSet.class);
+			break;
+		case 26:
+			testForComparatorComplex(FastSet.class);
+			break;
+		case 27:
+			testForDescendingIterator(ConciseSet.class);
+			break;
+		case 28:
+			testForDescendingIterator(FastSet.class);
 			break;
 		default:
 			System.out.println("Unknown test case!");

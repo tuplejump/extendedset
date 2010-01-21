@@ -530,6 +530,124 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	}
 	
 	/**
+	 * Iterates over words, from MSB to LSB.
+	 * <p>
+	 * @see WordIterator
+	 */
+	private class ReverseWordIterator {
+		private int currentWordIndex;	// index of the current word
+		private int currentWordCopy;	// copy of the current word
+		private int currentLiteral;		// literal contained within the current word
+
+		/**
+		 * Gets the literal word that represents the <i>last</i> 31 bits of the
+		 * given the word (i.e. the last block of a sequence word, or the bits
+		 * of a literal word).
+		 * <p>
+		 * If the word is a literal, it returns the unmodified word. In case of
+		 * a sequence, it returns a literal that represents the last 31 bits of
+		 * the given sequence word.
+		 * <p>
+		 * Different from {@link ConciseSet#getLiteral(int)}, when the word is
+		 * a sequence that contains one (un)set bit, and the count is greater
+		 * than zero, then it means that we are traversing the sequence from the
+		 * end, and then the literal is represented by all ones or all zeros.
+		 * 
+		 * @param word
+		 *            the word where to extract the literal
+		 * @return the literal contained at the end of the given word, with the
+		 *         most significant bit set to 1.
+		 */
+		private int getReverseLiteral(int word) {
+			if (isLiteral(word) || isSequenceWithNoBits(word) || getSequenceCount(word) == 0)
+				return getLiteral(word);
+			return isZeroSequence(word) ? ALL_ZEROS_LITERAL : ALL_ONES_LITERAL;
+		}
+		
+		/*
+		 * Initialize data 
+		 */
+		{
+			if (words != null) {
+				currentWordIndex = words.length - 1;
+				currentWordCopy = words[currentWordIndex];
+				currentLiteral = getReverseLiteral(currentWordCopy);
+			} else {
+				// empty set
+				currentWordIndex = -1;
+				currentWordCopy = 0;
+				currentLiteral = 0;
+			}
+		}
+		
+		/**
+		 * Checks whether other literals to analyze exist
+		 * 
+		 * @return <code>true</code> if there are literals to iterate
+		 */
+		public final boolean hasMoreLiterals() {
+			if (currentWordIndex > 1)
+				return true;
+			if (currentWordIndex < 0)
+				return false;
+			
+			// now currentWordIndex == 0 or 1
+			if (currentWordIndex == 1) {
+				if (isLiteral(currentWordCopy) 
+						|| getSequenceCount(currentWordCopy) == 0 
+						|| (isZeroSequence(currentWordCopy) && isSequenceWithNoBits(currentWordCopy)))
+					return !(words[0] == ALL_ZEROS_LITERAL 
+							|| (isZeroSequence(words[0]) && isSequenceWithNoBits(words[0])));
+				// I don't have to "jump" to words[0], namely I still have to finish words[1]
+				return true;
+			} 
+			
+			// now currentWordIndex == 0, namely the first element
+			if (isLiteral(currentWordCopy))
+				return false;
+			
+			// now currentWordCopy is a sequence
+			if (getSequenceCount(currentWordCopy) == 0)
+				return false;
+
+			// now currentWordCopy is a non-empty sequence
+			if (isOneSequence(currentWordCopy))
+				return true;
+
+			// now currentWordCopy is a zero sequence
+			if (isSequenceWithNoBits(currentWordCopy))
+				return false;
+			
+			// zero sequence with a set bit at the beginning
+			return true;
+		}
+
+		/**
+		 * Checks whether other words to analyze exist
+		 * 
+		 * @return <code>true</code> if there are words to iterate
+		 */
+		public final boolean endOfWords() {
+			return currentWordIndex < 0;
+		}
+
+		/**
+		 * Prepares the next literal, similar to
+		 * {@link WordIterator#computeNextLiteral()}. <b>NOTE:</b> it supposes
+		 * that {@link #hasMoreLiterals()} returns <code>true</code>.
+		 */ 
+		public final void computeNextLiteral() {
+			if (isLiteral(currentWordCopy) || getSequenceCount(currentWordCopy) == 0) { 
+				if (--currentWordIndex >= 0)
+					currentWordCopy = words[currentWordIndex];
+			} else {
+				currentWordCopy--;
+			}
+			currentLiteral = getReverseLiteral(currentWordCopy);
+		}
+	}
+	
+	/**
 	 * When both word iterators currently point to sequence words, it decreases
 	 * these sequences by the least sequence count between them and return such
 	 * a count.
@@ -578,6 +696,25 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		return count;
 	}
 	
+	/**
+	 * The same as {@link #skipSequence(WordIterator, WordIterator)}, but for
+	 * {@link ReverseWordIterator} instances
+	 */
+	private static int skipSequence(ReverseWordIterator itr1, ReverseWordIterator itr2) {
+		int count = 0;
+		if (!isLiteral(itr1.currentWordCopy) && !isLiteral(itr2.currentWordCopy)) {
+			count = Math.min(
+					getSequenceCount(itr1.currentWordCopy) - (isSequenceWithNoBits(itr1.currentWordCopy) ? 0 : 1),
+					getSequenceCount(itr2.currentWordCopy) - (isSequenceWithNoBits(itr2.currentWordCopy) ? 0 : 1));
+			if (count > 0) {
+				// increase sequence counter
+				itr1.currentWordCopy -= count;
+				itr2.currentWordCopy -= count;
+			}
+		} 
+		return count;
+	}
+
 	/**
 	 * Appends to {@code #words} the content of another word array
 	 * 
@@ -1117,7 +1254,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	 */
 	private class BitIterator implements Iterator<Integer> {
 		private WordIterator wordItr = new WordIterator();
-		private int firstBitOfCurrentWord = 0;
+		private int rightmostBitOfCurrentWord = 0;
 		private int nextBitToCheck = 0;
 		private int initialModCount = modCount;
 
@@ -1176,11 +1313,11 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 					nextBitToCheck = nextSetBit + 1;
 				} else {
 					// advance one word
-					firstBitOfCurrentWord += MAX_LITERAL_LENGHT;
+					rightmostBitOfCurrentWord += MAX_LITERAL_LENGHT;
 					if (isZeroSequence(wordItr.currentWordCopy)) {
 						// skip zeros
 						int blocks = getSequenceCount(wordItr.currentWordCopy);
-						firstBitOfCurrentWord += MAX_LITERAL_LENGHT * blocks;
+						rightmostBitOfCurrentWord += MAX_LITERAL_LENGHT * blocks;
 						wordItr.currentWordCopy -= blocks;
 					}
 					nextBitToCheck = 0;
@@ -1188,7 +1325,102 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 				}
 			}
 
-			return firstBitOfCurrentWord + nextSetBit;
+			return rightmostBitOfCurrentWord + nextSetBit;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public void remove() {
+			// it is difficult to remove the current bit in a sequence word and
+			// to contextually keep the word iterator updated!
+			throw new UnsupportedOperationException();
+		}
+	}
+
+	/**
+	 * Iterator for set bits of {@link ConciseSet}, from MSB to LSB
+	 */
+	private class ReverseBitIterator implements Iterator<Integer> {
+		private ReverseWordIterator wordItr = new ReverseWordIterator();
+		private int rightmostBitOfCurrentWord = MAX_LITERAL_LENGHT * (maxSetBit / MAX_LITERAL_LENGHT);
+		private int nextBitToCheck = lastSetBitOfLastWord;
+		private int initialModCount = modCount;
+
+		/**
+		 * Gets the next bit in the current literal
+		 * 
+		 * @return -1 if there is no next bit, otherwise the next set bit within
+		 *         the current literal
+		 */
+		private int getNextSetBit() {
+			return MAX_LITERAL_LENGHT 
+				- Integer.numberOfLeadingZeros(wordItr.currentLiteral & ~(0xFFFFFFFF << (nextBitToCheck + 1)));
+		}
+		
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public boolean hasNext() {
+			// check for concurrent modification 
+			if (initialModCount != modCount)
+				throw new ConcurrentModificationException();
+
+			// there are no words
+			if (isEmpty())
+				return false;
+
+			// there are other literals to read
+			if (wordItr.hasMoreLiterals())
+				return true;
+
+			// check if we already reached the last bit of the last word
+			return getNextSetBit() >= 0;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public Integer next() {
+			// check for concurrent modification 
+			if (initialModCount != modCount)
+				throw new ConcurrentModificationException();
+			
+			// loop until we find some set bit
+			int nextSetBit = -1;
+			while (nextSetBit < 0) {
+				if (!hasNext())
+					throw new NoSuchElementException();
+
+				// next bit in the current literal
+				nextSetBit = getNextSetBit();
+
+				if (nextSetBit >= 0) {
+					// return the current bit and then set the next search
+					// within the literal
+					nextBitToCheck = nextSetBit - 1;
+				} else {
+					// advance one word
+					rightmostBitOfCurrentWord -= MAX_LITERAL_LENGHT;
+					if (isZeroSequence(wordItr.currentWordCopy)) {
+						// skip zeros
+						int blocks = getSequenceCount(wordItr.currentWordCopy);
+						if (!isSequenceWithNoBits(wordItr.currentWordCopy))
+							blocks--;
+						if (blocks > 0) {
+							rightmostBitOfCurrentWord -= MAX_LITERAL_LENGHT * blocks;
+							wordItr.currentWordCopy -= blocks;
+						}
+					}
+					nextBitToCheck = MAX_LITERAL_LENGHT - 1;
+					wordItr.computeNextLiteral();
+				}
+			}
+
+			return rightmostBitOfCurrentWord + nextSetBit;
 		}
 
 		/**
@@ -1210,6 +1442,14 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		return new BitIterator();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Iterator<Integer> descendingIterator() {
+		return new ReverseBitIterator();
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -1801,6 +2041,48 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		return true;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int compareTo(ExtendedSet<Integer> o) {
+		// check if the given object has the same internal representation
+		if (!(o instanceof ConciseSet))
+			return super.compareTo(o);
+		final ConciseSet other = (ConciseSet) o;
+		
+		// empty set cases
+		if (this.isEmpty() && other.isEmpty())
+			return 0;
+		if (this.isEmpty())
+			return 1;
+		if (other.isEmpty())
+			return -1;
+		
+		// the word at the end must be the same
+		int res = this.maxSetBit - other.maxSetBit;
+		if (res != 0)
+			return res < 0 ? -1 : 1;
+		
+		// scan words from MSB to LSB
+		ReverseWordIterator thisIterator = this.new ReverseWordIterator();
+		ReverseWordIterator otherIterator = other.new ReverseWordIterator();
+		while (!thisIterator.endOfWords() && !otherIterator.endOfWords()) {
+			// compare current literals
+			res = getLiteralBits(thisIterator.currentLiteral) - getLiteralBits(otherIterator.currentLiteral);
+			if (res != 0)
+				return res < 0 ? -1 : 1;
+			
+			// avoid loops when both are sequences and the result is a sequence
+			skipSequence(thisIterator, otherIterator);
+
+			// next literals
+			thisIterator.computeNextLiteral();
+			otherIterator.computeNextLiteral();
+		}
+		return thisIterator.hasMoreLiterals() ? 1 : (otherIterator.hasMoreLiterals() ? -1 : 0);
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 */
