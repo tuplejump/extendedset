@@ -189,6 +189,10 @@ public class FastSet extends ExtendedSet<Integer> {
 	public boolean containsAll(Collection<?> c) {
 		if (c == null || c.isEmpty())
 			return true;
+		if (isEmpty())
+			return false;
+		if (c.size() > size)
+			return false;
 
 		if (c instanceof FastSet) 
 			return this.intersectionSize((FastSet) c) == size;
@@ -597,6 +601,22 @@ public class FastSet extends ExtendedSet<Integer> {
 	@Override
 	public List<? extends FastSet> powerSet(int min, int max) {
 		return (List<? extends FastSet>) super.powerSet(min, max);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void fill(Integer from, Integer to) {
+		bits.set(from, to);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void clear(Integer from, Integer to) {
+		bits.clear(from, to);
 	}
 	
 	/**

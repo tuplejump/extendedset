@@ -21,7 +21,6 @@ package it.uniroma3.mat.extendedset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -213,7 +212,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	 */
 	@Override
 	public boolean addAll(Collection<? extends T> c) {
-		return this.items.addAll(asIndexedSet(c).items);
+		return c != null && !c.isEmpty() && this.items.addAll(asIndexedSet(c).items);
 	}
 
 	/**
@@ -229,6 +228,8 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	 */
 	@Override
 	public boolean contains(Object o) {
+		if (o == null)
+			return false;
 		Integer index = itemToIndex.get(o);
 		return index != null && items.contains(index);
 	}
@@ -238,7 +239,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	 */
 	@Override
 	public boolean containsAll(Collection<?> c) {
-		return this.items.containsAll(asIndexedSet(c).items);
+		return c != null && !c.isEmpty() && this.items.containsAll(asIndexedSet(c).items);
 	}
 
 	/**
@@ -246,7 +247,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	 */
 	@Override
 	public boolean containsAny(Collection<? extends T> other) {
-		return this.items.containsAny(asIndexedSet(other).items);
+		return other != null && !other.isEmpty() && this.items.containsAny(asIndexedSet(other).items);
 	}
 
 	/**
@@ -254,7 +255,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	 */
 	@Override
 	public boolean containsAtLeast(Collection<? extends T> other, int minElements) {
-		return this.items.containsAtLeast(asIndexedSet(other).items, minElements);
+		return other != null && !other.isEmpty() && this.items.containsAtLeast(asIndexedSet(other).items, minElements);
 	}
 
 	/**
@@ -338,10 +339,10 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	 */
 	@Override
 	public boolean remove(Object o) {
-		Integer index = itemToIndex.get(o);
-		if (index == null)
+		if (o == null)
 			return false;
-		return items.remove(index);
+		Integer index = itemToIndex.get(o);
+		return index != null && items.remove(index);
 	}
 
 	/**
@@ -349,7 +350,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	 */
 	@Override
 	public boolean removeAll(Collection<?> c) {
-		return this.items.removeAll(asIndexedSet(c).items);
+		return c != null && !c.isEmpty() && this.items.removeAll(asIndexedSet(c).items);
 	}
 
 	/**
@@ -357,7 +358,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	 */
 	@Override
 	public boolean retainAll(Collection<?> c) {
-		return this.items.retainAll(asIndexedSet(c).items);
+		return c != null && !c.isEmpty() && this.items.retainAll(asIndexedSet(c).items);
 	}
 
 	/**
@@ -495,14 +496,17 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	}
 
 	/**
-	 * Returns a read-only <i>view</i> of all indices
+	 * Returns the set of indices. Modifications to this set are reflected to
+	 * this {@link IndexedSet} instance. Trying to perform operation on
+	 * out-of-bound indices will throw an {@link IllegalArgumentException}
+	 * exception.
 	 * 
 	 * @return the index set
 	 * @see #get(int)
 	 * @see #indexOf(Object)
 	 */
-	public SortedSet<Integer> indices() {
-		return Collections.unmodifiableSortedSet(items);
+	public ExtendedSet<Integer> indices() {
+		return items.subSet(0, indexToItem.length);
 	}
 	
 	/**

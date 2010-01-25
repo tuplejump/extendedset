@@ -806,6 +806,45 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 			return o1.compareTo(o2);
 		}
 	}
+
+	/**
+	 * Adds to the sets all the elements between <code>first</code> and
+	 * <code>last</code>, both included.
+	 * 
+	 * @param from
+	 *            first element
+	 * @param to
+	 *            last element
+	 */
+	public void fill(T from, T to) {
+		ExtendedSet<T> toAdd = emptySet();
+		toAdd.add(to);
+		toAdd.complement();
+		toAdd.add(to);
+
+		ExtendedSet<T> toRemove = emptySet();
+		toRemove.add(from);
+		toRemove.complement();
+		
+		toAdd.removeAll(toRemove);
+		
+		this.addAll(toAdd);
+	}
+	
+	/**
+	 * Remove to the sets all the elements between <code>first</code> and
+	 * <code>last</code>, both included.
+	 * 
+	 * @param from
+	 *            first element
+	 * @param to
+	 *            last element
+	 */
+	public void clear(T from, T to) {
+		ExtendedSet<T> toRemove = emptySet();
+		toRemove.fill(from, to);
+		this.removeAll(toRemove);
+	}
 	
 	/**
 	 * Used by {@link ExtendedSet#headSet(T)},
@@ -864,6 +903,12 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 			}
 		}
 
+		
+		
+		/*
+		 * PRIVATE UTILITY METHODS
+		 */
+		
 		/**
 		 * Comparator for elements of type <code>T</code>
 		 */
@@ -896,8 +941,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		 */
 		private boolean completelyContains(ExtendedSet<T> other) {
 			return (max == null || localComparator.compare(other.last(), max) < 0)
-					&& (min == null || localComparator.compare(other.first(),
-							min) >= 0);
+					&& (min == null || localComparator.compare(other.first(), min) >= 0);
 		}
 
 		/**
@@ -946,6 +990,12 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 			}
 		}
 
+		
+		
+		/*
+		 * PUBLIC METHODS
+		 */
+		
 		/**
 		 * {@inheritDoc}
 		 */
@@ -1006,8 +1056,6 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		 */
 		@Override
 		public boolean add(T e) {
-			if (e == null)
-				throw new NullPointerException();
 			if (!completelyContains(e))
 				throw new IllegalArgumentException();
 			return ExtendedSet.this.add(e);
@@ -1019,16 +1067,12 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		@SuppressWarnings("unchecked")
 		@Override
 		public boolean addAll(Collection<? extends T> c) {
-			if (c.isEmpty())
-				return false;
-			
 			if (c instanceof ExtendedSet) {
-				ExtendedSet<T> b = (ExtendedSet) c;
-				if (!completelyContains(b))
+				if (!completelyContains((ExtendedSet) c))
 					throw new IllegalArgumentException();
-				return ExtendedSet.this.addAll(b);
+				return ExtendedSet.this.addAll(c);
 			} 
-				
+			// make calls to add() and, consequently, to completelyContains()
 			return super.addAll(c);
 		}
 
@@ -1055,13 +1099,9 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		@SuppressWarnings("unchecked")
 		@Override
 		public boolean containsAll(Collection<?> c) {
-			if (c instanceof ExtendedSet) {
-				ExtendedSet<T> b = (ExtendedSet) c;
-				if (!completelyContains(b))
-					return false;
-				return ExtendedSet.this.containsAll(b);
-			} 
-				
+			if (c instanceof ExtendedSet) 
+				return completelyContains((ExtendedSet) c) && ExtendedSet.this.containsAll(c);
+			// make calls to contains() and, consequently, to completelyContains()
 			return super.containsAll(c);
 		}
 
@@ -1095,11 +1135,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		@SuppressWarnings("unchecked")
 		@Override
 		public boolean remove(Object o) {
-			if (o == null)
-				throw new NullPointerException();
-			if (!completelyContains((T) o))
-				return false;
-			return ExtendedSet.this.remove(o);
+			return completelyContains((T) o) && ExtendedSet.this.remove(o);
 		}
 
 		/**
@@ -1108,12 +1144,9 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		@SuppressWarnings("unchecked")
 		@Override
 		public boolean removeAll(Collection<?> c) {
-			if (c.isEmpty())
-				return false;
-			if (c instanceof ExtendedSet) {
+			if (c instanceof ExtendedSet) 
 				return ExtendedSet.this.removeAll(filterByMask((ExtendedSet) c));
-			} 
-			
+			// make calls to remove() and, consequently, to completelyContains()
 			return super.removeAll(c);
 		}
 
@@ -1124,17 +1157,16 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		@Override
 		public boolean retainAll(Collection<?> c) {
 			if (c instanceof ExtendedSet) {
-				ExtendedSet<T> b = (ExtendedSet) c;
 				if (completelyContains(ExtendedSet.this)) 
-					return ExtendedSet.this.retainAll(b);
+					return ExtendedSet.this.retainAll(c);
 
 				int sizeBefore = ExtendedSet.this.size();
-				ExtendedSet<T> res = ExtendedSet.this.getIntersection(b);
+				ExtendedSet<T> res = ExtendedSet.this.getIntersection((Collection<? extends T>) c);
 				clearByMask(ExtendedSet.this);
 				ExtendedSet.this.addAll(res);
 				return ExtendedSet.this.size() != sizeBefore;
 			} 
-				
+			// make calls to remove() and, consequently, to completelyContains()
 			return super.retainAll(c);
 		}
 
@@ -1269,9 +1301,7 @@ public abstract class ExtendedSet<T> extends AbstractSet<T> implements
 		@SuppressWarnings("unchecked")
 		@Override
 		public int intersectionSize(Collection<? extends T> other) {
-			if (other instanceof ExtendedSet)
-				return ExtendedSet.this.intersectionSize(filterByMask((ExtendedSet) other));
-			return ExtendedSet.this.getIntersection(other).size();
+			return filterByMask(ExtendedSet.this.getIntersection(other)).size();
 		}
 
 		/**

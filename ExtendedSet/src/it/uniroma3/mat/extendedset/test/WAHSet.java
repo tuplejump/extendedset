@@ -1,4 +1,4 @@
-package it.uniroma3.mat.extendedset.old;
+package it.uniroma3.mat.extendedset.test;
 
 import java.text.DecimalFormat;
 import java.util.AbstractSet;
@@ -16,9 +16,9 @@ import java.util.TreeSet;
  * algorithm
  * 
  * @author Alessandro Colantonio
- * @version $Id$
+ * @version $Id: WAH_BitSet.java 25 2010-01-21 15:14:42Z cocciasik $
  */
-public class WAH_BitSet extends AbstractSet<Integer> implements
+public class WAHSet extends AbstractSet<Integer> implements
 		SortedSet<Integer>, Cloneable {
 	/*
 	 * Compressed bit-string. 
@@ -55,7 +55,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	/**
 	 * Creates an empty bit-string
 	 */
-	public WAH_BitSet() {
+	public WAHSet() {
 		words = null;
 		size = 0;
 		maxSetBitInLastWord = 0;
@@ -66,10 +66,10 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public WAH_BitSet clone() {
-		WAH_BitSet cloned = null;
+	public WAHSet clone() {
+		WAHSet cloned = null;
 		try {
-			cloned = (WAH_BitSet) super.clone();
+			cloned = (WAHSet) super.clone();
 			if (!isEmpty())
 				cloned.words = Arrays.copyOf(words, words.length);
 		} catch (CloneNotSupportedException e) {
@@ -318,30 +318,30 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	 * @param opt
 	 * @return
 	 */
-	private WAH_BitSet getOperation(WAH_BitSet other, Operation opt) {
+	private WAHSet getOperation(WAHSet other, Operation opt) {
 		// empty arguments
 		if (this.isEmpty() || other.isEmpty()) {
 			switch (opt) {
 			case AND:
-				return new WAH_BitSet();
+				return new WAHSet();
 			case OR:
 			case XOR:
 				if (!this.isEmpty() && other.isEmpty())
 					return this.clone();
 				if (this.isEmpty() && !other.isEmpty())
 					return other.clone();
-				return new WAH_BitSet();
+				return new WAHSet();
 			case ANDNOT:
 				if (!this.isEmpty() && other.isEmpty())
 					return this.clone();
-				return new WAH_BitSet();
+				return new WAHSet();
 			default:
 				throw new UnsupportedOperationException();
 			}
 		}
 
 		// final intersection set
-		WAH_BitSet res = new WAH_BitSet();
+		WAHSet res = new WAHSet();
 
 		// create a sufficient number of words to contain all possible results
 		res.words = new int[this.words.length + other.words.length];
@@ -432,7 +432,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 
 		// empty result
 		if (resWordIndex < 0)
-			return new WAH_BitSet();
+			return new WAHSet();
 
 		// compact the memory
 		int[] newResWord = new int[resWordIndex];
@@ -449,13 +449,13 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	/**
 	 * Computes the intersection size.
 	 * <p>
-	 * This is faster than calling {@link #getIntersection(WAH_BitSet)}
+	 * This is faster than calling {@link #getIntersection(WAHSet)}
 	 * and then {@link #size()}
 	 * 
 	 * @param other
 	 * @return intersection size
 	 */
-	public int intersectionSize(WAH_BitSet other) {
+	public int intersectionSize(WAHSet other) {
 		// empty arguments
 		if (this.isEmpty() || other.isEmpty())
 			return 0;
@@ -511,39 +511,39 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	/**
 	 * Computes the union size.
 	 * <p>
-	 * This is faster than calling {@link #getUnion(WAH_BitSet)}
+	 * This is faster than calling {@link #getUnion(WAHSet)}
 	 * and then {@link #size()}
 	 * 
 	 * @param other
 	 * @return the union size
 	 */
-	public int unionSize(WAH_BitSet other) {
+	public int unionSize(WAHSet other) {
 		return this.size + other.size - intersectionSize(other);
 	}
 
 	/**
 	 * Computes the symmetric difference size.
 	 * <p>
-	 * This is faster than calling {@link #getSymmetricDifference(WAH_BitSet)}
+	 * This is faster than calling {@link #getSymmetricDifference(WAHSet)}
 	 * and then {@link #size()}
 	 * 
 	 * @param other
 	 * @return symmetric difference size
 	 */
-	public int symmetricDifferenceSize(WAH_BitSet other) {
+	public int symmetricDifferenceSize(WAHSet other) {
 		return this.size + other.size - 2 * intersectionSize(other);
 	}
 
 	/**
 	 * Computes the difference size.
 	 * <p>
-	 * This is faster than calling {@link #getDifference(WAH_BitSet)}
+	 * This is faster than calling {@link #getDifference(WAHSet)}
 	 * and then {@link #size()}
 	 * 
 	 * @param other
 	 * @return difference set size
 	 */
-	public int differenceSize(WAH_BitSet other) {
+	public int differenceSize(WAHSet other) {
 		return this.size - intersectionSize(other);
 	}
 
@@ -644,7 +644,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	 * @param other
 	 * @return intersection set
 	 */
-	public WAH_BitSet getIntersection(WAH_BitSet other) {
+	public WAHSet getIntersection(WAHSet other) {
 		return getOperation(other, Operation.AND);
 	}
 
@@ -654,7 +654,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	 * @param other
 	 * @return union set
 	 */
-	public WAH_BitSet getUnion(WAH_BitSet other) {
+	public WAHSet getUnion(WAHSet other) {
 		return getOperation(other, Operation.OR);
 	}
 
@@ -664,7 +664,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	 * @param other
 	 * @return difference set
 	 */
-	public WAH_BitSet getDifference(WAH_BitSet other) {
+	public WAHSet getDifference(WAHSet other) {
 		return getOperation(other, Operation.ANDNOT);
 	}
 
@@ -674,7 +674,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	 * @param other
 	 * @return symmetric difference set
 	 */
-	public WAH_BitSet getSymmetricDifference(WAH_BitSet other) {
+	public WAHSet getSymmetricDifference(WAHSet other) {
 		return getOperation(other, Operation.XOR);
 	}
 
@@ -683,8 +683,8 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	 * 
 	 * @return complement set
 	 */
-	public WAH_BitSet getComplement() {
-		WAH_BitSet cloned = clone();
+	public WAHSet getComplement() {
+		WAHSet cloned = clone();
 		cloned.complement();
 		return cloned;
 	}
@@ -977,16 +977,16 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	 * @return
 	 */
 	@SuppressWarnings("unchecked")
-	private static WAH_BitSet asWAH_BitSet(Collection<?> c) {
+	private static WAHSet asWAH_BitSet(Collection<?> c) {
 		if (c == null)
 			throw new NullPointerException();
 
 		// useless to convert...
-		if (c instanceof WAH_BitSet)
-			return (WAH_BitSet) c;
+		if (c instanceof WAHSet)
+			return (WAHSet) c;
 
 		// try to convert the collection
-		WAH_BitSet res = new WAH_BitSet();
+		WAHSet res = new WAHSet();
 		if (!c.isEmpty()) {
 			// sorted element by ascending integers (in order to use the
 			// append() method)
@@ -1018,8 +1018,8 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	 * @param e
 	 * @return
 	 */
-	private WAH_BitSet asWAH_BitSet(Object e) {
-		WAH_BitSet res = new WAH_BitSet();
+	private WAHSet asWAH_BitSet(Object e) {
+		WAHSet res = new WAHSet();
 		res.append((Integer) e);
 		return res;
 	}
@@ -1029,7 +1029,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	 * 
 	 * @param other
 	 */
-	private void becomeAliasOf(WAH_BitSet other) {
+	private void becomeAliasOf(WAHSet other) {
 		if (this == other)
 			return;
 		this.words = other.words;
@@ -1150,7 +1150,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		final WAH_BitSet other = (WAH_BitSet) obj;
+		final WAHSet other = (WAHSet) obj;
 		if (size != other.size)
 			return false;
 		if (maxSetBit != other.maxSetBit)
@@ -1168,7 +1168,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		WAH_BitSet bitSet = new WAH_BitSet();
+		WAHSet bitSet = new WAHSet();
 		TreeSet<Integer> elements = new TreeSet<Integer>();
 
 		if (false) {
@@ -1236,7 +1236,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 		}
 
 		if (false) {
-			WAH_BitSet bitSet1 = new WAH_BitSet();
+			WAHSet bitSet1 = new WAHSet();
 			TreeSet<Integer> elements1 = new TreeSet<Integer>();
 			elements1.add(1);
 			elements1.add(2);
@@ -1250,7 +1250,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 							.containsAll(elements1)));
 			System.out.println(bitSet1.debugInfo());
 
-			WAH_BitSet bitSet2 = new WAH_BitSet();
+			WAHSet bitSet2 = new WAHSet();
 			TreeSet<Integer> elements2 = new TreeSet<Integer>();
 			elements2.add(100);
 			elements2.add(101);
@@ -1261,7 +1261,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 							.containsAll(elements2)));
 			System.out.println(bitSet2.debugInfo());
 
-			WAH_BitSet bitSet3 = bitSet1.getIntersection(bitSet2);
+			WAHSet bitSet3 = bitSet1.getIntersection(bitSet2);
 			TreeSet<Integer> elements3 = new TreeSet<Integer>(elements1);
 			elements3.retainAll(elements2);
 			System.out.println("Check: "
@@ -1273,7 +1273,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 		if (true) {
 			Random rnd = new Random();
 
-			WAH_BitSet bitSet1 = new WAH_BitSet();
+			WAHSet bitSet1 = new WAHSet();
 			TreeSet<Integer> elements1 = new TreeSet<Integer>();
 			for (int i = 0; i < 30; i++)
 				elements1.add(rnd.nextInt(1000 + 1));
@@ -1286,7 +1286,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 			System.out.println(elements1);
 			System.out.println(bitSet1.debugInfo());
 
-			WAH_BitSet bitSet2 = new WAH_BitSet();
+			WAHSet bitSet2 = new WAHSet();
 			TreeSet<Integer> elements2 = new TreeSet<Integer>();
 			for (int i = 0; i < 30; i++)
 				elements2.add(rnd.nextInt(1000 + 1));
@@ -1300,7 +1300,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 			System.out.println(bitSet2.debugInfo());
 
 			if (true) {
-				WAH_BitSet bitSet3 = bitSet1.getIntersection(bitSet2);
+				WAHSet bitSet3 = bitSet1.getIntersection(bitSet2);
 				TreeSet<Integer> elements3 = new TreeSet<Integer>(elements1);
 				System.out.println("Check: "
 						+ (bitSet3.containsAll(elements3) && elements3
@@ -1321,7 +1321,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 		}
 
 		if (false) {
-			WAH_BitSet bitSet1 = new WAH_BitSet();
+			WAHSet bitSet1 = new WAHSet();
 			TreeSet<Integer> elements1 = new TreeSet<Integer>();
 			elements1.add(1);
 			elements1.add(2);
@@ -1333,7 +1333,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 							.containsAll(elements1)));
 			System.out.println(bitSet1.debugInfo());
 
-			WAH_BitSet bitSet2 = new WAH_BitSet();
+			WAHSet bitSet2 = new WAHSet();
 			TreeSet<Integer> elements2 = new TreeSet<Integer>();
 			elements2.add(100);
 			elements2.add(101);
@@ -1346,7 +1346,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 							.containsAll(elements2)));
 			System.out.println(bitSet2.debugInfo());
 
-			WAH_BitSet bitSet3 = bitSet1.getUnion(bitSet2);
+			WAHSet bitSet3 = bitSet1.getUnion(bitSet2);
 			TreeSet<Integer> elements3 = new TreeSet<Integer>(elements1);
 			elements3.addAll(elements2);
 			System.out.println("Check: "
@@ -1356,7 +1356,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 		}
 
 		if (false) {
-			WAH_BitSet bitSet1 = new WAH_BitSet();
+			WAHSet bitSet1 = new WAHSet();
 			bitSet1.append(1);
 			bitSet1.append(2);
 			bitSet1.append(30000);
@@ -1369,7 +1369,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 		if (false) {
 			boolean debugInfo = true;
 
-			WAH_BitSet bitSet1 = new WAH_BitSet();
+			WAHSet bitSet1 = new WAHSet();
 			bitSet1.add(1);
 			bitSet1.add(100);
 			bitSet1.add(2);
@@ -1380,7 +1380,7 @@ public class WAH_BitSet extends AbstractSet<Integer> implements
 			if (debugInfo)
 				System.out.println(bitSet1.debugInfo());
 
-			WAH_BitSet bitSet2 = new WAH_BitSet();
+			WAHSet bitSet2 = new WAHSet();
 			bitSet2.add(1);
 			bitSet2.add(1000000);
 			bitSet2.add(2);

@@ -2,7 +2,6 @@ package it.uniroma3.mat.extendedset.test;
 
 import it.uniroma3.mat.extendedset.ConciseSet;
 import it.uniroma3.mat.extendedset.FastSet;
-import it.uniroma3.mat.extendedset.old.WAH_BitSet;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -340,15 +339,15 @@ public class Performance {
 	 */
 	public static void main(String[] args) {
 		/*
-		 * TODO
-		 * usare il seguente approccio per generare lunghe sequenze di bit tutti a 1 o a 0:
+		 * TODO usare il seguente approccio per generare lunghe sequenze di bit
+		 * tutti a 1 o a 0:
 		 * 
-		 *	int size = 1 + rnd.nextInt(10000);
-		 *  int n = size;
-		 *	for (int j = 0; j < size; j++) {
-		 *		n = Math.abs(rnd.nextDouble() > 0.001D ? (n - 1) : rnd.nextInt(size));
-		 *		collection.add(n);
-		 *	}
+		 * int size = 1 + rnd.nextInt(10000); int n = size; for (int j = 0; j <
+		 * size; j++) { n = Math.abs(rnd.nextDouble() > 0.001D ? (n - 1) :
+		 * rnd.nextInt(size)); collection.add(n); }
+		 * 
+		 * oppure, ancora meglio, usare il nuovo metodo ExtendedSet<T>.fill(T, T), 
+		 * magari generando patterns secondo powerlaw, omogeneo, gaussiana, ecc.
 		 */
 		
 		Random rnd = new Random();
@@ -379,7 +378,7 @@ public class Performance {
 		testMemory(TreeSet.class, numbers);
 		testMemory(HashSet.class, numbers);
 		testMemory(FastSet.class, numbers);
-		testMemory(WAH_BitSet.class, numbers);
+		testMemory(WAHSet.class, numbers);
 		testMemory(ConciseSet.class, numbers);
 
 		printSummary();
@@ -412,7 +411,7 @@ public class Performance {
 			testTime(TreeSet.class, randomNumbers1, randomNumbers2);
 			testTime(HashSet.class, randomNumbers1, randomNumbers2);
 			testTime(FastSet.class, randomNumbers1, randomNumbers2);
-			testTime(WAH_BitSet.class, randomNumbers1, randomNumbers2);
+			testTime(WAHSet.class, randomNumbers1, randomNumbers2);
 			testTime(ConciseSet.class, randomNumbers1, randomNumbers2);
 	
 			printSummary();
@@ -428,7 +427,7 @@ public class Performance {
 			testTime(TreeSet.class, randomNumbers1, randomNumbers2);
 			testTime(HashSet.class, randomNumbers1, randomNumbers2);
 			testTime(FastSet.class, randomNumbers1, randomNumbers2);
-			testTime(WAH_BitSet.class, randomNumbers1, randomNumbers2);
+			testTime(WAHSet.class, randomNumbers1, randomNumbers2);
 			testTime(ConciseSet.class, randomNumbers1, randomNumbers2);
 
 			printSummary();

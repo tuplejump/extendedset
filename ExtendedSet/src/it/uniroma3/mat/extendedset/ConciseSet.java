@@ -1656,10 +1656,13 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	public boolean remove(Object o) {
 		modCount++;
 
+		if (o == null || isEmpty())
+			return false;
+
 		final int b = ((Integer) o).intValue();
 
 		// the element cannot exist
-		if (isEmpty() || b > maxSetBit) 
+		if (b > maxSetBit) 
 			return false;
 
 		// check if the element can be removed from a literal word
@@ -1733,12 +1736,14 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	 */
 	@Override
 	public boolean contains(Object o) {
+		if (isEmpty() || o == null)
+			return false;
+
 		final int b = ((Integer)o ).intValue();
 		
 		// the element is greater than the maximal value
-		if (isEmpty() || b > maxSetBit) {
+		if (b > maxSetBit) 
 			return false;
-		}
 
 		// check if the element is within a literal word
 		int blockIndex = b / MAX_LITERAL_LENGHT;
@@ -1922,10 +1927,10 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		modCount++;
 		Statistics.increaseIntersectionCount();
 
-		if (isEmpty()) 
+		if (c == null || c.isEmpty() || isEmpty())
 			return false;
 		
-		if (c != null && c.size() == 1) {
+		if (c.size() == 1) {
 			Integer item;
 			if (c instanceof SortedSet)
 				item = (Integer) ((SortedSet<?>) c).last();
@@ -1954,9 +1959,11 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	@Override
 	public boolean addAll(Collection<? extends Integer> c) {
 		modCount++;
-
 		Statistics.increaseUnionCount();
-		if (c != null && c.size() == 1) {
+		if (c == null || c.isEmpty())
+			return false;
+
+		if (c.size() == 1) {
 			if (c instanceof SortedSet)
 				// ConciseSet included...
 				return add((Integer) ((SortedSet<?>) c).last());
@@ -1974,9 +1981,12 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	@Override
 	public boolean removeAll(Collection<?> c) {
 		modCount++;
-
 		Statistics.increaseDifferenceCount();
-		if (c != null && c.size() == 1) {
+
+		if (c == null || c.isEmpty() || isEmpty())
+			return false;
+		
+		if (c.size() == 1) {
 			if (c instanceof SortedSet)
 				return remove(((SortedSet<?>) c).last());
 			return remove(c.iterator().next());
