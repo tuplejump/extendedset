@@ -651,6 +651,9 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	 * When both word iterators currently point to sequence words, it decreases
 	 * these sequences by the least sequence count between them and return such
 	 * a count.
+	 * <p>
+	 * Conversely, when one of the word iterators does <i>not</i> point to a
+	 * sequence word, it returns 0 and does not change the iterator.
 	 * 
 	 * @param itr1
 	 *            first word iterator
@@ -679,6 +682,9 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	/**
 	 * When the given word iterator currently points to a sequence word,
 	 * it decreases this sequence to 0 and return such a count.
+	 * <p>
+	 * Conversely, when the word iterators does <i>not</i> point to a
+	 * sequence word, it returns 0 and does not change the iterator.
 	 * 
 	 * @param itr
 	 *            word iterator
@@ -726,10 +732,15 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	 *            overwrite
 	 * @return index of the word after the last copied one
 	 */
-	private int appendsRemainingWords(WordIterator itr, int currentWordIndex) {
+	private int appendRemainingWords(WordIterator itr, int currentWordIndex) {
 		if (itr.endOfWords())
 			return currentWordIndex;
 
+		// TODO: fare una copia più smart, dove confronto prima
+		// itr.currentWordCopy con words dell'oggetto che la contiene e se sono
+		// diversi allora faccio "compact", altrimenti faccio una copia
+		// brutale...
+		
 		// iterate over the remaining words
 		while (!itr.endOfWords()) {
 			// copy the word
@@ -894,11 +905,11 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		case OR:
 		case XOR:
 			// NOTE: one iterator does not have more elements!
-			resIndex = res.appendsRemainingWords(otherItr, resIndex);
-			resIndex = res.appendsRemainingWords(thisItr, resIndex);
+			resIndex = res.appendRemainingWords(otherItr, resIndex);
+			resIndex = res.appendRemainingWords(thisItr, resIndex);
 			break;
 		case ANDNOT:
-			resIndex = res.appendsRemainingWords(thisItr, resIndex);
+			resIndex = res.appendRemainingWords(thisItr, resIndex);
 			break;
 		default:
 			throw new UnsupportedOperationException("unknown operation");
