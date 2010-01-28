@@ -401,7 +401,9 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	public ExtendedSet<T> emptySet();
 
 	/**
-	 * {@inheritDoc}
+	 * See the <code>clone()</code> of {@link Object}
+	 * 
+	 * @return cloned object
 	 */
 	public ExtendedSet<T> clone();
 

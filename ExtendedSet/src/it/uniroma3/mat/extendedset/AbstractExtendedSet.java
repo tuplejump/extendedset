@@ -35,7 +35,7 @@ import java.util.SortedSet;
  * {@link ConciseSet}, {@link FastSet}, and {@link IndexedSet}.
  * 
  * @author Alessandro Colantonio
- * @version $Id: ExtendedSet.java 27 2010-01-25 12:34:24Z cocciasik $
+ * @version $Id$
  * 
  * @param <T>
  *            the type of elements maintained by this set

@@ -37,7 +37,7 @@ import java.util.TreeSet;
  * Test class for {@link ConciseSet}, {@link FastSet}, and {@link IndexedSet}.
  * 
  * @author Alessandro Colantonio
- * @version $Id: Test.java 23 2010-01-21 01:23:40Z cocciasik $
+ * @version $Id$
  */
 public class Debug {
 	/**

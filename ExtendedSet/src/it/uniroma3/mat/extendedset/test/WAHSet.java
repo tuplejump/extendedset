@@ -16,7 +16,7 @@ import java.util.TreeSet;
  * algorithm
  * 
  * @author Alessandro Colantonio
- * @version $Id: WAH_BitSet.java 25 2010-01-21 15:14:42Z cocciasik $
+ * @version $Id$
  */
 public class WAHSet extends AbstractSet<Integer> implements
 		SortedSet<Integer>, Cloneable {
