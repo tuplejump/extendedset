@@ -31,7 +31,7 @@ import java.util.Set;
 import java.util.SortedSet;
 
 /**
- * An {@link ExtendedSet} implementation that maps elements to an integer set
+ * An {@link AbstractExtendedSet} implementation that maps elements to an integer set
  * referred to as "indices".
  * 
  * @author Alessandro Colantonio
@@ -41,12 +41,13 @@ import java.util.SortedSet;
  *            the type of elements maintained by this set
  * 
  * @see ExtendedSet
+ * @see AbstractExtendedSet
  * @see ConciseSet
  * @see IndexedSet
  */
-public class IndexedSet<T> extends ExtendedSet<T> {
+public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	// indices
-	private final ExtendedSet<Integer> items;
+	private final AbstractExtendedSet<Integer> items;
 
 	// mapping to translate items to indices and vice-versa
 	private final Map<T, Integer> itemToIndex;
@@ -102,7 +103,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	 * @param items
 	 *            initial item set
 	 */
-	private IndexedSet(Map<T, Integer> itemToIndex, T[] indexToItem, ExtendedSet<Integer> items) {
+	private IndexedSet(Map<T, Integer> itemToIndex, T[] indexToItem, AbstractExtendedSet<Integer> items) {
 		this.itemToIndex = itemToIndex;
 		this.indexToItem = indexToItem;
 		this.items = items;
@@ -468,7 +469,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	 * @return the collection of all possible elements
 	 */
 	public IndexedSet<T> universe() {
-		ExtendedSet<Integer> allItems = items.emptySet();
+		AbstractExtendedSet<Integer> allItems = items.emptySet();
 		allItems.add(indexToItem.length - 1);
 		allItems.complement();
 		allItems.add(indexToItem.length - 1);
@@ -505,7 +506,7 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	 * @see #get(int)
 	 * @see #indexOf(Object)
 	 */
-	public ExtendedSet<Integer> indices() {
+	public AbstractExtendedSet<Integer> indices() {
 		return items.subSet(0, indexToItem.length);
 	}
 	
@@ -641,5 +642,140 @@ public class IndexedSet<T> extends ExtendedSet<T> {
 	public String debugInfo() {
 		return String.format("items = %s\nitemToIndex = %s\nindexToItem = %s\n", 
 				items.debugInfo(), itemToIndex.toString(), indexToItem.toString());
+	}
+	
+	/**
+	 * Read-only view of the set
+	 * <p>
+	 * This class override <i>all</i> public and protected methods of the
+	 * parent class {@link IndexedSet} so that any subclass will be correctly
+	 * handled.
+	 */
+	protected class UnmodifiableIndexedSet extends IndexedSet<T> {
+		private UnmodifiableIndexedSet(Map<T, Integer> itemToIndex, T[] indexToItem, AbstractExtendedSet<Integer> items) {
+			super(itemToIndex, indexToItem, items);
+		}
+
+		/*
+		 * Writing methods
+		 */
+		/** {@inheritDoc} */ @Override public boolean add(T e) {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public boolean addAll(Collection<? extends T> c) {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public boolean addFirstOf(SortedSet<T> set) {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public boolean addLastOf(SortedSet<T> set) {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public boolean remove(Object o) {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public boolean removeAll(Collection<?> c) {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public boolean removeFirstOf(SortedSet<T> set) {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public boolean removeLastOf(SortedSet<T> set) {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public boolean retainAll(Collection<?> c) {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public void clear() {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public void clear(T from, T to) {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public void fill(T from, T to) {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public void complement() {throw UNSUPPORTED;}
+		
+		/** {@inheritDoc} */ @Override
+		public Iterator<T> iterator() {
+			final Iterator<T> itr = IndexedSet.this.iterator();
+			return new Iterator<T>() {
+				@Override public boolean hasNext() {return itr.hasNext();}
+				@Override public T next() {return itr.next();}
+				@Override public void remove() {throw UNSUPPORTED;}
+			};
+		}
+
+		/*
+		 * Read-only methods
+		 */
+		/** {@inheritDoc} */ @Override public IndexedSet<T> getIntersection(Collection<? extends T> other) {return IndexedSet.this.getIntersection(other);}
+		/** {@inheritDoc} */ @Override public IndexedSet<T> getDifference(Collection<? extends T> other) {return IndexedSet.this.getDifference(other);}
+		/** {@inheritDoc} */ @Override public IndexedSet<T> getUnion(Collection<? extends T> other) {return IndexedSet.this.getUnion(other);}
+		/** {@inheritDoc} */ @Override public IndexedSet<T> getSymmetricDifference(Collection<? extends T> other) {return IndexedSet.this.getSymmetricDifference(other);}
+		/** {@inheritDoc} */ @Override public IndexedSet<T> getComplement() {return IndexedSet.this.getComplement();}
+		/** {@inheritDoc} */ @Override public IndexedSet<T> emptySet() {return IndexedSet.this.emptySet();}
+		/** {@inheritDoc} */ @Override public int intersectionSize(Collection<? extends T> other) {return IndexedSet.this.intersectionSize(other);}
+		/** {@inheritDoc} */ @Override public int differenceSize(Collection<? extends T> other) {return IndexedSet.this.differenceSize(other);}
+		/** {@inheritDoc} */ @Override public int unionSize(Collection<? extends T> other) {return IndexedSet.this.unionSize(other);}
+		/** {@inheritDoc} */ @Override public int symmetricDifferenceSize(Collection<? extends T> other) {return IndexedSet.this.symmetricDifferenceSize(other);}
+		/** {@inheritDoc} */ @Override public int complementSize() {return IndexedSet.this.complementSize();}
+		/** {@inheritDoc} */ @Override public int powerSetSize() {return IndexedSet.this.powerSetSize();}
+		/** {@inheritDoc} */ @Override public int powerSetSize(int min, int max) {return IndexedSet.this.powerSetSize(min, max);}
+		/** {@inheritDoc} */ @Override public int size() {return IndexedSet.this.size();}
+		/** {@inheritDoc} */ @Override public boolean isEmpty() {return IndexedSet.this.isEmpty();}
+		/** {@inheritDoc} */ @Override public boolean contains(Object o) {return IndexedSet.this.contains(o);}
+		/** {@inheritDoc} */ @Override public boolean containsAll(Collection<?> c) {return IndexedSet.this.containsAll(c);}
+		/** {@inheritDoc} */ @Override public boolean containsAny(Collection<? extends T> other) {return IndexedSet.this.containsAny(other);}
+		/** {@inheritDoc} */ @Override public boolean containsAtLeast(Collection<? extends T> other, int minElements) {return IndexedSet.this.containsAtLeast(other, minElements);}
+		/** {@inheritDoc} */ @Override public T first() {return IndexedSet.this.first();}
+		/** {@inheritDoc} */ @Override public T last() {return IndexedSet.this.last();}
+		/** {@inheritDoc} */ @Override public Comparator<? super T> comparator() {return IndexedSet.this.comparator();}
+		/** {@inheritDoc} */ @Override public int compareTo(ExtendedSet<T> o) {return IndexedSet.this.compareTo(o);}
+		/** {@inheritDoc} */ @Override public boolean equals(Object o) {return IndexedSet.this.equals(o);}
+		/** {@inheritDoc} */ @Override public int hashCode() {return IndexedSet.this.hashCode();}
+		/** {@inheritDoc} */ @Override public Iterable<T> descending() {return IndexedSet.this.descending();}
+		/** {@inheritDoc} */ @Override public Iterator<T> descendingIterator() {return IndexedSet.this.descendingIterator();}
+		/** {@inheritDoc} */ @Override public List<? extends IndexedSet<T>> powerSet() {return IndexedSet.this.powerSet();}
+		/** {@inheritDoc} */ @Override public List<? extends IndexedSet<T>> powerSet(int min, int max) {return IndexedSet.this.powerSet(min, max);}
+		/** {@inheritDoc} */ @Override public double bitmapCompressionRatio() {return IndexedSet.this.bitmapCompressionRatio();}
+		/** {@inheritDoc} */ @Override public double collectionCompressionRatio() {return IndexedSet.this.collectionCompressionRatio();}
+		/** {@inheritDoc} */ @Override public String debugInfo() {return IndexedSet.this.debugInfo();}
+		/** {@inheritDoc} */ @Override public Object[] toArray() {return IndexedSet.this.toArray();}
+		/** {@inheritDoc} */ @Override public <X> X[] toArray(X[] a) {return IndexedSet.this.toArray(a);}
+		/** {@inheritDoc} */ @Override public String toString() {return IndexedSet.this.toString();}
+
+		/*
+		 * Special purpose methods
+		 */
+		/* NOTE: the following methods do not have to be overridden:
+		 * - public IndexedSet<T> headSet(T toElement) {}
+		 * - public IndexedSet<T> subSet(T fromElement, T toElement) {}
+		 * - public IndexedSet<T> tailSet(T fromElement) {
+		 * In this way, modification to the subview will not be permitted
+		 */
+		/** {@inheritDoc} */ @Override 
+		public IndexedSet<T> clone() {
+			// useless to clone
+			return this; 
+		}
+		/** {@inheritDoc} */ @Override 
+		public IndexedSet<T> unmodifiable() {
+			// useless to create another instance
+			return this;
+		}
+		
+		/*
+		 * Additional methods with respect to ExtendedSet
+		 */
+		
+		/** {@inheritDoc} */
+		@Override
+		public AbstractExtendedSet<Integer> indices() {
+			return IndexedSet.this.indices().unmodifiable();
+		}
+
+		/** {@inheritDoc} */
+		@Override
+		public T get(int i) {
+			return IndexedSet.this.get(i);
+		}
+
+		/** {@inheritDoc} */
+		@Override
+		public Integer indexOf(T item) {
+			return IndexedSet.this.indexOf(item);
+		}
+
+		/** {@inheritDoc} */
+		@Override
+		public IndexedSet<T> universe() {
+			return IndexedSet.this.universe();
+		}
+	}
+	
+	/**
+	 * @return the read-only version of the current set
+	 */
+	@Override
+	public IndexedSet<T> unmodifiable() {
+		return new UnmodifiableIndexedSet(itemToIndex, indexToItem, items);
 	}
 }

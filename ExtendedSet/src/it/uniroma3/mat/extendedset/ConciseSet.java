@@ -62,10 +62,11 @@ import java.util.SortedSet;
  * @version $Id$
  * 
  * @see ExtendedSet
+ * @see AbstractExtendedSet
  * @see FastSet
  * @see IndexedSet
  */
-public class ConciseSet extends ExtendedSet<Integer> implements
+public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		SortedSet<Integer>, Cloneable {
 	/**
 	 * Compressed bitmap, that is a collection of words. For each word:
@@ -162,10 +163,26 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	private final static int ALL_ZEROS_WITHOUT_MSB = 0x00000000;
 
 	/**
+	 * Generates an empty set
+	 * 
+	 * @see #ConciseSet()
+	 * {@link #clear()}
+	 */
+	private void empty() {
+		modCount++;
+		words = null;
+		maxSetBit = -1;
+		size = 0;
+		
+		// simulate a full literal word for the first append
+		lastSetBitOfLastWord = MAX_LITERAL_LENGHT - 1;
+	}
+	
+	/**
 	 * Creates an empty integer set
 	 */
 	public ConciseSet() {
-		clear();
+		empty();
 	}
 
 	/**
@@ -1466,13 +1483,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	 */
 	@Override
 	public void clear() {
-		modCount++;
-		words = null;
-		maxSetBit = -1;
-		size = 0;
-		
-		// simulate a full literal word for the first append
-		lastSetBitOfLastWord = MAX_LITERAL_LENGHT - 1;
+		empty();
 	}
 
 	/**
@@ -2020,7 +2031,7 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ExtendedSet<Integer> emptySet() {
+	public ConciseSet emptySet() {
 		return new ConciseSet();
 	}
 
@@ -2231,5 +2242,108 @@ public class ConciseSet extends ExtendedSet<Integer> implements
 		f.format("collection compression: %.2f%%\n", 100D * collectionCompressionRatio());
 
 		return s.toString();
+	}
+
+	/**
+	 * Read-only view of the set
+	 * <p>
+	 * This class override <i>all</i> public and protected methods of the
+	 * parent class {@link ConciseSet} so that any subclass will be correctly
+	 * handled.
+	 */
+	protected class UnmodifiableConciseSet extends ConciseSet {
+		/*
+		 * Writing methods
+		 */
+		/** {@inheritDoc} */ @Override public void clear() {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public boolean add(Integer e) {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public boolean addAll(Collection<? extends Integer> c) {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public boolean addFirstOf(SortedSet<Integer> set) {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public boolean addLastOf(SortedSet<Integer> set) {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public boolean remove(Object o) {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public boolean removeAll(Collection<?> c) {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public boolean removeFirstOf(SortedSet<Integer> set) {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public boolean removeLastOf(SortedSet<Integer> set) {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public boolean retainAll(Collection<?> c) {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public void clear(Integer from, Integer to) {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public void fill(Integer from, Integer to) {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public void complement() {throw UNSUPPORTED;}
+		
+		/** {@inheritDoc} */ @Override
+		public Iterator<Integer> iterator() {
+			final Iterator<Integer> itr = ConciseSet.this.iterator();
+			return new Iterator<Integer>() {
+				@Override public boolean hasNext() {return itr.hasNext();}
+				@Override public Integer next() {return itr.next();}
+				@Override public void remove() {throw UNSUPPORTED;}
+			};
+		}
+
+		/*
+		 * Read-only methods
+		 */
+		/** {@inheritDoc} */ @Override public ConciseSet getIntersection(Collection<? extends Integer> other) {return ConciseSet.this.getIntersection(other);}
+		/** {@inheritDoc} */ @Override public ConciseSet getDifference(Collection<? extends Integer> other) {return ConciseSet.this.getDifference(other);}
+		/** {@inheritDoc} */ @Override public ConciseSet getUnion(Collection<? extends Integer> other) {return ConciseSet.this.getUnion(other);}
+		/** {@inheritDoc} */ @Override public ConciseSet getSymmetricDifference(Collection<? extends Integer> other) {return ConciseSet.this.getSymmetricDifference(other);}
+		/** {@inheritDoc} */ @Override public ConciseSet getComplement() {return ConciseSet.this.getComplement();}
+		/** {@inheritDoc} */ @Override public ConciseSet emptySet() {return ConciseSet.this.emptySet();}
+		/** {@inheritDoc} */ @Override public int intersectionSize(Collection<? extends Integer> other) {return ConciseSet.this.intersectionSize(other);}
+		/** {@inheritDoc} */ @Override public int differenceSize(Collection<? extends Integer> other) {return ConciseSet.this.differenceSize(other);}
+		/** {@inheritDoc} */ @Override public int unionSize(Collection<? extends Integer> other) {return ConciseSet.this.unionSize(other);}
+		/** {@inheritDoc} */ @Override public int symmetricDifferenceSize(Collection<? extends Integer> other) {return ConciseSet.this.symmetricDifferenceSize(other);}
+		/** {@inheritDoc} */ @Override public int complementSize() {return ConciseSet.this.complementSize();}
+		/** {@inheritDoc} */ @Override public int powerSetSize() {return ConciseSet.this.powerSetSize();}
+		/** {@inheritDoc} */ @Override public int powerSetSize(int min, int max) {return ConciseSet.this.powerSetSize(min, max);}
+		/** {@inheritDoc} */ @Override public int size() {return ConciseSet.this.size();}
+		/** {@inheritDoc} */ @Override public boolean isEmpty() {return ConciseSet.this.isEmpty();}
+		/** {@inheritDoc} */ @Override public boolean contains(Object o) {return ConciseSet.this.contains(o);}
+		/** {@inheritDoc} */ @Override public boolean containsAll(Collection<?> c) {return ConciseSet.this.containsAll(c);}
+		/** {@inheritDoc} */ @Override public boolean containsAny(Collection<? extends Integer> other) {return ConciseSet.this.containsAny(other);}
+		/** {@inheritDoc} */ @Override public boolean containsAtLeast(Collection<? extends Integer> other, int minElements) {return ConciseSet.this.containsAtLeast(other, minElements);}
+		/** {@inheritDoc} */ @Override public Integer first() {return ConciseSet.this.first();}
+		/** {@inheritDoc} */ @Override public Integer last() {return ConciseSet.this.last();}
+		/** {@inheritDoc} */ @Override public Comparator<? super Integer> comparator() {return ConciseSet.this.comparator();}
+		/** {@inheritDoc} */ @Override public int compareTo(ExtendedSet<Integer> o) {return ConciseSet.this.compareTo(o);}
+		/** {@inheritDoc} */ @Override public boolean equals(Object o) {return ConciseSet.this.equals(o);}
+		/** {@inheritDoc} */ @Override public int hashCode() {return ConciseSet.this.hashCode();}
+		/** {@inheritDoc} */ @Override public Iterable<Integer> descending() {return ConciseSet.this.descending();}
+		/** {@inheritDoc} */ @Override public Iterator<Integer> descendingIterator() {return ConciseSet.this.descendingIterator();}
+		/** {@inheritDoc} */ @Override public List<? extends ConciseSet> powerSet() {return ConciseSet.this.powerSet();}
+		/** {@inheritDoc} */ @Override public List<? extends ConciseSet> powerSet(int min, int max) {return ConciseSet.this.powerSet(min, max);}
+		/** {@inheritDoc} */ @Override public double bitmapCompressionRatio() {return ConciseSet.this.bitmapCompressionRatio();}
+		/** {@inheritDoc} */ @Override public double collectionCompressionRatio() {return ConciseSet.this.collectionCompressionRatio();}
+		/** {@inheritDoc} */ @Override public String debugInfo() {return ConciseSet.this.debugInfo();}
+		/** {@inheritDoc} */ @Override public Object[] toArray() {return ConciseSet.this.toArray();}
+		/** {@inheritDoc} */ @Override public <X> X[] toArray(X[] a) {return ConciseSet.this.toArray(a);}
+		/** {@inheritDoc} */ @Override public String toString() {return ConciseSet.this.toString();}
+
+		/*
+		 * Special purpose methods
+		 */
+		/* NOTE: the following methods do not have to be overridden:
+		 * - public ConciseSet headSet(T toElement) {}
+		 * - public ConciseSet subSet(T fromElement, T toElement) {}
+		 * - public ConciseSet tailSet(T fromElement) {
+		 * In this way, modification to the subview will not be permitted
+		 */
+		/** {@inheritDoc} */ @Override 
+		public ConciseSet clone() {
+			// useless to clone
+			return this; 
+		}
+		/** {@inheritDoc} */ @Override 
+		public ConciseSet unmodifiable() {
+			// useless to create another instance
+			return this;
+		}
+	}
+	
+	/**
+	 * @return the read-only version of the current set
+	 */
+	@Override
+	public ConciseSet unmodifiable() {
+		return new UnmodifiableConciseSet();
 	}
 }
