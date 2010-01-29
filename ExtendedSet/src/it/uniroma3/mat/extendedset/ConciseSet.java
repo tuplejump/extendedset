@@ -959,7 +959,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		Statistics.increaseSizeCheckCount();
 		
 		// empty arguments
-		if (this.isEmpty() || other.isEmpty())
+		if (other == null || other.isEmpty() || this.isEmpty())
 			return 0;
 
 		// single-element intersection
@@ -1124,6 +1124,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	@Override
 	public ConciseSet getIntersection(Collection<? extends Integer> other) {
 		Statistics.increaseIntersectionCount();
+		if (other == null)
+			return new ConciseSet();
 		if (other.size() != 1) 
 			return performOperation(other, Operator.AND);
 		
@@ -1150,6 +1152,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	@Override
 	public ConciseSet getUnion(Collection<? extends Integer> other) {
 		Statistics.increaseUnionCount();
+		if (other == null)
+			return clone();
 		if (other.size() != 1) 
 			return performOperation(other, Operator.OR);
 
@@ -1166,6 +1170,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	@Override
 	public ConciseSet getDifference(Collection<? extends Integer> other) {
 		Statistics.increaseDifferenceCount();
+		if (other == null)
+			return clone();
 		if (other.size() != 1) 
 			return performOperation(other, Operator.ANDNOT);
 
@@ -1182,6 +1188,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	@Override
 	public ConciseSet getSymmetricDifference(Collection<? extends Integer> other) {
 		Statistics.increaseSymmetricDifferenceCount();
+		if (other == null)
+			return clone();
 		if (other.size() != 1) 
 			return performOperation(other, Operator.XOR);
 		
@@ -1529,6 +1537,9 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 */
 	@SuppressWarnings("unchecked")
 	public static ConciseSet asConciseSet(Collection<?> c) {
+		if (c == null)
+			return new ConciseSet();
+			
 		// useless to convert...
 		if (c instanceof ConciseSet)
 			return (ConciseSet) c;
@@ -1568,6 +1579,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * @see #asConciseSet(Collection)
 	 */
 	public static ConciseSet asConciseSet(Object... e) {
+		if (e == null)
+			return new ConciseSet();
 		if (e.length == 1) {
 			ConciseSet res = new ConciseSet();
 			res.append((Integer) e[0]);

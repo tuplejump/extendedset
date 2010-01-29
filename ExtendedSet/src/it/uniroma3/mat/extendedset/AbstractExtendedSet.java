@@ -51,6 +51,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 */
 	public AbstractExtendedSet<T> getIntersection(Collection<? extends T> other) {
 		Statistics.increaseIntersectionCount();
+		if (other == null)
+			return emptySet();
 		AbstractExtendedSet<T> clone = clone();
 		clone.retainAll(other);
 		return clone;
@@ -61,6 +63,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 */
 	public AbstractExtendedSet<T> getUnion(Collection<? extends T> other) {
 		Statistics.increaseUnionCount();
+		if (other == null)
+			return clone();
 		AbstractExtendedSet<T> clone = clone();
 		clone.addAll(other);
 		return clone;
@@ -71,6 +75,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 */
 	public AbstractExtendedSet<T> getDifference(Collection<? extends T> other) {
 		Statistics.increaseDifferenceCount();
+		if (other == null)
+			return clone();
 		AbstractExtendedSet<T> clone = clone();
 		clone.removeAll(other);
 		return clone;
@@ -81,6 +87,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 */
 	public AbstractExtendedSet<T> getSymmetricDifference(Collection<? extends T> other) {
 		Statistics.increaseSymmetricDifferenceCount();
+		if (other == null)
+			return clone();
 		AbstractExtendedSet<T> res = this.getUnion(other);
 		res.removeAll(this.getIntersection(other));
 		return res;
@@ -121,28 +129,28 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 */
 	public int intersectionSize(Collection<? extends T> other) {
 		Statistics.increaseIntersectionCount();
-		return this.getIntersection(other).size();
+		return other == null ? 0 : this.getIntersection(other).size();
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public int unionSize(Collection<? extends T> other) {
-		return this.size() + other.size() - intersectionSize(other);
+		return other == null ? size() : size() + other.size() - intersectionSize(other);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public int symmetricDifferenceSize(Collection<? extends T> other) {
-		return this.size() + other.size() - 2 * intersectionSize(other);
+		return other == null ? size() : this.size() + other.size() - 2 * intersectionSize(other);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	public int differenceSize(Collection<? extends T> other) {
-		return this.size() - intersectionSize(other);
+		return other == null ? size() : this.size() - intersectionSize(other);
 	}
 
 	/**
@@ -670,6 +678,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		@SuppressWarnings("unchecked")
 		@Override
 		public boolean addAll(Collection<? extends T> c) {
+			if (c == null)
+				return false;
 			if (c instanceof AbstractExtendedSet) {
 				if (!completelyContains((AbstractExtendedSet) c))
 					throw new IllegalArgumentException();
@@ -693,7 +703,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		@SuppressWarnings("unchecked")
 		@Override
 		public boolean contains(Object o) {
-			return completelyContains((T) o) && AbstractExtendedSet.this.contains(o);
+			return o != null && completelyContains((T) o) && AbstractExtendedSet.this.contains(o);
 		}
 
 		/**
@@ -702,6 +712,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		@SuppressWarnings("unchecked")
 		@Override
 		public boolean containsAll(Collection<?> c) {
+			if (c == null)
+				return false;
 			if (c instanceof AbstractExtendedSet) 
 				return completelyContains((AbstractExtendedSet) c) && AbstractExtendedSet.this.containsAll(c);
 			// make calls to contains() and, consequently, to completelyContains()
@@ -738,7 +750,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		@SuppressWarnings("unchecked")
 		@Override
 		public boolean remove(Object o) {
-			return completelyContains((T) o) && AbstractExtendedSet.this.remove(o);
+			return o != null && completelyContains((T) o) && AbstractExtendedSet.this.remove(o);
 		}
 
 		/**
@@ -747,6 +759,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		@SuppressWarnings("unchecked")
 		@Override
 		public boolean removeAll(Collection<?> c) {
+			if (c == null)
+				return false;
 			if (c instanceof AbstractExtendedSet) 
 				return AbstractExtendedSet.this.removeAll(filterByMask((AbstractExtendedSet) c));
 			// make calls to remove() and, consequently, to completelyContains()
@@ -759,6 +773,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		@SuppressWarnings("unchecked")
 		@Override
 		public boolean retainAll(Collection<?> c) {
+			if (c == null)
+				return false;
 			if (c instanceof AbstractExtendedSet) {
 				if (completelyContains(AbstractExtendedSet.this)) 
 					return AbstractExtendedSet.this.retainAll(c);

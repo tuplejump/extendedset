@@ -459,7 +459,10 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	@Override
 	public FastSet getDifference(Collection<? extends Integer> other) {
 		Statistics.increaseDifferenceCount();
-		FastSet cloned = this.clone();
+		if (other == null)
+			return clone();
+
+		FastSet cloned = clone();
 		if (other instanceof FastSet)
 			cloned.bits.andNot(((FastSet) other).bits);
 		else
@@ -482,7 +485,10 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	@Override
 	public FastSet getSymmetricDifference(Collection<? extends Integer> other) {
 		Statistics.increaseSymmetricDifferenceCount();
-		FastSet cloned = this.clone();
+		if (other == null)
+			return clone();
+		
+		FastSet cloned = clone();
 		if (other instanceof FastSet) {
 			cloned.bits.xor(((FastSet) other).bits);
 		} else {
@@ -499,6 +505,9 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	@Override
 	public FastSet getIntersection(Collection<? extends Integer> other) {
 		Statistics.increaseIntersectionCount();
+		if (other == null)
+			return new FastSet();
+		
 		FastSet cloned = this.clone();
 		if (other instanceof FastSet)
 			cloned.bits.and(((FastSet) other).bits);
@@ -514,6 +523,9 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	@Override
 	public FastSet getUnion(Collection<? extends Integer> other) {
 		Statistics.increaseUnionCount();
+		if (other == null)
+			return clone();
+		
 		FastSet cloned = this.clone();
 		if (other instanceof FastSet)
 			cloned.bits.or(((FastSet) other).bits);
@@ -557,6 +569,9 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@SuppressWarnings("unchecked")
 	public static FastSet asFastSet(Collection<?> c) {
+		if (c == null)
+			return new FastSet();
+		
 		// useless to convert...
 		if (c instanceof FastSet)
 			return (FastSet) c;
@@ -578,6 +593,8 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * @see #asFastSet(Collection)
 	 */
 	public static FastSet asFastSet(Object... e) {
+		if (e == null)
+			return new FastSet();
 		if (e.length == 1) {
 			FastSet res = new FastSet();
 			res.add((Integer) e[0]);
