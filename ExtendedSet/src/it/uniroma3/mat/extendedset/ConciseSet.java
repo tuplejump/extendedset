@@ -1616,7 +1616,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 
 		// range check
 		if (b < MIN_ALLOWED_SET_BIT || b > MAX_ALLOWED_SET_BIT)
-			throw new IndexOutOfBoundsException();
+			throw new IndexOutOfBoundsException(Integer.toString(b));
 
 		// the element can be simply appended
 		if (isEmpty() || b > maxSetBit) {
@@ -1962,8 +1962,12 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		modCount++;
 		Statistics.increaseIntersectionCount();
 
-		if (c == null || c.isEmpty() || isEmpty())
+		if (isEmpty())
 			return false;
+		if (c == null || c.isEmpty()) {
+			clear();
+			return true;
+		}
 		
 		if (c.size() == 1) {
 			Integer item;
@@ -2074,7 +2078,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			return true;
 		if (obj == null)
 			return false;
-		if (getClass() != obj.getClass())
+		if (!(obj instanceof ConciseSet))
 			return false;
 		final ConciseSet other = (ConciseSet) obj;
 		if (size != other.size || maxSetBit != other.maxSetBit)
@@ -2342,8 +2346,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		 */
 		/** {@inheritDoc} */ @Override 
 		public ConciseSet clone() {
-			// useless to clone
-			return this; 
+			return ConciseSet.this.clone(); 
 		}
 		/** {@inheritDoc} */ @Override 
 		public ConciseSet unmodifiable() {

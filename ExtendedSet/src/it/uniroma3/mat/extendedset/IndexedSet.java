@@ -143,7 +143,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 			return true;
 		if (obj == null)
 			return false;
-		if (this.getClass() != obj.getClass())
+		if (!(obj instanceof IndexedSet))
 			return false;
 		IndexedSet<?> other = (IndexedSet<?>) obj;
 		return this.indexToItem == other.indexToItem
@@ -359,7 +359,13 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public boolean retainAll(Collection<?> c) {
-		return c != null && !c.isEmpty() && this.items.retainAll(asIndexedSet(c).items);
+		if (isEmpty())
+			return false;
+		if (c == null || c.isEmpty()) {
+			items.clear();
+			return true;
+		}
+		return this.items.retainAll(asIndexedSet(c).items);
 	}
 
 	/**
@@ -506,7 +512,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 * @see #get(int)
 	 * @see #indexOf(Object)
 	 */
-	public AbstractExtendedSet<Integer> indices() {
+	public ExtendedSet<Integer> indices() {
 		return items.subSet(0, indexToItem.length);
 	}
 	
@@ -738,8 +744,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 		 */
 		/** {@inheritDoc} */ @Override 
 		public IndexedSet<T> clone() {
-			// useless to clone
-			return this; 
+			return IndexedSet.this.clone(); 
 		}
 		/** {@inheritDoc} */ @Override 
 		public IndexedSet<T> unmodifiable() {
@@ -753,7 +758,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 		
 		/** {@inheritDoc} */
 		@Override
-		public AbstractExtendedSet<Integer> indices() {
+		public ExtendedSet<Integer> indices() {
 			return IndexedSet.this.indices().unmodifiable();
 		}
 

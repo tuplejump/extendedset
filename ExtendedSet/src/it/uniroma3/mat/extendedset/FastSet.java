@@ -102,7 +102,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 			return true;
 		if (!super.equals(obj))
 			return false;
-		if (getClass() != obj.getClass())
+		if (!(obj instanceof FastSet))
 			return false;
 		final FastSet other = (FastSet) obj;
 		if (size != other.size)
@@ -378,8 +378,12 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	@Override
 	public boolean retainAll(Collection<?> c) {
 		Statistics.increaseIntersectionCount();
-		if (c == null || c.isEmpty() || isEmpty())
+		if (isEmpty())
 			return false;
+		if (c == null || c.isEmpty()) {
+			clear();
+			return true;
+		}
 		
 		if (c instanceof FastSet) {
 			int sizeBefore = size;
@@ -627,7 +631,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public void fill(Integer from, Integer to) {
-		bits.set(from, to);
+		bits.set(from, to + 1);
 	}
 	
 	/**
@@ -635,7 +639,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public void clear(Integer from, Integer to) {
-		bits.clear(from, to);
+		bits.clear(from, to + 1);
 	}
 	
 	/**
@@ -732,8 +736,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 		 */
 		/** {@inheritDoc} */ @Override 
 		public FastSet clone() {
-			// useless to clone
-			return this; 
+			return FastSet.this.clone(); 
 		}
 		/** {@inheritDoc} */ @Override 
 		public FastSet unmodifiable() {

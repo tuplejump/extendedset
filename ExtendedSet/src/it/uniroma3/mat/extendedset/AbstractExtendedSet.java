@@ -458,6 +458,15 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	}
 	
 	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void flip(T e) {
+		if (!add(e))
+			remove(e);
+	}
+	
+	/**
 	 * Used by {@link AbstractExtendedSet#headSet(T)},
 	 * {@link AbstractExtendedSet#tailSet(T)} and {@link AbstractExtendedSet#subSet(T, T)}
 	 * to offer a restricted view of the entire set
@@ -953,7 +962,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		 */
 		@Override
 		public AbstractExtendedSet<T> unmodifiable() {
-			return ExtendedSubSet.this.unmodifiable().new ExtendedSubSet(min, max);
+			return AbstractExtendedSet.this.unmodifiable().subSet(min, max);
 		}
 	}
 	
