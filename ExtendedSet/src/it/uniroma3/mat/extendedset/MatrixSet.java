@@ -534,9 +534,27 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */ @Override public MatrixSet<R, C> getIntersection(Collection<? extends Integer> other) {return new MatrixSet<R, C>(rows, cols, indices.getIntersection(other));}
 	/** {@inheritDoc} */ @Override public MatrixSet<R, C> getSymmetricDifference(Collection<? extends Integer> other) {return new MatrixSet<R, C>(rows, cols, indices.getSymmetricDifference(other));}
 	/** {@inheritDoc} */ @Override public MatrixSet<R, C> getUnion(Collection<? extends Integer> other) {return new MatrixSet<R, C>(rows, cols, indices.getUnion(other));}
-	/** {@inheritDoc} */ @Override public MatrixSet<R, C> unmodifiable() {return new MatrixSet<R, C>(rows, cols, indices.unmodifiable());}
 	/** {@inheritDoc} */ @Override public MatrixSet<R, C> emptySet() {return new MatrixSet<R, C>(rows, cols, indices.emptySet());}
 
+	/**
+	 * Unmodifiable instance
+	 */
+	private class UnmodifiableMatrixSet extends MatrixSet<R, C> implements Unmodifiable {
+		/**
+		 * Unmodifiable instance of the container instance
+		 */
+		private UnmodifiableMatrixSet() {
+			super(rows, cols, indices.unmodifiable());
+		}
+	}
+	
+	/** 
+	 * {@inheritDoc} 
+	 */
+	@Override
+	public MatrixSet<R, C> unmodifiable() {
+		return new UnmodifiableMatrixSet();
+	}
 
 	/**
 	 * Test

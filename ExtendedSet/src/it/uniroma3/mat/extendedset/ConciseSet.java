@@ -2268,7 +2268,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * parent class {@link ConciseSet} so that any subclass will be correctly
 	 * handled.
 	 */
-	protected class UnmodifiableConciseSet extends ConciseSet {
+	private class UnmodifiableConciseSet extends ConciseSet implements Unmodifiable {
 		/*
 		 * Writing methods
 		 */

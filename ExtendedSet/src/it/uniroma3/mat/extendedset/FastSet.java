@@ -666,7 +666,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * parent class {@link FastSet} so that any subclass will be correctly
 	 * handled.
 	 */
-	protected class UnmodifiableFastSet extends FastSet {
+	private class UnmodifiableFastSet extends FastSet implements Unmodifiable {
 		/*
 		 * Writing methods
 		 */

@@ -608,6 +608,11 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	public void flip(T e);
 	
 	/**
+	 * If the set is read-only, it <i>must</i> implement this interface
+	 */
+	public interface Unmodifiable {/* empty */}
+	
+	/**
 	 * @return the read-only version of the current set
 	 */
 	public ExtendedSet<T> unmodifiable();

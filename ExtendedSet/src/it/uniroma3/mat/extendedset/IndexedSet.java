@@ -670,8 +670,8 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 * parent class {@link IndexedSet} so that any subclass will be correctly
 	 * handled.
 	 */
-	protected class UnmodifiableIndexedSet extends IndexedSet<T> {
-		private UnmodifiableIndexedSet(Map<T, Integer> itemToIndex, T[] indexToItem, AbstractExtendedSet<Integer> items) {
+	private class UnmodifiableIndexedSet extends IndexedSet<T> implements Unmodifiable {
+		private UnmodifiableIndexedSet() {
 			super(itemToIndex, indexToItem, items);
 		}
 
@@ -794,6 +794,6 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public IndexedSet<T> unmodifiable() {
-		return new UnmodifiableIndexedSet(itemToIndex, indexToItem, items);
+		return new UnmodifiableIndexedSet();
 	}
 }
