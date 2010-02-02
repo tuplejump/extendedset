@@ -228,6 +228,14 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 * {@inheritDoc}
 	 */
 	@Override
+	public void flip(T e) {
+		items.flip(itemToIndex.get(e));
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
 	public boolean contains(Object o) {
 		if (o == null)
 			return false;

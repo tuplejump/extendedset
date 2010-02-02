@@ -646,6 +646,14 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * {@inheritDoc}
 	 */
 	@Override
+	public void flip(Integer e) {
+		bits.flip(e);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
 	public String debugInfo() {
 		return String.format("size = %d, elements = %s\nbitmap compression: %.2f%%\ncollection compression: %.2f%%\n", 
 				size, bits.toString(), 100D * bitmapCompressionRatio(), 100D * collectionCompressionRatio());
