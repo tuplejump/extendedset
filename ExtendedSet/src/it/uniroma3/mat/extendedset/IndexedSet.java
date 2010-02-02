@@ -678,19 +678,19 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 		/*
 		 * Writing methods
 		 */
-		/** {@inheritDoc} */ @Override public boolean add(T e) {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public boolean addAll(Collection<? extends T> c) {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public boolean addFirstOf(SortedSet<T> set) {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public boolean addLastOf(SortedSet<T> set) {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public boolean remove(Object o) {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public boolean removeAll(Collection<?> c) {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public boolean removeFirstOf(SortedSet<T> set) {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public boolean removeLastOf(SortedSet<T> set) {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public boolean retainAll(Collection<?> c) {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public void clear() {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public void clear(T from, T to) {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public void fill(T from, T to) {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public void complement() {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public boolean add(T e) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public boolean addAll(Collection<? extends T> c) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public boolean addFirstOf(SortedSet<T> set) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public boolean addLastOf(SortedSet<T> set) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public boolean remove(Object o) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public boolean removeAll(Collection<?> c) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public boolean removeFirstOf(SortedSet<T> set) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public boolean removeLastOf(SortedSet<T> set) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public boolean retainAll(Collection<?> c) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public void clear() {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public void clear(T from, T to) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public void fill(T from, T to) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public void complement() {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
 		
 		/** {@inheritDoc} */ @Override
 		public Iterator<T> iterator() {
@@ -698,7 +698,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 			return new Iterator<T>() {
 				@Override public boolean hasNext() {return itr.hasNext();}
 				@Override public T next() {return itr.next();}
-				@Override public void remove() {throw UNSUPPORTED;}
+				@Override public void remove() {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
 			};
 		}
 

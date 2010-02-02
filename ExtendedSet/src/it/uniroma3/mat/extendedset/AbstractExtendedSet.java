@@ -967,10 +967,9 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	}
 	
 	/** 
-	 * Exception to throw for writing operations provided by {@link #unmodifiable()}
-	 * */
-	protected final static UnsupportedOperationException UNSUPPORTED = 
-		new UnsupportedOperationException("The class is read-only!");
+	 * Exception message when writing operations are performed on {@link #unmodifiable()}
+	 */
+	protected final static String UNSUPPORTED_MSG = "The class is read-only!";
 
 	/**
 	 * {@inheritDoc}

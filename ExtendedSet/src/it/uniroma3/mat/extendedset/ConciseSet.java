@@ -2104,9 +2104,9 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		if (this.isEmpty() && other.isEmpty())
 			return 0;
 		if (this.isEmpty())
-			return 1;
-		if (other.isEmpty())
 			return -1;
+		if (other.isEmpty())
+			return 1;
 		
 		// the word at the end must be the same
 		int res = this.maxSetBit - other.maxSetBit;
@@ -2272,19 +2272,19 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		/*
 		 * Writing methods
 		 */
-		/** {@inheritDoc} */ @Override public void clear() {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public boolean add(Integer e) {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public boolean addAll(Collection<? extends Integer> c) {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public boolean addFirstOf(SortedSet<Integer> set) {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public boolean addLastOf(SortedSet<Integer> set) {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public boolean remove(Object o) {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public boolean removeAll(Collection<?> c) {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public boolean removeFirstOf(SortedSet<Integer> set) {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public boolean removeLastOf(SortedSet<Integer> set) {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public boolean retainAll(Collection<?> c) {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public void clear(Integer from, Integer to) {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public void fill(Integer from, Integer to) {throw UNSUPPORTED;}
-		/** {@inheritDoc} */ @Override public void complement() {throw UNSUPPORTED;}
+		/** {@inheritDoc} */ @Override public void clear() {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public boolean add(Integer e) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public boolean addAll(Collection<? extends Integer> c) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public boolean addFirstOf(SortedSet<Integer> set) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public boolean addLastOf(SortedSet<Integer> set) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public boolean remove(Object o) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public boolean removeAll(Collection<?> c) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public boolean removeFirstOf(SortedSet<Integer> set) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public boolean removeLastOf(SortedSet<Integer> set) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public boolean retainAll(Collection<?> c) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public void clear(Integer from, Integer to) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public void fill(Integer from, Integer to) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
+		/** {@inheritDoc} */ @Override public void complement() {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
 		
 		/** {@inheritDoc} */ @Override
 		public Iterator<Integer> iterator() {
@@ -2292,7 +2292,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			return new Iterator<Integer>() {
 				@Override public boolean hasNext() {return itr.hasNext();}
 				@Override public Integer next() {return itr.next();}
-				@Override public void remove() {throw UNSUPPORTED;}
+				@Override public void remove() {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
 			};
 		}
 
