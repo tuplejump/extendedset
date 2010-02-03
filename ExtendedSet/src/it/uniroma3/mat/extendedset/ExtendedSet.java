@@ -33,8 +33,17 @@ import java.util.SortedSet;
  * <p>
  * It collects all the basic functionalities and the interface of
  * {@link AbstractExtendedSet}, {@link ConciseSet}, {@link FastSet}, and
- * {@link IndexedSet}. {@link AbstractExtendedSet} is a base abstract class for all
- * other classes.
+ * {@link IndexedSet}. {@link AbstractExtendedSet} is a base abstract class for
+ * all other classes.
+ * <p>
+ * <b>NOTE FOR PACKAGE DEVELOPERS:</b> Every modification to this class <b>must</b>
+ * be reflected in those inner classes implementing the {@link Unmodifiable}
+ * interface within {@link ConciseSet}, {@link FastSet}, and
+ * {@link IndexedSet} (<i>not</i> in {@link MatrixSet}). Obviously, all
+ * classes {@link AbstractExtendedSet}, {@link ConciseSet}, {@link FastSet},
+ * {@link IndexedSet}, and {@link MatrixSet} must be checked in order to decide
+ * whether the modification impacts {@link AbstractExtendedSet} only or the
+ * other ones.
  * 
  * @author Alessandro Colantonio
  * @version $Id$
@@ -46,6 +55,7 @@ import java.util.SortedSet;
  * @see ConciseSet
  * @see FastSet
  * @see IndexedSet
+ * @see MatrixSet
  */
 public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<ExtendedSet<T>> {
 	/**
@@ -236,7 +246,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 		 * 
 		 * @return the summary information string
 		 */
-		public static String getSummary() {
+		public static String summary() {
 			final StringBuilder s = new StringBuilder();
 			final Formatter f = new Formatter(s);
 
@@ -616,4 +626,16 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * @return the read-only version of the current set
 	 */
 	public ExtendedSet<T> unmodifiable();
+	
+	/**
+	 * Gets the <code>i</code><sup>th</sup> element of the set
+	 * 
+	 * @param i
+	 *            position of the element in the sorted set
+	 * @return the <code>i</code><sup>th</sup> element of the set
+	 * @throws IndexOutOfBoundsException
+	 *             if <code>i</code> is less than zero, or greater or equal to
+	 *             {@link #size()}
+	 */
+	public T position(int i);
 }

@@ -39,6 +39,12 @@ import java.util.SortedSet;
  *            the type of elements represented by rows
  * @param <C>
  *            the type of elements represented by columns
+ * 
+ * @see ExtendedSet
+ * @see AbstractExtendedSet
+ * @see ConciseSet
+ * @see FastSet
+ * @see IndexedSet
  */
 public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 	/** all possible row elements */
@@ -224,7 +230,7 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 	 *            index calculated as <code>col * cols + row</code>
 	 * @return the cell corresponding to the given index
 	 */
-	public Cell get(int index) {
+	public Cell getCell(int index) {
 		return new Cell(rows.get(index / cols.size()), cols.get(index % cols.size()), index);
 	}
 
@@ -243,6 +249,20 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 	}
 	
 	/**
+	 * Adds a cell
+	 * 
+	 * @param c
+	 *            the cell
+	 * @return <code>true</code> if this matrix did not already contain the
+	 *         specified cell
+	 */
+	public boolean add(Cell c) {
+		if (c.getMatrix() != this)
+			throw new IllegalArgumentException("different matrix");
+		return add(c.index);
+	}
+
+	/**
 	 * Removes a cell
 	 * 
 	 * @param row
@@ -253,6 +273,19 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 	 */
 	public boolean remove(R row, C col) {
 		return remove(indexOf(row, col));
+	}
+
+	/**
+	 * Removes a cell
+	 * 
+	 * @param c
+	 *            the cell
+	 * @return <code>true</code> if this matrix contained the specified cell
+	 */
+	public boolean remove(Cell c) {
+		if (c.getMatrix() != this)
+			throw new IllegalArgumentException("different matrix");
+		return remove(c.index);
 	}
 
 	/**
@@ -384,7 +417,7 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 		return new Iterator<Cell>() {
 			private final Iterator<Integer> itr = iterator();
 			/** {@inheritDoc} */ @Override public boolean hasNext() {return itr.hasNext();}
-			/** {@inheritDoc} */ @Override public Cell next() {return get(itr.next());}
+			/** {@inheritDoc} */ @Override public Cell next() {return getCell(itr.next());}
 			/** {@inheritDoc} */ @Override public void remove() {itr.remove();}
 		};
 	}
@@ -399,7 +432,7 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 		return new Iterator<Cell>() {
 			private final Iterator<Integer> itr = descendingIterator();
 			/** {@inheritDoc} */ @Override public boolean hasNext() {return itr.hasNext();}
-			/** {@inheritDoc} */ @Override public Cell next() {return get(itr.next());}
+			/** {@inheritDoc} */ @Override public Cell next() {return getCell(itr.next());}
 			/** {@inheritDoc} */ @Override public void remove() {itr.remove();}
 		};
 	}
@@ -435,6 +468,21 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 				return descendingCellIterator();
 			}
 		};
+	}
+	
+	/**
+	 * Gets the <code>i</code><sup>th</sup> filled cell of the matrix (see
+	 * {@link #position(int)})
+	 * 
+	 * @param i
+	 *            position of the cell in the sorted set of filled cells
+	 * @return the <code>i</code><sup>th</sup> filled cell of the matrix
+	 * @throws IndexOutOfBoundsException
+	 *             if <code>i</code> is less than zero, or greater or equal to
+	 *             {@link #size()}
+	 */
+	public Cell cellPosition(int i) {
+		return getCell(position(i));
 	}
 	
 	/**
@@ -524,6 +572,8 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */ @Override public Object[] toArray() {return indices.toArray();}
 	/** {@inheritDoc} */ @Override public <T> T[] toArray(T[] a) {return indices.toArray(a);}
 	/** {@inheritDoc} */ @Override public int compareTo(ExtendedSet<Integer> o) {return indices.compareTo(o);}
+	/** {@inheritDoc} */ @Override public Integer position(int i) {return indices.position(i);}
+
 	
 	/*
 	 * Methods that return a MatrixSet instance 
@@ -555,7 +605,7 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 	public MatrixSet<R, C> unmodifiable() {
 		return new UnmodifiableMatrixSet();
 	}
-
+	
 	/**
 	 * Test
 	 * 
@@ -571,14 +621,15 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 		System.out.println(m.debugInfo());
 		System.out.println();
 		
-		for (MatrixSet<String, Double>.Cell c : m.cells()) {
-			System.out.println(c);
-		}
+		System.out.println("Position 3: " + m.cellPosition(3));
 		System.out.println();
 		
-		for (MatrixSet<String, Double>.Cell c : m.descendingCells()) {
+		for (MatrixSet<String, Double>.Cell c : m.cells()) 
 			System.out.println(c);
-		}
+		System.out.println();
+		
+		for (MatrixSet<String, Double>.Cell c : m.descendingCells())
+			System.out.println(c);
 		System.out.println();
 		
 		for (String r : m.rows()) 

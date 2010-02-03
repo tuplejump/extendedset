@@ -43,7 +43,8 @@ import java.util.SortedSet;
  * @see ExtendedSet
  * @see AbstractExtendedSet
  * @see ConciseSet
- * @see IndexedSet
+ * @see FastSet
+ * @see MatrixSet
  */
 public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	// indices
@@ -740,6 +741,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 		/** {@inheritDoc} */ @Override public Object[] toArray() {return IndexedSet.this.toArray();}
 		/** {@inheritDoc} */ @Override public <X> X[] toArray(X[] a) {return IndexedSet.this.toArray(a);}
 		/** {@inheritDoc} */ @Override public String toString() {return IndexedSet.this.toString();}
+		/** {@inheritDoc} */ @Override public T position(int i) {return IndexedSet.this.position(i);}
 
 		/*
 		 * Special purpose methods
@@ -795,5 +797,13 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@Override
 	public IndexedSet<T> unmodifiable() {
 		return new UnmodifiableIndexedSet();
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public T position(int i) {
+		return indexToItem[items.position(i)];
 	}
 }

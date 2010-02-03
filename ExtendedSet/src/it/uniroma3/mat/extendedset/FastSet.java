@@ -37,6 +37,7 @@ import java.util.SortedSet;
  * @see AbstractExtendedSet
  * @see ConciseSet
  * @see IndexedSet
+ * @see MatrixSet
  */
 public class FastSet extends AbstractExtendedSet<Integer> {
 	// plain bitmap representation

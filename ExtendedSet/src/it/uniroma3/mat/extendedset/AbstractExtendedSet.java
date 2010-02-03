@@ -44,6 +44,7 @@ import java.util.SortedSet;
  * @see ConciseSet
  * @see FastSet
  * @see IndexedSet
+ * @see MatrixSet
  */
 public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements ExtendedSet<T> {
 	/**
@@ -464,6 +465,28 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	public void flip(T e) {
 		if (!add(e))
 			remove(e);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public T position(int i) {
+		int size = size();
+		if (i < 0 || i >= size)
+			throw new IndexOutOfBoundsException();
+		
+		Iterator<T> itr;
+		if (i < (size / 2)) {
+			itr = iterator();
+			for (int j = 0; j <= i - 1; j++) 
+				itr.next();
+		} else {
+			itr = descendingIterator();
+			for (int j = size - 1; j >= i + 1; j--) 
+				itr.next();
+		}
+		return itr.next();
 	}
 	
 	/**

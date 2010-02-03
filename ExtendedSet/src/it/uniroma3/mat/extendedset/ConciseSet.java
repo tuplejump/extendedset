@@ -65,6 +65,7 @@ import java.util.SortedSet;
  * @see AbstractExtendedSet
  * @see FastSet
  * @see IndexedSet
+ * @see MatrixSet
  */
 public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		SortedSet<Integer>, Cloneable {
@@ -306,6 +307,24 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		return isZeroSequence(word) 
 				? (ALL_ZEROS_LITERAL | literal) 
 				: (ALL_ONES_LITERAL & ~literal);
+	}
+
+	/**
+	 * Gets the position of the flipped bit within a sequence word. If the
+	 * sequence has no set/unset bit, returns -1.
+	 * <p>
+	 * Note that the parameter <i>must</i> a sequence word, otherwise the
+	 * result is meaningless.
+	 * 
+	 * @param word
+	 *            sequence word to check
+	 * @return the position of the set bit, from 0 to 31. If the sequence has no
+	 *         set/unset bit, returns -1.
+	 */
+	private static int getFlippedBit(int word) {
+		// get bits from 30 to 26
+		// NOTE: "-1" is required since 00000 represents no bits and 00001 the LSB bit set
+		return ((word >>> 25) & 0x0000001F) - 1;  
 	}
 
 	/**
@@ -1046,6 +1065,71 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		}
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Integer position(int i) {
+		if (i < 0 || i >= size)
+			throw new IndexOutOfBoundsException();
+
+		// initialize data
+		int firstSetBitInWord = 0;
+		int position = i;
+		int setBitsInCurrentWord = 0;
+		for (int w : words) {
+			if (isLiteral(w)) {
+				// number of bits in the current word
+				setBitsInCurrentWord = literalBitCount(w);
+				
+				// check if the desired bit is in the current word
+				if (position < setBitsInCurrentWord) {
+					int currSetBitInWord = -1;
+					for (; position >= 0; position--)
+						currSetBitInWord = Integer.numberOfTrailingZeros(w & (0xFFFFFFFF << (currSetBitInWord + 1)));
+					return firstSetBitInWord + currSetBitInWord;
+				}
+				
+				// skip the 31-bit block
+				firstSetBitInWord += MAX_LITERAL_LENGHT;
+			} else {
+				// number of involved bits (31 * blocks)
+				int sequenceLength = MAX_LITERAL_LENGHT * (getSequenceCount(w) + 1);
+				
+				// check the sequence type
+				if (isOneSequence(w)) {
+					if (isSequenceWithNoBits(w)) {
+						setBitsInCurrentWord = sequenceLength;
+						if (position < setBitsInCurrentWord)
+							return firstSetBitInWord + position;
+					} else {
+						setBitsInCurrentWord = sequenceLength - 1;
+						if (position < setBitsInCurrentWord)
+							// check whether the desired set bit is after the
+							// flipped bit (or after the first block)
+							return firstSetBitInWord + position + (position < getFlippedBit(w) ? 0 : 1);
+					}
+				} else {
+					if (isSequenceWithNoBits(w)) {
+						setBitsInCurrentWord = 0;
+					} else {
+						setBitsInCurrentWord = 1;
+						if (position == 0)
+							return firstSetBitInWord + getFlippedBit(w);
+					}
+				}
+
+				// skip the 31-bit blocks
+				firstSetBitInWord += sequenceLength;
+			}
+			
+			// update the number of found set bits
+			position -= setBitsInCurrentWord;
+		}
+		
+		throw new RuntimeException("position not found");
+	}
+	
 	/**
 	 * Checks if the <i>literal</i> contained within {@code #words[wordIndex]}
 	 * can be merged with the previous word sequences (i.e.
@@ -2334,6 +2418,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		/** {@inheritDoc} */ @Override public Object[] toArray() {return ConciseSet.this.toArray();}
 		/** {@inheritDoc} */ @Override public <X> X[] toArray(X[] a) {return ConciseSet.this.toArray(a);}
 		/** {@inheritDoc} */ @Override public String toString() {return ConciseSet.this.toString();}
+		/** {@inheritDoc} */ @Override public Integer position(int i) {return ConciseSet.this.position(i);}
 
 		/*
 		 * Special purpose methods

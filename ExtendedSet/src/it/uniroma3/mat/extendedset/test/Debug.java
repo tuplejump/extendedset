@@ -537,7 +537,7 @@ public class Debug {
 		System.out.println(currentBits.debugInfo());
 		
 		System.out.println();
-		System.out.println(Statistics.getSummary());
+		System.out.println(Statistics.summary());
 	}
 	
 	/**
@@ -634,7 +634,7 @@ public class Debug {
 		System.out.println(currentBits.debugInfo());
 
 		System.out.println();
-		System.out.println(Statistics.getSummary());
+		System.out.println(Statistics.summary());
 	}
 	
 	/**
@@ -785,7 +785,7 @@ public class Debug {
 		}
 
 		System.out.println(currentBits.debugInfo());
-		System.out.println(Statistics.getSummary());
+		System.out.println(Statistics.summary());
 	}
 	
 	/**
@@ -850,7 +850,7 @@ public class Debug {
 		}
 
 		System.out.println(currentBits.debugInfo());
-		System.out.println(Statistics.getSummary());
+		System.out.println(Statistics.summary());
 	}
 
 	/**
@@ -1252,12 +1252,52 @@ public class Debug {
 	}
 	
 	/**
+	 * Stress test for {@link ConciseSet#position(int)}
+	 */
+	private static void testForPosition() {
+		ConciseSet bits = new ConciseSet();
+		Random rnd = new Random();
+		for (int i = 0; i < 1000; i++) {
+			// new set
+			bits.clear();
+			final int size = 1 + rnd.nextInt(10000);
+			final int min = 1 + rnd.nextInt(10000 - 1);
+			final int max = min + rnd.nextInt(10000 - min + 1);
+			for (int j = 0; j < size; j++) {
+				int item = min + rnd.nextInt(max - min + 1);
+				bits.add(item);
+			}
+			
+			// check correctness
+			String good = bits.toString();
+			StringBuilder other = new StringBuilder();
+			int s = bits.size();
+			other.append('[');
+			for (int j = 0; j < s; j++) {
+				other.append(bits.position(j));
+				if (j < s - 1)
+					other.append(", ");
+			}
+			other.append(']');
+			if (good.equals(other.toString())) {
+				System.out.println(i + ") OK");
+			} else {
+				System.out.println("ERROR");
+				System.out.println(bits.debugInfo());
+				System.out.println(bits);
+				System.out.println(other);
+				return;
+			}
+		}
+	}
+	
+	/**
 	 * Test launcher
 	 * 
-	 * @param args ID of the test to execute (from 1 to 24)
+	 * @param args ID of the test to execute (from 1 to 29)
 	 */
 	public static void main(String[] args) {
-		int testCase = 28;
+		int testCase = 29;
 		
 		if (args != null && args.length == 1) {
 			try {
@@ -1351,6 +1391,9 @@ public class Debug {
 			break;
 		case 28:
 			testForDescendingIterator(FastSet.class);
+			break;
+		case 29:
+			testForPosition();
 			break;
 		default:
 			System.out.println("Unknown test case!");
