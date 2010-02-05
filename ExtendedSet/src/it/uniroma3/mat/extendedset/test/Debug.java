@@ -153,7 +153,7 @@ public class Debug {
 		TreeSet<Integer> items = new TreeSet<Integer>();
 
 		// random number generator
-		Random rnd = new Random();
+		Random rnd = new Random(31);
 
 		bits.clear();
 		items.clear();
@@ -163,7 +163,7 @@ public class Debug {
 		for (Integer i : items)
 			bits.add(i);
 		System.out.println("Correct: " + checkContent(bits, items));
-		System.out.println("Original items: " + items);
+		System.out.println("Original: " + items);
 		System.out.println(bits.debugInfo());
 
 		bits.clear();
@@ -174,7 +174,7 @@ public class Debug {
 		for (Integer i : items)
 			bits.add(i);
 		System.out.println("Correct: " + checkContent(bits, items));
-		System.out.println("Original items: " + items);
+		System.out.println("Original: " + items);
 		System.out.println(bits.debugInfo());
 
 		bits.clear();
@@ -191,12 +191,12 @@ public class Debug {
 		for (Integer e : items)
 			bits.add(e);
 		System.out.println("Correct: " + checkContent(bits, items));
-		System.out.println("Original items: " + items);
+		System.out.println("Original: " + items);
 		System.out.println(bits.debugInfo());
 	}
 	
 	/**
-	 * Simple test for the method {@link ExtendedSet#getIntersection(ExtendedSet)}
+	 * Simple test for the method {@link ExtendedSet#intersectionSet(ExtendedSet)}
 	 * 
 	 * @param c class to test
 	 */
@@ -221,7 +221,7 @@ public class Debug {
 		for (Integer i : itemsLeft)
 			bitsLeft.add(i);
 		System.out.println("Correct: " + checkContent(bitsLeft, itemsLeft));
-		System.out.println("Original items: " + itemsLeft);
+		System.out.println("Original: " + itemsLeft);
 		System.out.println(bitsLeft.debugInfo());
 
 		System.out.println("SECOND SET");
@@ -230,21 +230,21 @@ public class Debug {
 		for (Integer i : itemsRight)
 			bitsRight.add(i);
 		System.out.println("Correct: " + checkContent(bitsRight, itemsRight));
-		System.out.println("Original items: " + itemsRight);
+		System.out.println("Original: " + itemsRight);
 		System.out.println(bitsRight.debugInfo());
 
 		System.out.println("INTERSECTION SET");
-		ExtendedSet<Integer> bitsIntersection = bitsLeft.getIntersection(bitsRight);
+		ExtendedSet<Integer> bitsIntersection = bitsLeft.intersectionSet(bitsRight);
 		TreeSet<Integer> itemsIntersection = new TreeSet<Integer>(itemsLeft);
 		itemsIntersection.retainAll(itemsRight);
 		System.out.println("Correct: " + checkContent(bitsIntersection, itemsIntersection));
-		System.out.println("Original items: " + itemsIntersection);
+		System.out.println("Original: " + itemsIntersection);
 		System.out.println(bitsIntersection.debugInfo());
 	}
 	
 	/**
 	 * More complex test for the methods
-	 * {@link ExtendedSet#getIntersection(ExtendedSet)} and
+	 * {@link ExtendedSet#intersectionSet(ExtendedSet)} and
 	 * {@link ExtendedSet#intersectionSize(ExtendedSet)}
 	 * 
 	 * @param c class to test
@@ -252,7 +252,7 @@ public class Debug {
 	@SuppressWarnings("unchecked")
 	private static void testForIntersectionComplex(Class<? extends ExtendedSet> c) {
 		// generate items to intersect completely at random
-		Random rnd = new Random();
+		Random rnd = new Random(31);
 
 		ExtendedSet<Integer> bitsLeft;
 		ExtendedSet<Integer> bitsRight;
@@ -272,7 +272,7 @@ public class Debug {
 			itemsLeft.add(rnd.nextInt(200 + 1));
 		bitsLeft.addAll(itemsLeft);
 		System.out.println("Correct: " + checkContent(bitsLeft, itemsLeft));
-		System.out.println("Original items: " + itemsLeft);
+		System.out.println("Original: " + itemsLeft);
 		System.out.println(bitsLeft.debugInfo());
 
 		System.out.println("SECOND SET");
@@ -282,15 +282,15 @@ public class Debug {
 			itemsRight.add(150 + rnd.nextInt(300 - 150 + 1));
 		bitsRight.addAll(itemsRight);
 		System.out.println("Correct: " + checkContent(bitsRight, itemsRight));
-		System.out.println("Original items: " + itemsRight);
+		System.out.println("Original: " + itemsRight);
 		System.out.println(bitsRight.debugInfo());
 
 		System.out.println("INTERSECTION SET");
-		ExtendedSet<Integer> bitsIntersection = bitsLeft.getIntersection(bitsRight);
+		ExtendedSet<Integer> bitsIntersection = bitsLeft.intersectionSet(bitsRight);
 		TreeSet<Integer> itemsIntersection = new TreeSet<Integer>(itemsLeft);
 		itemsIntersection.retainAll(itemsRight);
 		System.out.println("Correct: " + checkContent(bitsIntersection, itemsIntersection));
-		System.out.println("Original items: " + itemsIntersection);
+		System.out.println("Original: " + itemsIntersection);
 		System.out.println(bitsIntersection.debugInfo());
 		
 		System.out.println("INTERSECTION SIZE");
@@ -298,7 +298,7 @@ public class Debug {
 	}
 	
 	/**
-	 * Simple test for the method {@link ExtendedSet#getUnion(ExtendedSet)}
+	 * Simple test for the method {@link ExtendedSet#unionSet(ExtendedSet)}
 	 * 
 	 * @param c class to test
 	 */
@@ -322,7 +322,7 @@ public class Debug {
 		for (Integer i : itemsLeft)
 			bitsLeft.add(i);
 		System.out.println("Correct: " + checkContent(bitsLeft, itemsLeft));
-		System.out.println("Original items: " + itemsLeft);
+		System.out.println("Original: " + itemsLeft);
 		System.out.println(bitsLeft.debugInfo());
 
 		System.out.println("SECOND SET");
@@ -334,15 +334,15 @@ public class Debug {
 		for (Integer i : itemsRight) 
 			bitsRight.add(i);
 		System.out.println("Correct: " + checkContent(bitsRight, itemsRight));
-		System.out.println("Original items: " + itemsRight);
+		System.out.println("Original: " + itemsRight);
 		System.out.println(bitsRight.debugInfo());
 
 		System.out.println("UNION SET");
-		ExtendedSet<Integer> bitsUnion = bitsLeft.getUnion(bitsRight);
+		ExtendedSet<Integer> bitsUnion = bitsLeft.unionSet(bitsRight);
 		TreeSet<Integer> itemsUnion = new TreeSet<Integer>(itemsLeft);
 		itemsUnion.addAll(itemsRight);
 		System.out.println("Correct: " + checkContent(bitsUnion, itemsUnion));
-		System.out.println("Original items: " + itemsUnion);
+		System.out.println("Original: " + itemsUnion);
 		System.out.println(bitsUnion.debugInfo());
 		
 		System.out.println("UNION SIZE");
@@ -350,7 +350,7 @@ public class Debug {
 	}
 	
 	/**
-	 * Simple test for the method {@link ExtendedSet#getComplement()}
+	 * Simple test for the method {@link ExtendedSet#complementSet()}
 	 * 
 	 * @param c class to test
 	 */
@@ -371,22 +371,22 @@ public class Debug {
 
 		System.out.format("Complement size: %d\n", bits.complementSize());
 		System.out.println("Complement");
-		bits = bits.getComplement();
+		bits = bits.complementSet();
 		System.out.println(bits.debugInfo());
 
 		System.out.format("Complement size: %d\n", bits.complementSize());
 		System.out.println("Complement");
-		bits = bits.getComplement();
+		bits = bits.complementSet();
 		System.out.println(bits.debugInfo());
 
 		System.out.format("Complement size: %d\n", bits.complementSize());
 		System.out.println("Complement");
-		bits = bits.getComplement();
+		bits = bits.complementSet();
 		System.out.println(bits.debugInfo());
 
 		System.out.format("Complement size: %d\n", bits.complementSize());
 		System.out.println("Complement");
-		bits = bits.getComplement();
+		bits = bits.complementSet();
 		System.out.println(bits.debugInfo());
 	}
 	
@@ -399,7 +399,7 @@ public class Debug {
 	 * <li> {@link ExtendedSet#removeAll(Collection)}
 	 * <li> {@link ExtendedSet#retainAll(Collection)}
 	 * <li> {@link ExtendedSet#getSymmetricDifference(ExtendedSet)}
-	 * <li> {@link ExtendedSet#getComplement()}
+	 * <li> {@link ExtendedSet#complementSet()}
 	 * </ul>
 	 * 
 	 * @param c class to test
@@ -432,11 +432,11 @@ public class Debug {
 		System.out.println("B: " + bitsRight);
 		System.out.println(bitsRight.debugInfo());
 
-		System.out.println("A.getSymmetricDifference(B): " + bitsLeft.getSymmetricDifference(bitsRight));
-		System.out.println(bitsLeft.getSymmetricDifference(bitsRight).debugInfo());
+		System.out.println("A.getSymmetricDifference(B): " + bitsLeft.symmetricDifferenceSet(bitsRight));
+		System.out.println(bitsLeft.symmetricDifferenceSet(bitsRight).debugInfo());
 
-		System.out.println("A.getComplement(): " + bitsLeft.getComplement());
-		System.out.println(bitsLeft.getComplement().debugInfo());
+		System.out.println("A.getComplement(): " + bitsLeft.complementSet());
+		System.out.println(bitsLeft.complementSet().debugInfo());
 
 		bitsLeft.removeAll(bitsRight);
 		System.out.println("A.removeAll(B): " + bitsLeft);
@@ -469,7 +469,7 @@ public class Debug {
 		ConciseSet currentBits = new ConciseSet();
 		TreeSet<Integer> currentItems = new TreeSet<Integer>();
 
-		Random rnd = new Random(System.currentTimeMillis());
+		Random rnd = new Random();
 
 		// add 100000 random numbers
 		for (int i = 0; i < 100000; i++) {
@@ -505,7 +505,7 @@ public class Debug {
 			if (!checkContent(currentBits, currentItems)) {
 				System.out.println("add() error");
 				System.out.println("Same elements: " + (currentItems.toString().equals(currentBits.toString())));
-				System.out.println("Original items: " + currentItems);
+				System.out.println("Original: " + currentItems);
 				System.out.println(currentBits.debugInfo());
 				System.out.println(previousBits.debugInfo());
 				return;
@@ -526,7 +526,7 @@ public class Debug {
 			singleBitSet.add(item);
 			if (currentItems.size() != currentBits.unionSize(singleBitSet)) {
 				System.out.println("Size error");
-				System.out.println("Original items: " + currentItems);
+				System.out.println("Original: " + currentItems);
 				System.out.println(currentBits.debugInfo());
 				System.out.println(previousBits.debugInfo());
 				return;
@@ -554,7 +554,7 @@ public class Debug {
 		ConciseSet currentBits = new ConciseSet();
 		TreeSet<Integer> currentItems = new TreeSet<Integer>();
 
-		Random rnd = new Random(System.currentTimeMillis());
+		Random rnd = new Random();
 
 		// create a 1-filled bitset
 		currentBits.add(10001);
@@ -599,7 +599,7 @@ public class Debug {
 			if (!checkContent(currentBits, currentItems)) {
 				System.out.println("remove() error");
 				System.out.println("Same elements: " + (currentItems.toString().equals(currentBits.toString())));
-				System.out.println("Original items: " + currentItems);
+				System.out.println("Original: " + currentItems);
 				System.out.println(currentBits.debugInfo());
 				System.out.println(previousBits.debugInfo());
 				
@@ -622,7 +622,7 @@ public class Debug {
 			singleBitSet.add(item);
 			if (currentItems.size() != currentBits.differenceSize(singleBitSet)) {
 				System.out.println("Size error");
-				System.out.println("Original items: " + currentItems);
+				System.out.println("Original: " + currentItems);
 				System.out.println(currentBits.debugInfo());
 				System.out.println(previousBits.debugInfo());
 
@@ -651,7 +651,7 @@ public class Debug {
 		TreeSet<Integer> itemsLeft = new TreeSet<Integer>();
 		TreeSet<Integer> itemsRight = new TreeSet<Integer>();
 
-		Random rnd = new Random(System.currentTimeMillis());
+		Random rnd = new Random();
 
 		// random operation loop
 		for (int i = 0; i < 100000; i++) {
@@ -664,21 +664,42 @@ public class Debug {
 			final int min = 1 + rnd.nextInt(10000 - 1);
 			final int max = min + rnd.nextInt(10000 - min + 1);
 			for (int j = 0; j < size; j++) {
-				int item = min + rnd.nextInt(max - min + 1);
-				itemsRight.add(item);
-				bitsRight.add(item);
+				if (rnd.nextDouble() < 0.1D) {
+					// sequence
+					int minSeq = min + rnd.nextInt(max - min + 1);
+					int maxSeq = minSeq + rnd.nextInt(max - minSeq + 1);
+					if (rnd.nextDouble() < 0.3D) {
+						for (int item = minSeq; item <= maxSeq; item++) 
+							itemsRight.remove(item);
+						bitsRight.clear(minSeq, maxSeq);
+					} else {
+						for (int item = minSeq; item <= maxSeq; item++)
+							itemsRight.add(item);
+						bitsRight.fill(minSeq, maxSeq);
+					}
+				} else {
+					// singleton
+					int item = min + rnd.nextInt(max - min + 1);
+					if (rnd.nextDouble() < 0.01D) {
+						itemsRight.remove(item);
+						bitsRight.remove(item);
+					} else {
+						itemsRight.add(item);
+						bitsRight.add(item);
+					}
+				}
 			}
 			if (!checkContent(bitsRight, itemsRight)) {
 				System.out.println("ERROR!");
 				System.out.println("Same elements: " + (itemsRight.toString().equals(bitsRight.toString())));
-				System.out.println("Original items: " + itemsRight);
+				System.out.println("Original: " + itemsRight);
 				System.out.println(bitsRight.debugInfo());
 				return;
 			}
 			
 			// perform the random operation with the previous set
 			int operationSize = 0;
-			switch (1 + rnd.nextInt(3)) {
+			switch (1 + rnd.nextInt(5)) {
 			case 1:
 				System.out.format(" union of %d elements with %d elements... ", itemsLeft.size(), itemsRight.size());
 				operationSize = bitsLeft.unionSize(bitsRight);
@@ -699,6 +720,28 @@ public class Debug {
 				itemsLeft.retainAll(itemsRight);
 				bitsLeft.retainAll(bitsRight);
 				break;
+
+			case 4:
+				System.out.format(" symmetric difference of %d elements with %d elements... ", itemsLeft.size(), itemsRight.size());
+				operationSize = bitsLeft.symmetricDifferenceSize(bitsRight);
+				TreeSet<Integer> temp = new TreeSet<Integer>(itemsRight);
+				temp.removeAll(itemsLeft);
+				itemsLeft.removeAll(itemsRight);
+				itemsLeft.addAll(temp);
+				bitsLeft = bitsLeft.symmetricDifferenceSet(bitsRight);
+				break;
+
+			case 5:
+				System.out.format(" complement of %d elements... ", itemsLeft.size());
+				operationSize = bitsLeft.complementSize();
+				TreeSet<Integer> temp2 = new TreeSet<Integer>();
+				if (!itemsLeft.isEmpty())
+					for (int j = 0; j < itemsLeft.last(); j++) 
+						temp2.add(j);
+				temp2.removeAll(itemsLeft);
+				itemsLeft = temp2;
+				bitsLeft.complement();
+				break;
 			}
 			
 			// check the list of elements
@@ -706,8 +749,10 @@ public class Debug {
 				System.out.println("OPERATION ERROR!");
 				System.out.println("Same elements: " + 
 						(itemsLeft.toString().equals(bitsLeft.toString())));
-				System.out.println("Original items: " + itemsLeft);
+				System.out.println("Original: " + itemsLeft);
 				System.out.println(bitsLeft.debugInfo());
+				System.out.println("Right operand:");
+				System.out.println(bitsRight.debugInfo());
 				return;
 			}
 			
@@ -740,7 +785,7 @@ public class Debug {
 		ConciseSet currentBits = new ConciseSet();
 		TreeSet<Integer> currentItems = new TreeSet<Integer>();
 
-		Random rnd = new Random(System.currentTimeMillis());
+		Random rnd = new Random();
 
 		for (int j = 0; j < 100000; j++) {
 			// keep the previous result
@@ -767,7 +812,7 @@ public class Debug {
 			if (!checkContent(currentBits, currentItems)) {
 				System.out.println("Subview not correct!");
 				System.out.println("Same elements: " + (currentItems.toString().equals(currentBits.toString())));
-				System.out.println("Original items: " + currentItems);
+				System.out.println("Original: " + currentItems);
 				System.out.println(currentBits.debugInfo());
 				System.out.println(previousBits.debugInfo());
 				return;
@@ -805,7 +850,7 @@ public class Debug {
 			return;
 		}
 
-		Random rnd = new Random(System.currentTimeMillis());
+		Random rnd = new Random();
 
 		for (int j = 0; j < 100000; j++) {
 			// keep the previous result
@@ -832,7 +877,7 @@ public class Debug {
 			if (!checkContent(currentBits, currentItems)) {
 				System.out.println("Subview not correct!");
 				System.out.println("Same elements: " + (currentItems.toString().equals(currentBits.toString())));
-				System.out.println("Original items: " + currentItems);
+				System.out.println("Original: " + currentItems);
 				System.out.println(currentBits.debugInfo());
 				System.out.println(previousBits.debugInfo());
 				return;
@@ -864,7 +909,7 @@ public class Debug {
 		ConciseSet bitsPrevious = new ConciseSet();
 		TreeSet<Integer> items = new TreeSet<Integer>();
 
-		Random rnd = new Random(System.currentTimeMillis());
+		Random rnd = new Random();
 
 		// random operation loop
 		for (int i = 0; i < 100000; i++) {
@@ -1022,7 +1067,7 @@ public class Debug {
 				System.out.println("Subview not correct!");
 				System.out.format("min: %d, max: %d, minSub: %d, maxSub: %d\n", min, max, minSub, maxSub);
 				System.out.println("Same elements: " + (items.toString().equals(bits.toString())));
-				System.out.println("Original items: " + items);
+				System.out.println("Original: " + items);
 				System.out.println(bits.debugInfo());
 				System.out.println(bitsPrevious.debugInfo());
 				return;
@@ -1171,7 +1216,7 @@ public class Debug {
 			throw new RuntimeException(e);
 		}
 
-		Random rnd = new Random();
+		Random rnd = new Random(31);
 		for (int i = 0; i < 10000; i++) {
 			// empty numbers
 			BigInteger correctLeft = BigInteger.ZERO;
@@ -1225,7 +1270,7 @@ public class Debug {
 			throw new RuntimeException(e);
 		}
 		
-		Random rnd = new Random();
+		Random rnd = new Random(31);
 		for (int i = 0; i < 100000; i++) {
 			HashSet<Integer> x = new HashSet<Integer>(bits);
 			HashSet<Integer> y = new HashSet<Integer>();
@@ -1256,7 +1301,7 @@ public class Debug {
 	 */
 	private static void testForPosition() {
 		ConciseSet bits = new ConciseSet();
-		Random rnd = new Random();
+		Random rnd = new Random(31);
 		for (int i = 0; i < 1000; i++) {
 			// new set
 			bits.clear();
@@ -1297,11 +1342,11 @@ public class Debug {
 	 * @param args ID of the test to execute (from 1 to 29)
 	 */
 	public static void main(String[] args) {
-		int testCase = 29;
+		int testCase = 11;
 		
-		if (args != null && args.length == 1) {
+		if (args != null && args.length > 0) {
 			try {
-				testCase = new Integer(args[0]);
+				testCase = Integer.parseInt(args[0]);
 			} catch (NumberFormatException ignore) {
 				// nothing to do
 			}

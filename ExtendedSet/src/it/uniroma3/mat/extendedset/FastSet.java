@@ -452,7 +452,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public FastSet getComplement() {
+	public FastSet complementSet() {
 		final FastSet res = this.clone();
 		res.complement();
 		return res;
@@ -462,7 +462,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public FastSet getDifference(Collection<? extends Integer> other) {
+	public FastSet differenceSet(Collection<? extends Integer> other) {
 		Statistics.increaseDifferenceCount();
 		if (other == null)
 			return clone();
@@ -488,7 +488,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public FastSet getSymmetricDifference(Collection<? extends Integer> other) {
+	public FastSet symmetricDifferenceSet(Collection<? extends Integer> other) {
 		Statistics.increaseSymmetricDifferenceCount();
 		if (other == null)
 			return clone();
@@ -498,7 +498,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 			cloned.bits.xor(((FastSet) other).bits);
 		} else {
 			cloned.addAll(other);
-			cloned.removeAll(this.getIntersection(other));
+			cloned.removeAll(this.intersectionSet(other));
 		}
 		cloned.size = cloned.bits.cardinality();
 		return cloned;
@@ -508,7 +508,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public FastSet getIntersection(Collection<? extends Integer> other) {
+	public FastSet intersectionSet(Collection<? extends Integer> other) {
 		Statistics.increaseIntersectionCount();
 		if (other == null)
 			return new FastSet();
@@ -526,7 +526,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public FastSet getUnion(Collection<? extends Integer> other) {
+	public FastSet unionSet(Collection<? extends Integer> other) {
 		Statistics.increaseUnionCount();
 		if (other == null)
 			return clone();
@@ -698,11 +698,11 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 		/*
 		 * Read-only methods
 		 */
-		/** {@inheritDoc} */ @Override public FastSet getIntersection(Collection<? extends Integer> other) {return FastSet.this.getIntersection(other);}
-		/** {@inheritDoc} */ @Override public FastSet getDifference(Collection<? extends Integer> other) {return FastSet.this.getDifference(other);}
-		/** {@inheritDoc} */ @Override public FastSet getUnion(Collection<? extends Integer> other) {return FastSet.this.getUnion(other);}
-		/** {@inheritDoc} */ @Override public FastSet getSymmetricDifference(Collection<? extends Integer> other) {return FastSet.this.getSymmetricDifference(other);}
-		/** {@inheritDoc} */ @Override public FastSet getComplement() {return FastSet.this.getComplement();}
+		/** {@inheritDoc} */ @Override public FastSet intersectionSet(Collection<? extends Integer> other) {return FastSet.this.intersectionSet(other);}
+		/** {@inheritDoc} */ @Override public FastSet differenceSet(Collection<? extends Integer> other) {return FastSet.this.differenceSet(other);}
+		/** {@inheritDoc} */ @Override public FastSet unionSet(Collection<? extends Integer> other) {return FastSet.this.unionSet(other);}
+		/** {@inheritDoc} */ @Override public FastSet symmetricDifferenceSet(Collection<? extends Integer> other) {return FastSet.this.symmetricDifferenceSet(other);}
+		/** {@inheritDoc} */ @Override public FastSet complementSet() {return FastSet.this.complementSet();}
 		/** {@inheritDoc} */ @Override public FastSet emptySet() {return FastSet.this.emptySet();}
 		/** {@inheritDoc} */ @Override public int intersectionSize(Collection<? extends Integer> other) {return FastSet.this.intersectionSize(other);}
 		/** {@inheritDoc} */ @Override public int differenceSize(Collection<? extends Integer> other) {return FastSet.this.differenceSize(other);}

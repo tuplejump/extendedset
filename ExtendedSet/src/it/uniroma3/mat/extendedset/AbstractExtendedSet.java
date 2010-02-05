@@ -50,7 +50,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
-	public AbstractExtendedSet<T> getIntersection(Collection<? extends T> other) {
+	public AbstractExtendedSet<T> intersectionSet(Collection<? extends T> other) {
 		Statistics.increaseIntersectionCount();
 		if (other == null)
 			return emptySet();
@@ -62,7 +62,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
-	public AbstractExtendedSet<T> getUnion(Collection<? extends T> other) {
+	public AbstractExtendedSet<T> unionSet(Collection<? extends T> other) {
 		Statistics.increaseUnionCount();
 		if (other == null)
 			return clone();
@@ -74,7 +74,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
-	public AbstractExtendedSet<T> getDifference(Collection<? extends T> other) {
+	public AbstractExtendedSet<T> differenceSet(Collection<? extends T> other) {
 		Statistics.increaseDifferenceCount();
 		if (other == null)
 			return clone();
@@ -86,19 +86,19 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
-	public AbstractExtendedSet<T> getSymmetricDifference(Collection<? extends T> other) {
+	public AbstractExtendedSet<T> symmetricDifferenceSet(Collection<? extends T> other) {
 		Statistics.increaseSymmetricDifferenceCount();
 		if (other == null)
 			return clone();
-		AbstractExtendedSet<T> res = this.getUnion(other);
-		res.removeAll(this.getIntersection(other));
+		AbstractExtendedSet<T> res = this.unionSet(other);
+		res.removeAll(this.intersectionSet(other));
 		return res;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	public AbstractExtendedSet<T> getComplement() {
+	public AbstractExtendedSet<T> complementSet() {
 		AbstractExtendedSet<T> clone = clone();
 		clone.complement();
 		return clone;
@@ -130,7 +130,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 */
 	public int intersectionSize(Collection<? extends T> other) {
 		Statistics.increaseIntersectionCount();
-		return other == null ? 0 : this.getIntersection(other).size();
+		return other == null ? 0 : this.intersectionSet(other).size();
 	}
 
 	/**
@@ -158,7 +158,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 * {@inheritDoc}
 	 */
 	public int complementSize() {
-		return getComplement().size();
+		return complementSet().size();
 	}
 
 	/**
@@ -613,8 +613,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 			if (completelyContains(toFilter))
 				return toFilter;
 			if (max != null)
-				return toFilter.getIntersection(mask);
-			return toFilter.getDifference(mask);
+				return toFilter.intersectionSet(mask);
+			return toFilter.differenceSet(mask);
 		}
 
 		/**
@@ -812,7 +812,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 					return AbstractExtendedSet.this.retainAll(c);
 
 				int sizeBefore = AbstractExtendedSet.this.size();
-				AbstractExtendedSet<T> res = AbstractExtendedSet.this.getIntersection((Collection<? extends T>) c);
+				AbstractExtendedSet<T> res = AbstractExtendedSet.this.intersectionSet((Collection<? extends T>) c);
 				clearByMask(AbstractExtendedSet.this);
 				AbstractExtendedSet.this.addAll(res);
 				return AbstractExtendedSet.this.size() != sizeBefore;
@@ -863,7 +863,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		@Override
 		public void complement() {
 			clearByMask(AbstractExtendedSet.this);
-			AbstractExtendedSet.this.addAll(getComplement());
+			AbstractExtendedSet.this.addAll(complementSet());
 		}
 
 		/**
@@ -871,7 +871,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		 */
 		@Override
 		public int complementSize() {
-			return getComplement().size();
+			return complementSet().size();
 		}
 
 		/**
@@ -882,8 +882,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		 * <code>max</code> bounds
 		 */
 		@Override
-		public AbstractExtendedSet<T> getComplement() {
-			return filterByMask(filterByMask(AbstractExtendedSet.this).getComplement());
+		public AbstractExtendedSet<T> complementSet() {
+			return filterByMask(filterByMask(AbstractExtendedSet.this).complementSet());
 		}
 
 		/**
@@ -894,8 +894,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		 * <code>max</code> bounds
 		 */
 		@Override
-		public AbstractExtendedSet<T> getDifference(Collection<? extends T> other) {
-			return filterByMask(AbstractExtendedSet.this.getDifference(other));
+		public AbstractExtendedSet<T> differenceSet(Collection<? extends T> other) {
+			return filterByMask(AbstractExtendedSet.this.differenceSet(other));
 		}
 
 		/**
@@ -918,8 +918,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		 * <code>max</code> bounds
 		 */
 		@Override
-		public AbstractExtendedSet<T> getSymmetricDifference(Collection<? extends T> other) {
-			return filterByMask(AbstractExtendedSet.this.getSymmetricDifference(other));
+		public AbstractExtendedSet<T> symmetricDifferenceSet(Collection<? extends T> other) {
+			return filterByMask(AbstractExtendedSet.this.symmetricDifferenceSet(other));
 		}
 
 		/**
@@ -930,8 +930,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		 * <code>max</code> bounds
 		 */
 		@Override
-		public AbstractExtendedSet<T> getIntersection(Collection<? extends T> other) {
-			return filterByMask(AbstractExtendedSet.this.getIntersection(other));
+		public AbstractExtendedSet<T> intersectionSet(Collection<? extends T> other) {
+			return filterByMask(AbstractExtendedSet.this.intersectionSet(other));
 		}
 
 		/**
@@ -942,8 +942,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		 * <code>max</code> bounds
 		 */
 		@Override
-		public AbstractExtendedSet<T> getUnion(Collection<? extends T> other) {
-			return filterByMask(AbstractExtendedSet.this.getUnion(other));
+		public AbstractExtendedSet<T> unionSet(Collection<? extends T> other) {
+			return filterByMask(AbstractExtendedSet.this.unionSet(other));
 		}
 
 		/**
@@ -952,7 +952,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		@SuppressWarnings("unchecked")
 		@Override
 		public int intersectionSize(Collection<? extends T> other) {
-			return filterByMask(AbstractExtendedSet.this.getIntersection(other)).size();
+			return filterByMask(AbstractExtendedSet.this.intersectionSet(other)).size();
 		}
 
 		/**

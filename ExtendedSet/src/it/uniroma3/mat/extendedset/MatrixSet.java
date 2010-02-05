@@ -374,7 +374,7 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 		
 		// shift indices
 		ExtendedSet<Integer> rowIndices = cols.indices().emptySet();
-		for (Integer i : getIntersection(matrixIndices)) 
+		for (Integer i : intersectionSet(matrixIndices)) 
 			rowIndices.add(i - first);
 		
 		// get elements
@@ -398,7 +398,7 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 		
 		// shift indices
 		ExtendedSet<Integer> colIndices = rows.indices().emptySet();
-		for (Integer i : getIntersection(matrixIndices)) 
+		for (Integer i : intersectionSet(matrixIndices)) 
 			colIndices.add(i / colCount);
 		
 		// get elements
@@ -520,6 +520,9 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 		for (int c = 0; c < cols.size(); c++) 
 			s.append('-');
 		s.append('+');
+		
+		s.append('\n');
+		s.append(indices.debugInfo());
 
 		return s.toString();
 	}
@@ -579,11 +582,11 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 	 * Methods that return a MatrixSet instance 
 	 */
 	
-	/** {@inheritDoc} */ @Override public MatrixSet<R, C> getComplement() {return new MatrixSet<R, C>(rows, cols, indices.getComplement());}
-	/** {@inheritDoc} */ @Override public MatrixSet<R, C> getDifference(Collection<? extends Integer> other) {return new MatrixSet<R, C>(rows, cols, indices.getDifference(other));}
-	/** {@inheritDoc} */ @Override public MatrixSet<R, C> getIntersection(Collection<? extends Integer> other) {return new MatrixSet<R, C>(rows, cols, indices.getIntersection(other));}
-	/** {@inheritDoc} */ @Override public MatrixSet<R, C> getSymmetricDifference(Collection<? extends Integer> other) {return new MatrixSet<R, C>(rows, cols, indices.getSymmetricDifference(other));}
-	/** {@inheritDoc} */ @Override public MatrixSet<R, C> getUnion(Collection<? extends Integer> other) {return new MatrixSet<R, C>(rows, cols, indices.getUnion(other));}
+	/** {@inheritDoc} */ @Override public MatrixSet<R, C> complementSet() {return new MatrixSet<R, C>(rows, cols, indices.complementSet());}
+	/** {@inheritDoc} */ @Override public MatrixSet<R, C> differenceSet(Collection<? extends Integer> other) {return new MatrixSet<R, C>(rows, cols, indices.differenceSet(other));}
+	/** {@inheritDoc} */ @Override public MatrixSet<R, C> intersectionSet(Collection<? extends Integer> other) {return new MatrixSet<R, C>(rows, cols, indices.intersectionSet(other));}
+	/** {@inheritDoc} */ @Override public MatrixSet<R, C> symmetricDifferenceSet(Collection<? extends Integer> other) {return new MatrixSet<R, C>(rows, cols, indices.symmetricDifferenceSet(other));}
+	/** {@inheritDoc} */ @Override public MatrixSet<R, C> unionSet(Collection<? extends Integer> other) {return new MatrixSet<R, C>(rows, cols, indices.unionSet(other));}
 	/** {@inheritDoc} */ @Override public MatrixSet<R, C> emptySet() {return new MatrixSet<R, C>(rows, cols, indices.emptySet());}
 
 	/**

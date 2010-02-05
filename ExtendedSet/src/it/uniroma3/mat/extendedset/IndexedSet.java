@@ -389,45 +389,45 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public IndexedSet<T> getIntersection(Collection<? extends T> other) {
+	public IndexedSet<T> intersectionSet(Collection<? extends T> other) {
 		return other == null ? emptySet() : new IndexedSet<T>(itemToIndex, indexToItem, 
-				this.items.getIntersection(asIndexedSet(other).items));
+				this.items.intersectionSet(asIndexedSet(other).items));
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public IndexedSet<T> getUnion(Collection<? extends T> other) {
+	public IndexedSet<T> unionSet(Collection<? extends T> other) {
 		return other == null ? clone() : new IndexedSet<T>(itemToIndex, indexToItem, 
-				this.items.getUnion(asIndexedSet(other).items));
+				this.items.unionSet(asIndexedSet(other).items));
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public IndexedSet<T> getDifference(Collection<? extends T> other) {
+	public IndexedSet<T> differenceSet(Collection<? extends T> other) {
 		return other == null ? clone() : new IndexedSet<T>(itemToIndex, indexToItem, 
-				this.items.getDifference(asIndexedSet(other).items));
+				this.items.differenceSet(asIndexedSet(other).items));
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public IndexedSet<T> getSymmetricDifference(Collection<? extends T> other) {
+	public IndexedSet<T> symmetricDifferenceSet(Collection<? extends T> other) {
 		return other == null ? clone() : new IndexedSet<T>(itemToIndex, indexToItem, 
-				this.items.getSymmetricDifference(asIndexedSet(other).items));
+				this.items.symmetricDifferenceSet(asIndexedSet(other).items));
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public IndexedSet<T> getComplement() {
+	public IndexedSet<T> complementSet() {
 		return new IndexedSet<T>(itemToIndex, indexToItem, 
-				this.items.getComplement());
+				this.items.complementSet());
 	}
 
 	/**
@@ -706,11 +706,11 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 		/*
 		 * Read-only methods
 		 */
-		/** {@inheritDoc} */ @Override public IndexedSet<T> getIntersection(Collection<? extends T> other) {return IndexedSet.this.getIntersection(other);}
-		/** {@inheritDoc} */ @Override public IndexedSet<T> getDifference(Collection<? extends T> other) {return IndexedSet.this.getDifference(other);}
-		/** {@inheritDoc} */ @Override public IndexedSet<T> getUnion(Collection<? extends T> other) {return IndexedSet.this.getUnion(other);}
-		/** {@inheritDoc} */ @Override public IndexedSet<T> getSymmetricDifference(Collection<? extends T> other) {return IndexedSet.this.getSymmetricDifference(other);}
-		/** {@inheritDoc} */ @Override public IndexedSet<T> getComplement() {return IndexedSet.this.getComplement();}
+		/** {@inheritDoc} */ @Override public IndexedSet<T> intersectionSet(Collection<? extends T> other) {return IndexedSet.this.intersectionSet(other);}
+		/** {@inheritDoc} */ @Override public IndexedSet<T> differenceSet(Collection<? extends T> other) {return IndexedSet.this.differenceSet(other);}
+		/** {@inheritDoc} */ @Override public IndexedSet<T> unionSet(Collection<? extends T> other) {return IndexedSet.this.unionSet(other);}
+		/** {@inheritDoc} */ @Override public IndexedSet<T> symmetricDifferenceSet(Collection<? extends T> other) {return IndexedSet.this.symmetricDifferenceSet(other);}
+		/** {@inheritDoc} */ @Override public IndexedSet<T> complementSet() {return IndexedSet.this.complementSet();}
 		/** {@inheritDoc} */ @Override public IndexedSet<T> emptySet() {return IndexedSet.this.emptySet();}
 		/** {@inheritDoc} */ @Override public int intersectionSize(Collection<? extends T> other) {return IndexedSet.this.intersectionSize(other);}
 		/** {@inheritDoc} */ @Override public int differenceSize(Collection<? extends T> other) {return IndexedSet.this.differenceSize(other);}

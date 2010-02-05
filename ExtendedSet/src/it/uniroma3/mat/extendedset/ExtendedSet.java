@@ -64,13 +64,13 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * In particular:
 	 * <ul>
 	 * <li> {@link #getIntersectionCount()} counts the calls to
-	 * {@link AbstractExtendedSet#getIntersection(Collection)}
+	 * {@link AbstractExtendedSet#intersectionSet(Collection)}
 	 * <li> {@link #getUnionCount()} counts the calls to
-	 * {@link AbstractExtendedSet#getUnion(Collection)}
+	 * {@link AbstractExtendedSet#unionSet(Collection)}
 	 * <li> {@link #getSymmetricDifferenceCount()} counts the calls to
-	 * {@link AbstractExtendedSet#getSymmetricDifference(Collection)}
+	 * {@link AbstractExtendedSet#symmetricDifferenceSet(Collection)}
 	 * <li> {@link #getDifferenceCount()} counts the calls to
-	 * {@link AbstractExtendedSet#getDifference(Collection)}
+	 * {@link AbstractExtendedSet#differenceSet(Collection)}
 	 * <li> {@link #getSizeCheckCount()} counts the calls to
 	 * {@link AbstractExtendedSet#intersectionSize(Collection)},
 	 * {@link AbstractExtendedSet#unionSize(Collection)},
@@ -80,7 +80,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * {@link AbstractExtendedSet#equals(Object)}
 	 * </ul>
 	 * <b>NOTE:</b> no counting is done for
-	 * {@link AbstractExtendedSet#getComplement()} and
+	 * {@link AbstractExtendedSet#complementSet()} and
 	 * {@link AbstractExtendedSet#complementSize()} since they are very fast.
 	 */
 	public static class Statistics {
@@ -273,7 +273,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * 
 	 * @see #retainAll(java.util.Collection)
 	 */
-	public ExtendedSet<T> getIntersection(Collection<? extends T> other);
+	public ExtendedSet<T> intersectionSet(Collection<? extends T> other);
 
 	/**
 	 * Generates the union set (bitwise <tt>or</tt>)
@@ -285,7 +285,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * 
 	 * @see #addAll(java.util.Collection)
 	 */
-	public ExtendedSet<T> getUnion(Collection<? extends T> other);
+	public ExtendedSet<T> unionSet(Collection<? extends T> other);
 
 	/**
 	 * Generates the difference set (bitwise <tt>and not</tt>)
@@ -297,7 +297,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * 
 	 * @see #removeAll(java.util.Collection)
 	 */
-	public ExtendedSet<T> getDifference(Collection<? extends T> other);
+	public ExtendedSet<T> differenceSet(Collection<? extends T> other);
 
 	/**
 	 * Generates the symmetric difference set (bitwise <tt>xor</tt>)
@@ -308,7 +308,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * @return the result of the operation
 	 * @see #flip(Object)
 	 */
-	public ExtendedSet<T> getSymmetricDifference(Collection<? extends T> other);
+	public ExtendedSet<T> symmetricDifferenceSet(Collection<? extends T> other);
 
 	/**
 	 * Generates the complement set (bitwise <tt>not</tt>). The returned
@@ -319,14 +319,14 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * 
 	 * @see ExtendedSet#complement()
 	 */
-	public ExtendedSet<T> getComplement();
+	public ExtendedSet<T> complementSet();
 
 	/**
 	 * Complements the current set (bitwise <tt>not</tt>). The modified
 	 * set is represented by all the elements strictly less than
 	 * {@link #last()} that do not exist in the current set.
 	 * 
-	 * @see ExtendedSet#getComplement()
+	 * @see ExtendedSet#complementSet()
 	 */
 	public void complement();
 
@@ -362,7 +362,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	/**
 	 * Computes the intersection set size.
 	 * <p>
-	 * This is faster than calling {@link #getIntersection(Collection)} and
+	 * This is faster than calling {@link #intersectionSet(Collection)} and
 	 * then {@link #size()}
 	 * 
 	 * @param other
@@ -375,7 +375,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	/**
 	 * Computes the union set size.
 	 * <p>
-	 * This is faster than calling {@link #getUnion(Collection)} and then
+	 * This is faster than calling {@link #unionSet(Collection)} and then
 	 * {@link #size()}
 	 * 
 	 * @param other
@@ -389,7 +389,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * Computes the symmetric difference set size.
 	 * <p>
 	 * This is faster than calling
-	 * {@link #getSymmetricDifference(Collection)} and then {@link #size()}
+	 * {@link #symmetricDifferenceSet(Collection)} and then {@link #size()}
 	 * 
 	 * @param other
 	 *            {@link ExtendedSet} instance that represent the right
@@ -401,7 +401,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	/**
 	 * Computes the difference set size.
 	 * <p>
-	 * This is faster than calling {@link #getDifference(Collection)} and
+	 * This is faster than calling {@link #differenceSet(Collection)} and
 	 * then {@link #size()}
 	 * 
 	 * @param other
@@ -414,7 +414,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	/**
 	 * Computes the complement set size.
 	 * <p>
-	 * This is faster than calling {@link #getComplement()} and then
+	 * This is faster than calling {@link #complementSet()} and then
 	 * {@link #size()}
 	 * 
 	 * @return the size
@@ -613,7 +613,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * 
 	 * @param e
 	 *            element to flip
-	 * @see #getSymmetricDifference(Collection)
+	 * @see #symmetricDifferenceSet(Collection)
 	 */
 	public void flip(T e);
 	
