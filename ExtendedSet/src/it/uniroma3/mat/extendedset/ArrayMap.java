@@ -33,7 +33,7 @@ import java.util.Set;
  * and values are the elements of the array.
  * <p>
  * Modifications to the map (i.e., through {@link #put(Integer, Object)} and
- * {@link Map.Entry#setValue(Object)}) are reflected to the original array.
+ * {@link java.util.Map.Entry#setValue(Object)}) are reflected to the original array.
  * However, the map has a fixed length, that is the length of the array.
  * 
  * @author Alessandro Colantonio
