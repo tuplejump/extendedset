@@ -53,6 +53,9 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 	/** all possible column elements */
 	private final IndexedSet<C> cols;
 	
+	/** number of columns */
+	private final int colSize;
+	
 	/** matrix cell indices */
 	private final ExtendedSet<Integer> indices;
 
@@ -145,6 +148,7 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 	public MatrixSet(Collection<R> rows, Collection<C> cols, boolean compressed) {
 		this.rows = new IndexedSet<R>(rows, compressed).universe().unmodifiable();
 		this.cols = new IndexedSet<C>(cols, compressed).universe().unmodifiable();
+		colSize = cols.size();
 		if (compressed)
 			indices = new ConciseSet();
 		else
@@ -158,12 +162,15 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 	 *            row elements
 	 * @param cols
 	 *            column elements
+	 * @param colSize
+	 *            number of columns
 	 * @param indices
 	 *            matrix cell indices
 	 */
-	private MatrixSet(IndexedSet<R> rows, IndexedSet<C> cols, ExtendedSet<Integer> indices) {
+	private MatrixSet(IndexedSet<R> rows, IndexedSet<C> cols, int colSize, ExtendedSet<Integer> indices) {
 		this.rows = rows;
 		this.cols = cols;
+		this.colSize = colSize;
 		this.indices = indices;
 	}
 	
@@ -172,7 +179,7 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public MatrixSet<R, C> clone() {
-		return new MatrixSet<R, C>(rows, cols, indices.clone());
+		return new MatrixSet<R, C>(rows, cols, colSize, indices.clone());
 	}
 	
 	/**
@@ -205,7 +212,8 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 		if (!(obj instanceof MatrixSet))
 			return false;
 		MatrixSet<?, ?> other = (MatrixSet<?, ?>) obj;
-		return this.rows == other.rows
+		return this.colSize == other.colSize
+				&& this.rows == other.rows
 				&& this.cols == other.cols
 				&& super.equals(other);
 	}
@@ -220,7 +228,7 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 	 * @return the index of the given cell
 	 */
 	public int indexOf(R row, C col) {
-		return rows.indexOf(row) * cols.size() + cols.indexOf(col);
+		return rows.indexOf(row) * colSize + cols.indexOf(col);
 	}
 	
 	/**
@@ -231,7 +239,7 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 	 * @return the cell corresponding to the given index
 	 */
 	public Cell getCell(int index) {
-		return new Cell(rows.get(index / cols.size()), cols.get(index % cols.size()), index);
+		return new Cell(rows.get(index / colSize), cols.get(index % colSize), index);
 	}
 
 	/**
@@ -315,11 +323,11 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 		
 		// column range
 		int firstCol = fromCol == null ? 0 : cols.indexOf(fromCol);
-		int lastCol = toCol == null ? cols.size() - 1 : cols.indexOf(toCol);
+		int lastCol = toCol == null ? colSize - 1 : cols.indexOf(toCol);
 
 		// identify indices
 		for (int r = firstRow; r <= lastRow; r++) {
-			int firstCellInRow = r * cols.size();
+			int firstCellInRow = r * colSize;
 			res.fill(firstCellInRow + firstCol, firstCellInRow + lastCol);
 		}
 		return res;
@@ -341,20 +349,20 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 
 		// identify indices
 		if (selectedRows == null && selectedCols == null) {
-			res.fill(0, rows.size() * cols.size() - 1);
+			res.fill(0, rows.size() * colSize - 1);
 		} else if (selectedRows == null) {
 			for (R r : rows) 
 				for (C c : selectedCols) 
-					res.add(rows.indexOf(r) * cols.size() + cols.indexOf(c));
+					res.add(rows.indexOf(r) * colSize + cols.indexOf(c));
 		} else if (selectedCols == null) {
 			for (R r : selectedRows) {
-				int first = rows.indexOf(r) * cols.size();
-				res.fill(first, first + cols.size() - 1);
+				int first = rows.indexOf(r) * colSize;
+				res.fill(first, first + colSize - 1);
 			}
 		} else {
 			for (R r : selectedRows) 
 				for (C c : selectedCols) 
-					res.add(rows.indexOf(r) * cols.size() + cols.indexOf(c));
+					res.add(rows.indexOf(r) * colSize + cols.indexOf(c));
 		}
 		return res;
 	}
@@ -370,7 +378,7 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 	public IndexedSet<C> row(R row) {
 		// involved indices
 		MatrixSet<R, C> matrixIndices = extractSubMatrix(row, row, null, null);
-		int first = rows.indexOf(row) * cols.size();
+		int first = rows.indexOf(row) * colSize;
 		
 		// shift indices
 		ExtendedSet<Integer> rowIndices = cols.indices().emptySet();
@@ -394,7 +402,7 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 	public IndexedSet<R> col(C col) {
 		// involved indices
 		MatrixSet<R, C> matrixIndices = extractSubMatrix(null, null, col, col);
-		int colCount = cols.size();
+		int colCount = colSize;
 		
 		// shift indices
 		ExtendedSet<Integer> colIndices = rows.indices().emptySet();
@@ -501,14 +509,14 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 
 		s.append("matrix:\n");
 		s.append('+');
-		for (int c = 0; c < cols.size(); c++) 
+		for (int c = 0; c < colSize; c++) 
 			s.append('-');
 		s.append("+\n");
 
 		for (int r = 0; r < rows.size(); r++) {
 			s.append('|');
-			for (int c = 0; c < cols.size(); c++) {
-				if (contains(r * cols.size() + c))
+			for (int c = 0; c < colSize; c++) {
+				if (contains(r * colSize + c))
 					s.append('*');
 				else
 					s.append(' ');
@@ -517,7 +525,7 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 		}
 		
 		s.append('+');
-		for (int c = 0; c < cols.size(); c++) 
+		for (int c = 0; c < colSize; c++) 
 			s.append('-');
 		s.append('+');
 		
@@ -582,12 +590,12 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 	 * Methods that return a MatrixSet instance 
 	 */
 	
-	/** {@inheritDoc} */ @Override public MatrixSet<R, C> complementSet() {return new MatrixSet<R, C>(rows, cols, indices.complementSet());}
-	/** {@inheritDoc} */ @Override public MatrixSet<R, C> differenceSet(Collection<? extends Integer> other) {return new MatrixSet<R, C>(rows, cols, indices.differenceSet(other));}
-	/** {@inheritDoc} */ @Override public MatrixSet<R, C> intersectionSet(Collection<? extends Integer> other) {return new MatrixSet<R, C>(rows, cols, indices.intersectionSet(other));}
-	/** {@inheritDoc} */ @Override public MatrixSet<R, C> symmetricDifferenceSet(Collection<? extends Integer> other) {return new MatrixSet<R, C>(rows, cols, indices.symmetricDifferenceSet(other));}
-	/** {@inheritDoc} */ @Override public MatrixSet<R, C> unionSet(Collection<? extends Integer> other) {return new MatrixSet<R, C>(rows, cols, indices.unionSet(other));}
-	/** {@inheritDoc} */ @Override public MatrixSet<R, C> emptySet() {return new MatrixSet<R, C>(rows, cols, indices.emptySet());}
+	/** {@inheritDoc} */ @Override public MatrixSet<R, C> complementSet() {return new MatrixSet<R, C>(rows, cols, colSize, indices.complementSet());}
+	/** {@inheritDoc} */ @Override public MatrixSet<R, C> differenceSet(Collection<? extends Integer> other) {return new MatrixSet<R, C>(rows, cols, colSize, indices.differenceSet(other));}
+	/** {@inheritDoc} */ @Override public MatrixSet<R, C> intersectionSet(Collection<? extends Integer> other) {return new MatrixSet<R, C>(rows, cols, colSize, indices.intersectionSet(other));}
+	/** {@inheritDoc} */ @Override public MatrixSet<R, C> symmetricDifferenceSet(Collection<? extends Integer> other) {return new MatrixSet<R, C>(rows, cols, colSize, indices.symmetricDifferenceSet(other));}
+	/** {@inheritDoc} */ @Override public MatrixSet<R, C> unionSet(Collection<? extends Integer> other) {return new MatrixSet<R, C>(rows, cols, colSize, indices.unionSet(other));}
+	/** {@inheritDoc} */ @Override public MatrixSet<R, C> emptySet() {return new MatrixSet<R, C>(rows, cols, colSize, indices.emptySet());}
 
 	/**
 	 * Unmodifiable instance
@@ -597,7 +605,7 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 		 * Unmodifiable instance of the container instance
 		 */
 		private UnmodifiableMatrixSet() {
-			super(rows, cols, indices.unmodifiable());
+			super(rows, cols, colSize, indices.unmodifiable());
 		}
 	}
 	

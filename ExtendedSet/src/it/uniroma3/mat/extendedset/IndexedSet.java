@@ -48,12 +48,68 @@ import java.util.SortedSet;
  */
 public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	// indices
-	private final AbstractExtendedSet<Integer> items;
+	private final AbstractExtendedSet<Integer> indices;
 
 	// mapping to translate items to indices and vice-versa
 	private final Map<T, Integer> itemToIndex;
-	private final T[] indexToItem;
+	private final Map<Integer, T> indexToItem;
 
+	/**
+	 * Used when the universe is a sequence of integral numbers
+	 */
+	private class FakeMap implements Map<Integer, Integer> {
+		private final int size;
+		private final int shift;
+		private final boolean inverse;
+		
+		/**
+		 * Specifies the first and the last element of the map
+		 * 
+		 * @param size
+		 *            sequence length
+		 * @param shift
+		 *            first element of the sequence
+		 * @param inverse
+		 *            <code>false</code> if it is used as a index-to-item map,
+		 *            <code>false</code> if it is used as a item-to-index map
+		 */
+		public FakeMap(int size, int shift, boolean inverse) {
+			this.size = size;
+			this.shift = shift;
+			this.inverse = inverse;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public Integer get(Object key) {
+			Integer value = (Integer) key - (inverse ? shift : 0);
+			if (value.compareTo(0) < 0 || value.compareTo(size) >= 0)
+				throw new IllegalArgumentException(key.toString());
+			return value + (inverse ? 0 : shift);
+		}
+		
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public int size() {
+			return size;
+		}
+
+		/** {@inheritDoc} */ @Override public void clear() {throw new UnsupportedOperationException();}
+		/** {@inheritDoc} */ @Override public boolean containsKey(Object key) {throw new UnsupportedOperationException();}
+		/** {@inheritDoc} */ @Override public boolean containsValue(Object value) {throw new UnsupportedOperationException();}
+		/** {@inheritDoc} */ @Override public Set<Entry<Integer, Integer>> entrySet() {throw new UnsupportedOperationException();}
+		/** {@inheritDoc} */ @Override public boolean isEmpty() {throw new UnsupportedOperationException();}
+		/** {@inheritDoc} */ @Override public Set<Integer> keySet() {throw new UnsupportedOperationException();}
+		/** {@inheritDoc} */ @Override public Integer put(Integer key, Integer value) {throw new UnsupportedOperationException();}
+		/** {@inheritDoc} */ @Override public void putAll(Map<? extends Integer, ? extends Integer> m) {throw new UnsupportedOperationException();}
+		/** {@inheritDoc} */ @Override public Integer remove(Object key) {throw new UnsupportedOperationException();}
+		/** {@inheritDoc} */ @Override public Collection<Integer> values() {throw new UnsupportedOperationException();}
+	}
+	
 	/**
 	 * Creates an empty {@link IndexedSet} based on a given collection that
 	 * represents the set of <i>all</i> possible items that can be added to the
@@ -73,24 +129,37 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 *            should be used
 	 */
 	@SuppressWarnings("unchecked")
-	public IndexedSet(Collection<T> universe, boolean compressed) {
-		// index-to-item map
-		if (universe instanceof Set)
-			indexToItem = (T[]) universe.toArray();
-		else
-			// remove duplicates
-			indexToItem = (T[]) (new LinkedHashSet<T>(universe)).toArray();
+	public IndexedSet(final Collection<T> universe, boolean compressed) {
+		// check if indices are sequential
+		boolean isSequence = true;
+		int shift = 0;
+		try {
+			SortedSet<Integer> ss = (SortedSet) universe;
+			shift = ss.first();
+			isSequence = ss.comparator() == null && ss.last().equals(shift + ss.size() - 1);
+		} catch (ClassCastException e) {
+			isSequence = false;
+		}
 
-		// item-to-index map
-		itemToIndex = new HashMap<T, Integer>(Math.max((int) (indexToItem.length / .75f) + 1, 16));
-		for (int i = 0; i < indexToItem.length; i++)
-			itemToIndex.put(indexToItem[i], i);
+		if (isSequence) {
+			indexToItem = (Map<Integer, T>) new FakeMap(universe.size(), shift, false);
+			itemToIndex = (Map<T, Integer>) new FakeMap(universe.size(), shift, true);
+		} else {
+			// NOTE: it removes duplicates and keeps the order
+			indexToItem = new ArrayMap<T>(universe instanceof Set ? 
+					(T[]) universe.toArray() :
+					(T[]) (new LinkedHashSet<T>(universe)).toArray());
 
-		// items
+			itemToIndex = new HashMap<T, Integer>(Math.max((int) (indexToItem.size() / .75f) + 1, 16));
+			for (int i = 0; i < indexToItem.size(); i++)
+				itemToIndex.put(indexToItem.get(i), i);
+		}
+
+		// indices
 		if (compressed)
-			items = new ConciseSet();
+			indices = new ConciseSet();
 		else
-			items = new FastSet();
+			indices = new FastSet();
 	}
 
 	/**
@@ -101,13 +170,13 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 *            universe item-to-index mapping
 	 * @param indexToItem
 	 *            universe index-to-item mapping
-	 * @param items
+	 * @param indices
 	 *            initial item set
 	 */
-	private IndexedSet(Map<T, Integer> itemToIndex, T[] indexToItem, AbstractExtendedSet<Integer> items) {
+	private IndexedSet(Map<T, Integer> itemToIndex, Map<Integer, T> indexToItem, AbstractExtendedSet<Integer> indices) {
 		this.itemToIndex = itemToIndex;
 		this.indexToItem = indexToItem;
-		this.items = items;
+		this.indices = indices;
 	}
 	
 	/**
@@ -132,7 +201,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public IndexedSet<T> clone() {
-		return new IndexedSet<T>(this.itemToIndex, this.indexToItem, this.items.clone());
+		return new IndexedSet<T>(this.itemToIndex, this.indexToItem, this.indices.clone());
 	}
 
 	/**
@@ -149,7 +218,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 		IndexedSet<?> other = (IndexedSet<?>) obj;
 		return this.indexToItem == other.indexToItem
 				&& this.itemToIndex == other.itemToIndex
-				&& this.items.equals(other.items);
+				&& this.indices.equals(other.indices);
 	}
 
 	/**
@@ -157,7 +226,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public int hashCode() {
-		return items.hashCode();
+		return indices.hashCode();
 	}
 
 	/**
@@ -165,7 +234,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public int compareTo(ExtendedSet<T> o) {
-		return items.compareTo(asIndexedSet(o).items);
+		return indices.compareTo(asIndexedSet(o).indices);
 	}
 
 	/**
@@ -187,7 +256,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public T first() {
-		return indexToItem[items.first()];
+		return indexToItem.get(indices.first());
 	}
 
 	/**
@@ -195,7 +264,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public T last() {
-		return indexToItem[items.last()];
+		return indexToItem.get(indices.last());
 	}
 
 	/**
@@ -206,7 +275,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 		Integer index = itemToIndex.get(e);
 		if (index == null)
 			throw new IllegalArgumentException("element not in the current universe");
-		return items.add(index);
+		return indices.add(index);
 	}
 
 	/**
@@ -214,7 +283,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public boolean addAll(Collection<? extends T> c) {
-		return c != null && !c.isEmpty() && this.items.addAll(asIndexedSet(c).items);
+		return c != null && !c.isEmpty() && this.indices.addAll(asIndexedSet(c).indices);
 	}
 
 	/**
@@ -222,7 +291,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public void clear() {
-		items.clear();
+		indices.clear();
 	}
 
 	/**
@@ -230,7 +299,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public void flip(T e) {
-		items.flip(itemToIndex.get(e));
+		indices.flip(itemToIndex.get(e));
 	}
 	
 	/**
@@ -241,7 +310,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 		if (o == null)
 			return false;
 		Integer index = itemToIndex.get(o);
-		return index != null && items.contains(index);
+		return index != null && indices.contains(index);
 	}
 
 	/**
@@ -249,7 +318,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public boolean containsAll(Collection<?> c) {
-		return c != null && !c.isEmpty() && this.items.containsAll(asIndexedSet(c).items);
+		return c != null && !c.isEmpty() && this.indices.containsAll(asIndexedSet(c).indices);
 	}
 
 	/**
@@ -257,7 +326,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public boolean containsAny(Collection<? extends T> other) {
-		return other != null && !other.isEmpty() && this.items.containsAny(asIndexedSet(other).items);
+		return other != null && !other.isEmpty() && this.indices.containsAny(asIndexedSet(other).indices);
 	}
 
 	/**
@@ -265,7 +334,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public boolean containsAtLeast(Collection<? extends T> other, int minElements) {
-		return other != null && !other.isEmpty() && this.items.containsAtLeast(asIndexedSet(other).items, minElements);
+		return other != null && !other.isEmpty() && this.indices.containsAtLeast(asIndexedSet(other).indices, minElements);
 	}
 
 	/**
@@ -273,7 +342,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public boolean isEmpty() {
-		return items.isEmpty();
+		return indices.isEmpty();
 	}
 
 	/**
@@ -282,7 +351,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@Override
 	public Iterator<T> iterator() {
 		return new Iterator<T>() {
-			private final Iterator<Integer> indexIterator = items.iterator();
+			private final Iterator<Integer> indexIterator = indices.iterator();
 
 			/**
 			 * {@inheritDoc}
@@ -297,7 +366,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 			 */
 			@Override
 			public T next() {
-				return indexToItem[indexIterator.next()];
+				return indexToItem.get(indexIterator.next());
 			}
 
 			/**
@@ -316,7 +385,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@Override
 	public Iterator<T> descendingIterator() {
 		return new Iterator<T>() {
-			private final Iterator<Integer> indexIterator = items.descendingIterator();
+			private final Iterator<Integer> indexIterator = indices.descendingIterator();
 
 			/**
 			 * {@inheritDoc}
@@ -331,7 +400,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 			 */
 			@Override
 			public T next() {
-				return indexToItem[indexIterator.next()];
+				return indexToItem.get(indexIterator.next());
 			}
 
 			/**
@@ -352,7 +421,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 		if (o == null)
 			return false;
 		Integer index = itemToIndex.get(o);
-		return index != null && items.remove(index);
+		return index != null && indices.remove(index);
 	}
 
 	/**
@@ -360,7 +429,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public boolean removeAll(Collection<?> c) {
-		return c != null && !c.isEmpty() && this.items.removeAll(asIndexedSet(c).items);
+		return c != null && !c.isEmpty() && this.indices.removeAll(asIndexedSet(c).indices);
 	}
 
 	/**
@@ -371,10 +440,10 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 		if (isEmpty())
 			return false;
 		if (c == null || c.isEmpty()) {
-			items.clear();
+			indices.clear();
 			return true;
 		}
-		return this.items.retainAll(asIndexedSet(c).items);
+		return this.indices.retainAll(asIndexedSet(c).indices);
 	}
 
 	/**
@@ -382,7 +451,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public int size() {
-		return items.size();
+		return indices.size();
 	}
 
 	/**
@@ -391,7 +460,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@Override
 	public IndexedSet<T> intersectionSet(Collection<? extends T> other) {
 		return other == null ? emptySet() : new IndexedSet<T>(itemToIndex, indexToItem, 
-				this.items.intersectionSet(asIndexedSet(other).items));
+				this.indices.intersectionSet(asIndexedSet(other).indices));
 	}
 
 	/**
@@ -400,7 +469,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@Override
 	public IndexedSet<T> unionSet(Collection<? extends T> other) {
 		return other == null ? clone() : new IndexedSet<T>(itemToIndex, indexToItem, 
-				this.items.unionSet(asIndexedSet(other).items));
+				this.indices.unionSet(asIndexedSet(other).indices));
 	}
 
 	/**
@@ -409,7 +478,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@Override
 	public IndexedSet<T> differenceSet(Collection<? extends T> other) {
 		return other == null ? clone() : new IndexedSet<T>(itemToIndex, indexToItem, 
-				this.items.differenceSet(asIndexedSet(other).items));
+				this.indices.differenceSet(asIndexedSet(other).indices));
 	}
 
 	/**
@@ -418,7 +487,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@Override
 	public IndexedSet<T> symmetricDifferenceSet(Collection<? extends T> other) {
 		return other == null ? clone() : new IndexedSet<T>(itemToIndex, indexToItem, 
-				this.items.symmetricDifferenceSet(asIndexedSet(other).items));
+				this.indices.symmetricDifferenceSet(asIndexedSet(other).indices));
 	}
 
 	/**
@@ -427,7 +496,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@Override
 	public IndexedSet<T> complementSet() {
 		return new IndexedSet<T>(itemToIndex, indexToItem, 
-				this.items.complementSet());
+				this.indices.complementSet());
 	}
 
 	/**
@@ -435,7 +504,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public void complement() {
-		this.items.complement();
+		this.indices.complement();
 	}
 
 	/**
@@ -443,7 +512,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public int intersectionSize(Collection<? extends T> other) {
-		return other == null ? 0 : this.items.intersectionSize(asIndexedSet(other).items);
+		return other == null ? 0 : this.indices.intersectionSize(asIndexedSet(other).indices);
 	}
 
 	/**
@@ -451,7 +520,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public int unionSize(Collection<? extends T> other) {
-		return other == null ? size() : this.items.unionSize(asIndexedSet(other).items);
+		return other == null ? size() : this.indices.unionSize(asIndexedSet(other).indices);
 	}
 
 	/**
@@ -459,7 +528,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public int symmetricDifferenceSize(Collection<? extends T> other) {
-		return other == null ? size() : this.items.symmetricDifferenceSize(asIndexedSet(other).items);
+		return other == null ? size() : this.indices.symmetricDifferenceSize(asIndexedSet(other).indices);
 	}
 
 	/**
@@ -467,7 +536,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public int differenceSize(Collection<? extends T> other) {
-		return other == null ? size() : this.items.differenceSize(asIndexedSet(other).items);
+		return other == null ? size() : this.indices.differenceSize(asIndexedSet(other).indices);
 	}
 
 	/**
@@ -475,7 +544,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public int complementSize() {
-		return this.items.complementSize();
+		return this.indices.complementSize();
 	}
 
 	/**
@@ -484,10 +553,10 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 * @return the collection of all possible elements
 	 */
 	public IndexedSet<T> universe() {
-		AbstractExtendedSet<Integer> allItems = items.emptySet();
-		allItems.add(indexToItem.length - 1);
+		AbstractExtendedSet<Integer> allItems = indices.emptySet();
+		allItems.add(indexToItem.size() - 1);
 		allItems.complement();
-		allItems.add(indexToItem.length - 1);
+		allItems.add(indexToItem.size() - 1);
 		return new IndexedSet<T>(itemToIndex, indexToItem, allItems);
 	}
 
@@ -508,7 +577,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 * @return the item 
 	 */
 	public T get(int i) {
-		return indexToItem[i];
+		return indexToItem.get(i);
 	}
 
 	/**
@@ -522,7 +591,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 * @see #indexOf(Object)
 	 */
 	public ExtendedSet<Integer> indices() {
-		return items.subSet(0, indexToItem.length);
+		return indices.subSet(0, indexToItem.size());
 	}
 	
 	/**
@@ -531,7 +600,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@Override
 	public boolean addLastOf(SortedSet<T> set) {
 		if (hasSameIndices(set)) 
-			return items.add(((IndexedSet<?>) set).items.last());
+			return indices.add(((IndexedSet<?>) set).indices.last());
 		return super.addLastOf(set);
 	}
 
@@ -541,7 +610,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@Override
 	public boolean addFirstOf(SortedSet<T> set) {
 		if (hasSameIndices(set)) 
-			return items.add(((IndexedSet<?>) set).items.first());
+			return indices.add(((IndexedSet<?>) set).indices.first());
 		return super.addFirstOf(set);
 	}
 	
@@ -551,7 +620,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@Override
 	public boolean removeLastOf(SortedSet<T> set) {
 		if (hasSameIndices(set)) 
-			return items.remove(((IndexedSet<?>) set).items.last());
+			return indices.remove(((IndexedSet<?>) set).indices.last());
 		return super.removeLastOf(set);
 	}
 	
@@ -561,7 +630,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@Override
 	public boolean removeFirstOf(SortedSet<T> set) {
 		if (hasSameIndices(set)) 
-			return items.remove(((IndexedSet<?>) set).items.first());
+			return indices.remove(((IndexedSet<?>) set).indices.first());
 		return super.removeFirstOf(set);
 	}
 	
@@ -570,7 +639,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public IndexedSet<T> emptySet() {
-		return new IndexedSet<T>(itemToIndex, indexToItem, items.emptySet());
+		return new IndexedSet<T>(itemToIndex, indexToItem, indices.emptySet());
 	}
 
 	/**
@@ -578,7 +647,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public double bitmapCompressionRatio() {
-		return items.bitmapCompressionRatio();
+		return indices.bitmapCompressionRatio();
 	}
 	
 	/**
@@ -586,7 +655,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public double collectionCompressionRatio() {
-		return items.collectionCompressionRatio();
+		return indices.collectionCompressionRatio();
 	}
 
 	/**
@@ -602,7 +671,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@SuppressWarnings("unchecked")
 	public IndexedSet<T> asIndexedSet(Collection<?> c) {
 		if (c == null)
-			return new IndexedSet<T>(itemToIndex, indexToItem, items.emptySet());
+			return new IndexedSet<T>(itemToIndex, indexToItem, indices.emptySet());
 
 		// useless to convert...
 		if (hasSameIndices(c))
@@ -610,10 +679,10 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 
 		// convert the collection
 		IndexedSet<T> res = emptySet();
-		Collection<Integer> indices = new ArrayList<Integer>();
+		Collection<Integer> is = new ArrayList<Integer>();
 		for (Object o : c) 
-			indices.add(itemToIndex.get(o));
-		res.items.addAll(indices);
+			is.add(itemToIndex.get(o));
+		res.indices.addAll(is);
 		return res;
 	}
 
@@ -627,7 +696,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	public IndexedSet<T> asIndexedSet(T... e) {
 		if (e == null)
-			return new IndexedSet<T>(itemToIndex, indexToItem, items.emptySet());
+			return new IndexedSet<T>(itemToIndex, indexToItem, indices.emptySet());
 		if (e.length == 1) {
 			IndexedSet<T> res = emptySet();
 			res.add(e[0]);
@@ -661,7 +730,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@Override
 	public String debugInfo() {
 		return String.format("items = %s\nitemToIndex = %s\nindexToItem = %s\n", 
-				items.debugInfo(), itemToIndex.toString(), indexToItem.toString());
+				indices.debugInfo(), itemToIndex.toString(), indexToItem.toString());
 	}
 	
 	/**
@@ -673,7 +742,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	private class UnmodifiableIndexedSet extends IndexedSet<T> implements Unmodifiable {
 		private UnmodifiableIndexedSet() {
-			super(itemToIndex, indexToItem, items);
+			super(itemToIndex, indexToItem, indices);
 		}
 
 		/*
@@ -804,6 +873,6 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public T position(int i) {
-		return indexToItem[items.position(i)];
+		return indexToItem.get(indices.position(i));
 	}
 }
