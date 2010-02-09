@@ -25,7 +25,6 @@ import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.SortedSet;
 
 /**
  * An {@link AbstractExtendedSet} implementation based on {@link BitSet}
@@ -99,21 +98,14 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	@Override
 	public boolean equals(Object obj) {
 		Statistics.increaseEqualsCount();
+
 		if (this == obj)
 			return true;
-		if (!super.equals(obj))
+		if (obj == null)
 			return false;
-		if (!(obj instanceof FastSet))
-			return false;
-		final FastSet other = (FastSet) obj;
-		if (size != other.size)
-			return false;
-		if (bits == null) {
-			if (other.bits != null)
-				return false;
-		} else if (!bits.equals(other.bits))
-			return false;
-		return true;
+
+		FastSet other = convert((Collection<?>) obj);
+		return size == other.size && bits.equals(other.bits);
 	}
 
 	/**
@@ -452,7 +444,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public FastSet complementSet() {
+	public FastSet complemented() {
 		final FastSet res = this.clone();
 		res.complement();
 		return res;
@@ -462,7 +454,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public FastSet differenceSet(Collection<? extends Integer> other) {
+	public FastSet difference(Collection<? extends Integer> other) {
 		Statistics.increaseDifferenceCount();
 		if (other == null)
 			return clone();
@@ -480,7 +472,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public FastSet emptySet() {
+	public FastSet empty() {
 		return new FastSet();
 	}
 
@@ -488,7 +480,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public FastSet symmetricDifferenceSet(Collection<? extends Integer> other) {
+	public FastSet symmetricDifference(Collection<? extends Integer> other) {
 		Statistics.increaseSymmetricDifferenceCount();
 		if (other == null)
 			return clone();
@@ -498,7 +490,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 			cloned.bits.xor(((FastSet) other).bits);
 		} else {
 			cloned.addAll(other);
-			cloned.removeAll(this.intersectionSet(other));
+			cloned.removeAll(this.intersection(other));
 		}
 		cloned.size = cloned.bits.cardinality();
 		return cloned;
@@ -508,7 +500,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public FastSet intersectionSet(Collection<? extends Integer> other) {
+	public FastSet intersection(Collection<? extends Integer> other) {
 		Statistics.increaseIntersectionCount();
 		if (other == null)
 			return new FastSet();
@@ -526,7 +518,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public FastSet unionSet(Collection<? extends Integer> other) {
+	public FastSet union(Collection<? extends Integer> other) {
 		Statistics.increaseUnionCount();
 		if (other == null)
 			return clone();
@@ -561,16 +553,11 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	}
 
 	/**
-	 * Converts a given {@link Collection} instance to a {@link FastSet}
-	 * instance
+	 * Similar to {@link #convert(Collection)}, but static
 	 * 
 	 * @param c
-	 *            collection to use to generate the {@link FastSet}
-	 *            instance
-	 * @return the generated {@link FastSet} instance. <b>NOTE:</b> if
-	 *         the parameter is an instance of {@link FastSet}, the
-	 *         method returns this instance.
-	 * @see #asFastSet(Object[])
+	 *            collection to convert
+	 * @return the generated {@link FastSet} instance
 	 */
 	@SuppressWarnings("unchecked")
 	public static FastSet asFastSet(Collection<?> c) {
@@ -580,22 +567,29 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 		// useless to convert...
 		if (c instanceof FastSet)
 			return (FastSet) c;
+		if (c instanceof AbstractExtendedSet.UnmodifiableExtendedSet) {
+			ExtendedSet<?> x = ((AbstractExtendedSet.UnmodifiableExtendedSet) c).container();
+			if (x instanceof FastSet)
+				return (FastSet) x;
+		}
+		if (c instanceof AbstractExtendedSet.ExtendedSubSet) {
+			ExtendedSet<?> x = ((AbstractExtendedSet.ExtendedSubSet) c).container();
+			if (x instanceof FastSet)
+				return (FastSet) ((AbstractExtendedSet.ExtendedSubSet) c).convert(c);
+		}
 
 		// try to convert the collection
 		FastSet res = new FastSet();
-		final Collection<? extends Integer> integerSet = (Collection<? extends Integer>) c;
-		res.addAll(integerSet);
+		res.addAll((Collection<? extends Integer>) c);
 		return res;
 	}
 
 	/**
-	 * Converts a given integer array to a {@link FastSet} instance
+	 * Similar to {@link #convert(Object...)}, but static
 	 * 
 	 * @param e
-	 *            integers to put within the new instance of
-	 *            {@link FastSet}
-	 * @return new instance of {@link FastSet}
-	 * @see #asFastSet(Collection)
+	 *            array to convert
+	 * @return the generated {@link FastSet} instance
 	 */
 	public static FastSet asFastSet(Object... e) {
 		if (e == null)
@@ -607,6 +601,22 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 		} 
 		
 		return asFastSet(Arrays.asList(e));
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public FastSet convert(Collection<?> c) {
+		return asFastSet(c);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public FastSet convert(Object... e) {
+		return asFastSet(e);
 	}
 	
 	/**
@@ -658,107 +668,5 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	public String debugInfo() {
 		return String.format("size = %d, elements = %s\nbitmap compression: %.2f%%\ncollection compression: %.2f%%\n", 
 				size, bits.toString(), 100D * bitmapCompressionRatio(), 100D * collectionCompressionRatio());
-	}
-	
-	/**
-	 * Read-only view of the set
-	 * <p>
-	 * This class override <i>all</i> public and protected methods of the
-	 * parent class {@link FastSet} so that any subclass will be correctly
-	 * handled.
-	 */
-	private class UnmodifiableFastSet extends FastSet implements Unmodifiable {
-		/*
-		 * Writing methods
-		 */
-		/** {@inheritDoc} */ @Override public boolean add(Integer e) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
-		/** {@inheritDoc} */ @Override public boolean addAll(Collection<? extends Integer> c) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
-		/** {@inheritDoc} */ @Override public boolean addFirstOf(SortedSet<Integer> set) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
-		/** {@inheritDoc} */ @Override public boolean addLastOf(SortedSet<Integer> set) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
-		/** {@inheritDoc} */ @Override public boolean remove(Object o) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
-		/** {@inheritDoc} */ @Override public boolean removeAll(Collection<?> c) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
-		/** {@inheritDoc} */ @Override public boolean removeFirstOf(SortedSet<Integer> set) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
-		/** {@inheritDoc} */ @Override public boolean removeLastOf(SortedSet<Integer> set) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
-		/** {@inheritDoc} */ @Override public boolean retainAll(Collection<?> c) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
-		/** {@inheritDoc} */ @Override public void clear() {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
-		/** {@inheritDoc} */ @Override public void clear(Integer from, Integer to) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
-		/** {@inheritDoc} */ @Override public void fill(Integer from, Integer to) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
-		/** {@inheritDoc} */ @Override public void complement() {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
-		
-		/** {@inheritDoc} */ @Override
-		public Iterator<Integer> iterator() {
-			final Iterator<Integer> itr = FastSet.this.iterator();
-			return new Iterator<Integer>() {
-				@Override public boolean hasNext() {return itr.hasNext();}
-				@Override public Integer next() {return itr.next();}
-				@Override public void remove() {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
-			};
-		}
-
-		/*
-		 * Read-only methods
-		 */
-		/** {@inheritDoc} */ @Override public FastSet intersectionSet(Collection<? extends Integer> other) {return FastSet.this.intersectionSet(other);}
-		/** {@inheritDoc} */ @Override public FastSet differenceSet(Collection<? extends Integer> other) {return FastSet.this.differenceSet(other);}
-		/** {@inheritDoc} */ @Override public FastSet unionSet(Collection<? extends Integer> other) {return FastSet.this.unionSet(other);}
-		/** {@inheritDoc} */ @Override public FastSet symmetricDifferenceSet(Collection<? extends Integer> other) {return FastSet.this.symmetricDifferenceSet(other);}
-		/** {@inheritDoc} */ @Override public FastSet complementSet() {return FastSet.this.complementSet();}
-		/** {@inheritDoc} */ @Override public FastSet emptySet() {return FastSet.this.emptySet();}
-		/** {@inheritDoc} */ @Override public int intersectionSize(Collection<? extends Integer> other) {return FastSet.this.intersectionSize(other);}
-		/** {@inheritDoc} */ @Override public int differenceSize(Collection<? extends Integer> other) {return FastSet.this.differenceSize(other);}
-		/** {@inheritDoc} */ @Override public int unionSize(Collection<? extends Integer> other) {return FastSet.this.unionSize(other);}
-		/** {@inheritDoc} */ @Override public int symmetricDifferenceSize(Collection<? extends Integer> other) {return FastSet.this.symmetricDifferenceSize(other);}
-		/** {@inheritDoc} */ @Override public int complementSize() {return FastSet.this.complementSize();}
-		/** {@inheritDoc} */ @Override public int powerSetSize() {return FastSet.this.powerSetSize();}
-		/** {@inheritDoc} */ @Override public int powerSetSize(int min, int max) {return FastSet.this.powerSetSize(min, max);}
-		/** {@inheritDoc} */ @Override public int size() {return FastSet.this.size();}
-		/** {@inheritDoc} */ @Override public boolean isEmpty() {return FastSet.this.isEmpty();}
-		/** {@inheritDoc} */ @Override public boolean contains(Object o) {return FastSet.this.contains(o);}
-		/** {@inheritDoc} */ @Override public boolean containsAll(Collection<?> c) {return FastSet.this.containsAll(c);}
-		/** {@inheritDoc} */ @Override public boolean containsAny(Collection<? extends Integer> other) {return FastSet.this.containsAny(other);}
-		/** {@inheritDoc} */ @Override public boolean containsAtLeast(Collection<? extends Integer> other, int minElements) {return FastSet.this.containsAtLeast(other, minElements);}
-		/** {@inheritDoc} */ @Override public Integer first() {return FastSet.this.first();}
-		/** {@inheritDoc} */ @Override public Integer last() {return FastSet.this.last();}
-		/** {@inheritDoc} */ @Override public Comparator<? super Integer> comparator() {return FastSet.this.comparator();}
-		/** {@inheritDoc} */ @Override public int compareTo(ExtendedSet<Integer> o) {return FastSet.this.compareTo(o);}
-		/** {@inheritDoc} */ @Override public boolean equals(Object o) {return FastSet.this.equals(o);}
-		/** {@inheritDoc} */ @Override public int hashCode() {return FastSet.this.hashCode();}
-		/** {@inheritDoc} */ @Override public Iterable<Integer> descending() {return FastSet.this.descending();}
-		/** {@inheritDoc} */ @Override public Iterator<Integer> descendingIterator() {return FastSet.this.descendingIterator();}
-		/** {@inheritDoc} */ @Override public List<? extends FastSet> powerSet() {return FastSet.this.powerSet();}
-		/** {@inheritDoc} */ @Override public List<? extends FastSet> powerSet(int min, int max) {return FastSet.this.powerSet(min, max);}
-		/** {@inheritDoc} */ @Override public double bitmapCompressionRatio() {return FastSet.this.bitmapCompressionRatio();}
-		/** {@inheritDoc} */ @Override public double collectionCompressionRatio() {return FastSet.this.collectionCompressionRatio();}
-		/** {@inheritDoc} */ @Override public String debugInfo() {return FastSet.this.debugInfo();}
-		/** {@inheritDoc} */ @Override public Object[] toArray() {return FastSet.this.toArray();}
-		/** {@inheritDoc} */ @Override public <X> X[] toArray(X[] a) {return FastSet.this.toArray(a);}
-		/** {@inheritDoc} */ @Override public String toString() {return FastSet.this.toString();}
-
-		/*
-		 * Special purpose methods
-		 */
-		/* NOTE: the following methods do not have to be overridden:
-		 * - public FastSet headSet(T toElement) {}
-		 * - public FastSet subSet(T fromElement, T toElement) {}
-		 * - public FastSet tailSet(T fromElement) {
-		 * In this way, modification to the subview will not be permitted
-		 */
-		/** {@inheritDoc} */ @Override 
-		public FastSet clone() {
-			return FastSet.this.clone(); 
-		}
-		/** {@inheritDoc} */ @Override 
-		public FastSet unmodifiable() {
-			// useless to create another instance
-			return this;
-		}
-	}
-	
-	/**
-	 * @return the read-only version of the current set
-	 */
-	@Override
-	public FastSet unmodifiable() {
-		return new UnmodifiableFastSet();
 	}
 }

@@ -35,15 +35,6 @@ import java.util.SortedSet;
  * {@link AbstractExtendedSet}, {@link ConciseSet}, {@link FastSet}, and
  * {@link IndexedSet}. {@link AbstractExtendedSet} is a base abstract class for
  * all other classes.
- * <p>
- * <b>NOTE FOR PACKAGE DEVELOPERS:</b> Every modification to this class <b>must</b>
- * be reflected in those inner classes implementing the {@link Unmodifiable}
- * interface within {@link ConciseSet}, {@link FastSet}, and
- * {@link IndexedSet} (<i>not</i> in {@link MatrixSet}). Obviously, all
- * classes {@link AbstractExtendedSet}, {@link ConciseSet}, {@link FastSet},
- * {@link IndexedSet}, and {@link MatrixSet} must be checked in order to decide
- * whether the modification impacts {@link AbstractExtendedSet} only or the
- * other ones.
  * 
  * @author Alessandro Colantonio
  * @version $Id$
@@ -64,13 +55,13 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * In particular:
 	 * <ul>
 	 * <li> {@link #getIntersectionCount()} counts the calls to
-	 * {@link AbstractExtendedSet#intersectionSet(Collection)}
+	 * {@link AbstractExtendedSet#intersection(Collection)}
 	 * <li> {@link #getUnionCount()} counts the calls to
-	 * {@link AbstractExtendedSet#unionSet(Collection)}
+	 * {@link AbstractExtendedSet#union(Collection)}
 	 * <li> {@link #getSymmetricDifferenceCount()} counts the calls to
-	 * {@link AbstractExtendedSet#symmetricDifferenceSet(Collection)}
+	 * {@link AbstractExtendedSet#symmetricDifference(Collection)}
 	 * <li> {@link #getDifferenceCount()} counts the calls to
-	 * {@link AbstractExtendedSet#differenceSet(Collection)}
+	 * {@link AbstractExtendedSet#difference(Collection)}
 	 * <li> {@link #getSizeCheckCount()} counts the calls to
 	 * {@link AbstractExtendedSet#intersectionSize(Collection)},
 	 * {@link AbstractExtendedSet#unionSize(Collection)},
@@ -80,7 +71,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * {@link AbstractExtendedSet#equals(Object)}
 	 * </ul>
 	 * <b>NOTE:</b> no counting is done for
-	 * {@link AbstractExtendedSet#complementSet()} and
+	 * {@link AbstractExtendedSet#complemented()} and
 	 * {@link AbstractExtendedSet#complementSize()} since they are very fast.
 	 */
 	public static class Statistics {
@@ -273,7 +264,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * 
 	 * @see #retainAll(java.util.Collection)
 	 */
-	public ExtendedSet<T> intersectionSet(Collection<? extends T> other);
+	public ExtendedSet<T> intersection(Collection<? extends T> other);
 
 	/**
 	 * Generates the union set (bitwise <tt>or</tt>)
@@ -285,7 +276,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * 
 	 * @see #addAll(java.util.Collection)
 	 */
-	public ExtendedSet<T> unionSet(Collection<? extends T> other);
+	public ExtendedSet<T> union(Collection<? extends T> other);
 
 	/**
 	 * Generates the difference set (bitwise <tt>and not</tt>)
@@ -297,7 +288,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * 
 	 * @see #removeAll(java.util.Collection)
 	 */
-	public ExtendedSet<T> differenceSet(Collection<? extends T> other);
+	public ExtendedSet<T> difference(Collection<? extends T> other);
 
 	/**
 	 * Generates the symmetric difference set (bitwise <tt>xor</tt>)
@@ -308,7 +299,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * @return the result of the operation
 	 * @see #flip(Object)
 	 */
-	public ExtendedSet<T> symmetricDifferenceSet(Collection<? extends T> other);
+	public ExtendedSet<T> symmetricDifference(Collection<? extends T> other);
 
 	/**
 	 * Generates the complement set (bitwise <tt>not</tt>). The returned
@@ -319,14 +310,14 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * 
 	 * @see ExtendedSet#complement()
 	 */
-	public ExtendedSet<T> complementSet();
+	public ExtendedSet<T> complemented();
 
 	/**
 	 * Complements the current set (bitwise <tt>not</tt>). The modified
 	 * set is represented by all the elements strictly less than
 	 * {@link #last()} that do not exist in the current set.
 	 * 
-	 * @see ExtendedSet#complementSet()
+	 * @see ExtendedSet#complemented()
 	 */
 	public void complement();
 
@@ -362,7 +353,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	/**
 	 * Computes the intersection set size.
 	 * <p>
-	 * This is faster than calling {@link #intersectionSet(Collection)} and
+	 * This is faster than calling {@link #intersection(Collection)} and
 	 * then {@link #size()}
 	 * 
 	 * @param other
@@ -375,7 +366,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	/**
 	 * Computes the union set size.
 	 * <p>
-	 * This is faster than calling {@link #unionSet(Collection)} and then
+	 * This is faster than calling {@link #union(Collection)} and then
 	 * {@link #size()}
 	 * 
 	 * @param other
@@ -389,7 +380,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * Computes the symmetric difference set size.
 	 * <p>
 	 * This is faster than calling
-	 * {@link #symmetricDifferenceSet(Collection)} and then {@link #size()}
+	 * {@link #symmetricDifference(Collection)} and then {@link #size()}
 	 * 
 	 * @param other
 	 *            {@link ExtendedSet} instance that represent the right
@@ -401,7 +392,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	/**
 	 * Computes the difference set size.
 	 * <p>
-	 * This is faster than calling {@link #differenceSet(Collection)} and
+	 * This is faster than calling {@link #difference(Collection)} and
 	 * then {@link #size()}
 	 * 
 	 * @param other
@@ -414,7 +405,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	/**
 	 * Computes the complement set size.
 	 * <p>
-	 * This is faster than calling {@link #complementSet()} and then
+	 * This is faster than calling {@link #complemented()} and then
 	 * {@link #size()}
 	 * 
 	 * @return the size
@@ -426,7 +417,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * 
 	 * @return the empty set
 	 */
-	public ExtendedSet<T> emptySet();
+	public ExtendedSet<T> empty();
 
 	/**
 	 * See the <code>clone()</code> of {@link Object}
@@ -613,14 +604,9 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * 
 	 * @param e
 	 *            element to flip
-	 * @see #symmetricDifferenceSet(Collection)
+	 * @see #symmetricDifference(Collection)
 	 */
 	public void flip(T e);
-	
-	/**
-	 * If the set is read-only, it <i>must</i> implement this interface
-	 */
-	public interface Unmodifiable {/* empty */}
 	
 	/**
 	 * @return the read-only version of the current set
@@ -638,4 +624,22 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 *             {@link #size()}
 	 */
 	public T position(int i);
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public ExtendedSet<T> tailSet(T fromElement);
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public ExtendedSet<T> headSet(T toElement);
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public ExtendedSet<T> subSet(T fromElement, T toElement);
 }

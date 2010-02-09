@@ -118,6 +118,7 @@ public class Debug {
 		for (int i = 0; i < 62; i++) 
 			items.add(2048 + i);
 		items.add(2158);
+		items.add(1000000);
 		items.add(ConciseSet.MAX_ALLOWED_SET_BIT);
 
 		// append elements
@@ -196,7 +197,7 @@ public class Debug {
 	}
 	
 	/**
-	 * Simple test for the method {@link ExtendedSet#intersectionSet(ExtendedSet)}
+	 * Simple test for the method {@link ExtendedSet#intersection(ExtendedSet)}
 	 * 
 	 * @param c class to test
 	 */
@@ -234,7 +235,7 @@ public class Debug {
 		System.out.println(bitsRight.debugInfo());
 
 		System.out.println("INTERSECTION SET");
-		ExtendedSet<Integer> bitsIntersection = bitsLeft.intersectionSet(bitsRight);
+		ExtendedSet<Integer> bitsIntersection = bitsLeft.intersection(bitsRight);
 		TreeSet<Integer> itemsIntersection = new TreeSet<Integer>(itemsLeft);
 		itemsIntersection.retainAll(itemsRight);
 		System.out.println("Correct: " + checkContent(bitsIntersection, itemsIntersection));
@@ -244,7 +245,7 @@ public class Debug {
 	
 	/**
 	 * More complex test for the methods
-	 * {@link ExtendedSet#intersectionSet(ExtendedSet)} and
+	 * {@link ExtendedSet#intersection(ExtendedSet)} and
 	 * {@link ExtendedSet#intersectionSize(ExtendedSet)}
 	 * 
 	 * @param c class to test
@@ -286,7 +287,7 @@ public class Debug {
 		System.out.println(bitsRight.debugInfo());
 
 		System.out.println("INTERSECTION SET");
-		ExtendedSet<Integer> bitsIntersection = bitsLeft.intersectionSet(bitsRight);
+		ExtendedSet<Integer> bitsIntersection = bitsLeft.intersection(bitsRight);
 		TreeSet<Integer> itemsIntersection = new TreeSet<Integer>(itemsLeft);
 		itemsIntersection.retainAll(itemsRight);
 		System.out.println("Correct: " + checkContent(bitsIntersection, itemsIntersection));
@@ -298,7 +299,7 @@ public class Debug {
 	}
 	
 	/**
-	 * Simple test for the method {@link ExtendedSet#unionSet(ExtendedSet)}
+	 * Simple test for the method {@link ExtendedSet#union(ExtendedSet)}
 	 * 
 	 * @param c class to test
 	 */
@@ -338,7 +339,7 @@ public class Debug {
 		System.out.println(bitsRight.debugInfo());
 
 		System.out.println("UNION SET");
-		ExtendedSet<Integer> bitsUnion = bitsLeft.unionSet(bitsRight);
+		ExtendedSet<Integer> bitsUnion = bitsLeft.union(bitsRight);
 		TreeSet<Integer> itemsUnion = new TreeSet<Integer>(itemsLeft);
 		itemsUnion.addAll(itemsRight);
 		System.out.println("Correct: " + checkContent(bitsUnion, itemsUnion));
@@ -350,7 +351,7 @@ public class Debug {
 	}
 	
 	/**
-	 * Simple test for the method {@link ExtendedSet#complementSet()}
+	 * Simple test for the method {@link ExtendedSet#complemented()}
 	 * 
 	 * @param c class to test
 	 */
@@ -371,22 +372,22 @@ public class Debug {
 
 		System.out.format("Complement size: %d\n", bits.complementSize());
 		System.out.println("Complement");
-		bits = bits.complementSet();
+		bits = bits.complemented();
 		System.out.println(bits.debugInfo());
 
 		System.out.format("Complement size: %d\n", bits.complementSize());
 		System.out.println("Complement");
-		bits = bits.complementSet();
+		bits = bits.complemented();
 		System.out.println(bits.debugInfo());
 
 		System.out.format("Complement size: %d\n", bits.complementSize());
 		System.out.println("Complement");
-		bits = bits.complementSet();
+		bits = bits.complemented();
 		System.out.println(bits.debugInfo());
 
 		System.out.format("Complement size: %d\n", bits.complementSize());
 		System.out.println("Complement");
-		bits = bits.complementSet();
+		bits = bits.complemented();
 		System.out.println(bits.debugInfo());
 	}
 	
@@ -399,7 +400,7 @@ public class Debug {
 	 * <li> {@link ExtendedSet#removeAll(Collection)}
 	 * <li> {@link ExtendedSet#retainAll(Collection)}
 	 * <li> {@link ExtendedSet#getSymmetricDifference(ExtendedSet)}
-	 * <li> {@link ExtendedSet#complementSet()}
+	 * <li> {@link ExtendedSet#complemented()}
 	 * </ul>
 	 * 
 	 * @param c class to test
@@ -432,11 +433,11 @@ public class Debug {
 		System.out.println("B: " + bitsRight);
 		System.out.println(bitsRight.debugInfo());
 
-		System.out.println("A.getSymmetricDifference(B): " + bitsLeft.symmetricDifferenceSet(bitsRight));
-		System.out.println(bitsLeft.symmetricDifferenceSet(bitsRight).debugInfo());
+		System.out.println("A.getSymmetricDifference(B): " + bitsLeft.symmetricDifference(bitsRight));
+		System.out.println(bitsLeft.symmetricDifference(bitsRight).debugInfo());
 
-		System.out.println("A.getComplement(): " + bitsLeft.complementSet());
-		System.out.println(bitsLeft.complementSet().debugInfo());
+		System.out.println("A.getComplement(): " + bitsLeft.complemented());
+		System.out.println(bitsLeft.complemented().debugInfo());
 
 		bitsLeft.removeAll(bitsRight);
 		System.out.println("A.removeAll(B): " + bitsLeft);
@@ -654,7 +655,7 @@ public class Debug {
 		Random rnd = new Random();
 
 		// random operation loop
-		for (int i = 0; i < 100000; i++) {
+		for (int i = 0; i < 1000000; i++) {
 			System.out.print("Test " + i + ": ");
 			
 			// new set
@@ -728,7 +729,7 @@ public class Debug {
 				temp.removeAll(itemsLeft);
 				itemsLeft.removeAll(itemsRight);
 				itemsLeft.addAll(temp);
-				bitsLeft = bitsLeft.symmetricDifferenceSet(bitsRight);
+				bitsLeft = bitsLeft.symmetricDifference(bitsRight);
 				break;
 
 			case 5:
@@ -1342,7 +1343,7 @@ public class Debug {
 	 * @param args ID of the test to execute (from 1 to 29)
 	 */
 	public static void main(String[] args) {
-		int testCase = 11;
+		int testCase = 29;
 		
 		if (args != null && args.length > 0) {
 			try {
