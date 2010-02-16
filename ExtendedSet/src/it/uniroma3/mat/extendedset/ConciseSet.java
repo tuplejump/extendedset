@@ -1935,6 +1935,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				return (ConciseSet) ((AbstractExtendedSet.ExtendedSubSet) c).convert(c);
 		}
 
+		
 		// try to convert the collection
 		ConciseSet res = new ConciseSet();
 		if (!c.isEmpty()) {
@@ -1983,7 +1984,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected ConciseSet convert(Collection<?> c) {
+	public ConciseSet convert(Collection<?> c) {
 		return asConciseSet(c);
 	}
 
@@ -1991,7 +1992,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	protected ConciseSet convert(Object... e) {
+	public ConciseSet convert(Object... e) {
 		return asConciseSet(e);
 	}
 

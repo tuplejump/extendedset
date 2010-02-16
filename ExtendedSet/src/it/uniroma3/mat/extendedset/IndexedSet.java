@@ -365,6 +365,8 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public Comparator<? super T> comparator() {
+		if (itemToIndex instanceof IndexedSet.UncheckedFakeMap || itemToIndex instanceof IndexedSet.CheckedFakeMap)
+			return null;
 		return new Comparator<T>() {
 			@Override
 			public int compare(T o1, T o2) {

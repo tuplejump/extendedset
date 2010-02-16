@@ -665,7 +665,7 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 	 */
 	@SuppressWarnings("unchecked")
 	@Override
-	protected MatrixSet<R, C> convert(Collection<?> c) {
+	public MatrixSet<R, C> convert(Collection<?> c) {
 		if (c == null)
 			return new MatrixSet<R, C>(rows, cols, colSize, indices.empty());
 
@@ -685,7 +685,7 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 	 * {@inheritDoc} 
 	 */
 	@Override
-	protected MatrixSet<R, C> convert(Object... e) {
+	public MatrixSet<R, C> convert(Object... e) {
 		return new MatrixSet<R, C>(rows, cols, colSize, ((AbstractExtendedSet<Integer>) indices).convert(e));
 	}
 

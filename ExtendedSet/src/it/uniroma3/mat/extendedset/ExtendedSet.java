@@ -642,4 +642,30 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 */
 	@Override
 	public ExtendedSet<T> subSet(T fromElement, T toElement);
-}
+	
+	/**
+	 * Converts a given {@link Collection} instance into an instance of the
+	 * current class
+	 * 
+	 * @param c
+	 *            collection to use to generate the new instance
+	 * @return the generated instance. <b>NOTE:</b> if the parameter is already
+	 *         an instance of the current class, the method returns the
+	 *         parameter.
+	 * @see #convert(Object...)
+	 */
+	public ExtendedSet<T> convert(Collection<?> c);
+
+	/**
+	 * Converts a given integer array into an instance of the current class
+	 * 
+	 * @param e
+	 *            objects to use to generate the new instance
+	 * @return the generated instance. 
+	 * @see #convert(Collection)
+	 */
+	public  ExtendedSet<T> convert(Object... e);	
+
+}	
+
+

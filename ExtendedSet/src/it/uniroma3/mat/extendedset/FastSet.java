@@ -113,7 +113,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public boolean isEmpty() {
-		return bits.isEmpty();
+		return size == 0;
 	}
 
 	/**
@@ -421,6 +421,8 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public void complement() {
+		if (isEmpty())
+			return;
 		final BitSet old = (BitSet) bits.clone();
 		final int lastBit = last();
 		bits.clear();
@@ -460,11 +462,12 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 			return clone();
 
 		FastSet cloned = clone();
-		if (other instanceof FastSet)
+		if (other instanceof FastSet) {
 			cloned.bits.andNot(((FastSet) other).bits);
-		else
+			cloned.size = cloned.bits.cardinality();
+		} else {
 			cloned.removeAll(other);
-		cloned.size = cloned.bits.cardinality();
+		}
 		return cloned;
 	}
 
@@ -488,11 +491,11 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 		FastSet cloned = clone();
 		if (other instanceof FastSet) {
 			cloned.bits.xor(((FastSet) other).bits);
+			cloned.size = cloned.bits.cardinality();
 		} else {
 			cloned.addAll(other);
 			cloned.removeAll(this.intersection(other));
 		}
-		cloned.size = cloned.bits.cardinality();
 		return cloned;
 	}
 
@@ -506,11 +509,12 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 			return new FastSet();
 		
 		FastSet cloned = this.clone();
-		if (other instanceof FastSet)
+		if (other instanceof FastSet) {
 			cloned.bits.and(((FastSet) other).bits);
-		else
+			cloned.size = cloned.bits.cardinality();
+		} else {
 			cloned.retainAll(other);
-		cloned.size = cloned.bits.cardinality();
+		}
 		return cloned;
 	}
 
@@ -524,11 +528,12 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 			return clone();
 		
 		FastSet cloned = this.clone();
-		if (other instanceof FastSet)
+		if (other instanceof FastSet) {
 			cloned.bits.or(((FastSet) other).bits);
-		else
+			cloned.size = cloned.bits.cardinality();
+		} else {
 			cloned.addAll(other);
-		cloned.size = cloned.bits.cardinality();
+		}
 		return cloned;
 	}
 
@@ -549,7 +554,12 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	public double collectionCompressionRatio() {
 		if (isEmpty())
 			return 0D;
-		return bits.size() / (32D * size);
+		// NOTE: bits.size() returns the actual number of allocated words.
+		// Instead, we are interested in the logical allocation.
+		int s = bits.length();
+		if ((s & 0x0000001F) == 0)
+			return s / (32D * size);
+		return ((s | 0x0000001F) + 1) / (32D * size);
 	}
 
 	/**
@@ -643,6 +653,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	@Override
 	public void fill(Integer from, Integer to) {
 		bits.set(from, to + 1);
+		size = bits.cardinality();
 	}
 	
 	/**
@@ -651,6 +662,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	@Override
 	public void clear(Integer from, Integer to) {
 		bits.clear(from, to + 1);
+		size = bits.cardinality();
 	}
 	
 	/**
@@ -659,6 +671,10 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	@Override
 	public void flip(Integer e) {
 		bits.flip(e);
+		if (bits.get(e))
+			size++;
+		else
+			size--;
 	}
 	
 	/**
@@ -666,7 +682,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public String debugInfo() {
-		return String.format("size = %d, elements = %s\nbitmap compression: %.2f%%\ncollection compression: %.2f%%\n", 
-				size, bits.toString(), 100D * bitmapCompressionRatio(), 100D * collectionCompressionRatio());
+		return String.format("elements = %s\nsize = %d\nbitmap compression: %.2f%%\ncollection compression: %.2f%%\n", 
+				bits.toString(), size, 100D * bitmapCompressionRatio(), 100D * collectionCompressionRatio());
 	}
 }

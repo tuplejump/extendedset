@@ -645,10 +645,19 @@ public class Debug {
 	 * {@link ConciseSet#removeAll(Collection)}, and
 	 * {@link ConciseSet#retainAll(Collection)}, and perform the operation over
 	 * random sets
+	 * 
+	 * @param c class to test
 	 */
-	private static void testForRandomOperationsStress() {
-		ConciseSet bitsLeft = new ConciseSet();
-		ConciseSet bitsRight = new ConciseSet();
+	@SuppressWarnings("unchecked")
+	private static void testForRandomOperationsStress(Class<? extends ExtendedSet> c) {
+		ExtendedSet<Integer> bitsLeft;
+		ExtendedSet<Integer> bitsRight;
+		try {
+			bitsLeft = c.newInstance();
+			bitsRight = c.newInstance();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 		TreeSet<Integer> itemsLeft = new TreeSet<Integer>();
 		TreeSet<Integer> itemsRight = new TreeSet<Integer>();
 
@@ -695,6 +704,17 @@ public class Debug {
 				System.out.println("Same elements: " + (itemsRight.toString().equals(bitsRight.toString())));
 				System.out.println("Original: " + itemsRight);
 				System.out.println(bitsRight.debugInfo());
+
+				System.out.println(bitsRight.size() + " ?= " + itemsRight.size());
+				System.out.println(bitsRight.isEmpty() && itemsRight.isEmpty());
+				for (Integer x : bitsRight) 
+					if (!itemsRight.contains(x)) 
+						System.out.println(x + " false");
+				for (Integer x : itemsRight) 
+					if (!bitsRight.contains(x)) 
+						System.out.println(x + " false");
+				System.out.println(bitsRight.last().equals(itemsRight.last()));
+				
 				return;
 			}
 			
@@ -758,7 +778,9 @@ public class Debug {
 			}
 			
 			// check the representation
-			if (ConciseSet.asConciseSet(itemsLeft).hashCode() != bitsLeft.hashCode()) {
+			ExtendedSet<Integer> x = bitsLeft.empty();
+			x.addAll(itemsLeft);
+			if (x.hashCode() != bitsLeft.hashCode()) {
 				System.out.println("REPRESENTATION ERROR!");
 				System.out.println(bitsLeft.debugInfo());
 				System.out.println(ConciseSet.asConciseSet(itemsLeft).debugInfo());
@@ -1338,12 +1360,51 @@ public class Debug {
 	}
 	
 	/**
+	 * Stress test for {@link ExtendedSet#equals(Object)}
+	 *
+	 * @param c class to test
+	 */
+	@SuppressWarnings("unchecked")
+		private static void testForEquals(Class<? extends ExtendedSet> c) {
+		ExtendedSet<Integer> b1, b2, b3;
+		try {
+			b1 = c.newInstance();
+			b2 = c.newInstance();
+			b3 = c.newInstance();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		b1.fill(10, 20);
+		b2.fill(1, 50);
+		b2 = b2.subSet(10, 21);
+		b3.fill(10, 20);
+		b3 = b3.unmodifiable();
+		
+		System.out.println(b1.equals(b2));
+		System.out.println(b1.equals(b3));
+		System.out.println(b2.equals(b1));
+		System.out.println(b2.equals(b3));
+		System.out.println(b3.equals(b1));
+		System.out.println(b3.equals(b2));
+
+		b3 = b3.subSet(10, 21);
+		b2 = b2.unmodifiable();
+
+		System.out.println(b1.equals(b2));
+		System.out.println(b1.equals(b3));
+		System.out.println(b2.equals(b1));
+		System.out.println(b2.equals(b3));
+		System.out.println(b3.equals(b1));
+		System.out.println(b3.equals(b2));
+	}
+	
+	/**
 	 * Test launcher
 	 * 
 	 * @param args ID of the test to execute (from 1 to 29)
 	 */
 	public static void main(String[] args) {
-		int testCase = 29;
+		int testCase = 32;
 		
 		if (args != null && args.length > 0) {
 			try {
@@ -1409,7 +1470,10 @@ public class Debug {
 			testForRemovalStress();
 			break;
 		case 11:
-			testForRandomOperationsStress();
+			testForRandomOperationsStress(ConciseSet.class);
+			break;
+		case 32:
+			testForRandomOperationsStress(FastSet.class);
 			break;
 		case 12:
 			testForSubSetAdditionStress();
@@ -1440,6 +1504,12 @@ public class Debug {
 			break;
 		case 29:
 			testForPosition();
+			break;
+		case 30:
+			testForEquals(ConciseSet.class);
+			break;
+		case 31:
+			testForEquals(FastSet.class);
 			break;
 		default:
 			System.out.println("Unknown test case!");

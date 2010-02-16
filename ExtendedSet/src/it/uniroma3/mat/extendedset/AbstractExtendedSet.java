@@ -1005,7 +1005,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		/** {@inheritDoc} */
 		@SuppressWarnings("unchecked")
 		@Override
-		protected ExtendedSet<T> convert(Collection<?> c) {
+		public ExtendedSet<T> convert(Collection<?> c) {
 			Collection<?> other;
 			if (c instanceof AbstractExtendedSet.UnmodifiableExtendedSet)
 				other = ((AbstractExtendedSet.UnmodifiableExtendedSet) c).container();
@@ -1019,7 +1019,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		/** {@inheritDoc} */
 		@SuppressWarnings("unchecked")
 		@Override
-		protected ExtendedSet<T> convert(Object... e) {
+		public ExtendedSet<T> convert(Object... e) {
 			return filterByMask(((AbstractExtendedSet) container()).convert(e));
 		}
 	}
@@ -1157,7 +1157,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		/** {@inheritDoc} */
 		@SuppressWarnings("unchecked")
 		@Override
-		protected ExtendedSet<T> convert(Collection<?> c) {
+		public ExtendedSet<T> convert(Collection<?> c) {
 			Collection<?> other;
 			if (c instanceof AbstractExtendedSet.UnmodifiableExtendedSet)
 				other = ((AbstractExtendedSet.UnmodifiableExtendedSet) c).container();
@@ -1171,7 +1171,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		/** {@inheritDoc} */
 		@SuppressWarnings("unchecked")
 		@Override
-		protected ExtendedSet<T> convert(Object... e) {
+		public ExtendedSet<T> convert(Object... e) {
 			return ((AbstractExtendedSet) container()).convert(e);
 		}
 	}
@@ -1183,27 +1183,4 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	public ExtendedSet<T> unmodifiable() {
 		return new UnmodifiableExtendedSet();
 	}
-	
-	/**
-	 * Converts a given {@link Collection} instance into an instance of the
-	 * current class
-	 * 
-	 * @param c
-	 *            collection to use to generate the new instance
-	 * @return the generated instance. <b>NOTE:</b> if the parameter is already
-	 *         an instance of the current class, the method returns the
-	 *         parameter.
-	 * @see #convert(Object...)
-	 */
-	protected abstract ExtendedSet<T> convert(Collection<?> c);
-	
-	/**
-	 * Converts a given integer array into an instance of the current class
-	 * 
-	 * @param e
-	 *            objects to use to generate the new instance
-	 * @return the generated instance. 
-	 * @see #convert(Collection)
-	 */
-	protected abstract ExtendedSet<T> convert(Object... e);	
 }
