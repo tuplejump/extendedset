@@ -217,12 +217,23 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 * {@inheritDoc}
 	 */
 	@SuppressWarnings("unchecked")
-	public Iterator<T> descendingIterator() {
-		return new Iterator<T>() {
+	public ExtendedIterator<T> descendingIterator() {
+		// used to compare items
+		Comparator<? super T> tmpComp = AbstractExtendedSet.this.comparator();
+		if (tmpComp == null)
+			tmpComp = new Comparator<T>() {
+				@Override
+				public int compare(T o1, T o2) {
+					return ((Comparable) o1).compareTo(o2);
+				}
+			};
+		final Comparator<? super T> comp = tmpComp;
+			
+		return new ExtendedIterator<T>() {
 			// iterator from last element
 			private final ListIterator<T> itr = new ArrayList<T>(AbstractExtendedSet.this)
 					.listIterator(AbstractExtendedSet.this.size());
-
+			
 			@Override
 			public boolean hasNext() {
 				return itr.hasPrevious();
@@ -231,6 +242,26 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 			@Override
 			public T next() {
 				return itr.previous();
+			}
+			
+			@Override
+			public void skipAllBefore(T element) {
+				// iterate until the element is found
+				while (itr.hasPrevious()) {
+					int res = comp.compare(itr.previous(), element);
+					
+					// the element has not been found, thus the next call to
+					// itr.previous() will provide the right value
+					if (res < 0)
+						return;
+
+					// the element has been found. Hence, we have to get back
+					// to make itr.previous() provide the right value
+					if (res == 0) {
+						itr.next();
+						return;
+					}
+				}
 			}
 
 			@Override
@@ -765,7 +796,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		 * {@inheritDoc}
 		 */
 		@Override
-		public Iterator<T> iterator() {
+		public ExtendedIterator<T> iterator() {
 			return filterByMask(AbstractExtendedSet.this).iterator();
 		}
 
@@ -773,7 +804,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		 * {@inheritDoc}
 		 */
 		@Override
-		public Iterator<T> descendingIterator() {
+		public ExtendedIterator<T> descendingIterator() {
 			return filterByMask(AbstractExtendedSet.this).descendingIterator();
 		}
 
@@ -1084,7 +1115,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		/** {@inheritDoc} */ @Override public boolean equals(Object o) {return AbstractExtendedSet.this.equals(o);}
 		/** {@inheritDoc} */ @Override public int hashCode() {return AbstractExtendedSet.this.hashCode();}
 		/** {@inheritDoc} */ @Override public Iterable<T> descending() {return AbstractExtendedSet.this.descending();}
-		/** {@inheritDoc} */ @Override public Iterator<T> descendingIterator() {return AbstractExtendedSet.this.descendingIterator();}
+		/** {@inheritDoc} */ @Override public ExtendedIterator<T> descendingIterator() {return AbstractExtendedSet.this.descendingIterator();}
 		/** {@inheritDoc} */ @Override public List<? extends ExtendedSet<T>> powerSet() {return AbstractExtendedSet.this.powerSet();}
 		/** {@inheritDoc} */ @Override public List<? extends ExtendedSet<T>> powerSet(int min, int max) {return AbstractExtendedSet.this.powerSet(min, max);}
 		/** {@inheritDoc} */ @Override public double bitmapCompressionRatio() {return AbstractExtendedSet.this.bitmapCompressionRatio();}
@@ -1101,11 +1132,12 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		
 		/** {@inheritDoc} */ 
 		@Override
-		public Iterator<T> iterator() {
-			final Iterator<T> itr = AbstractExtendedSet.this.iterator();
-			return new Iterator<T>() {
+		public ExtendedIterator<T> iterator() {
+			final ExtendedIterator<T> itr = AbstractExtendedSet.this.iterator();
+			return new ExtendedIterator<T>() {
 				@Override public boolean hasNext() {return itr.hasNext();}
 				@Override public T next() {return itr.next();}
+				@Override public void skipAllBefore(T element) {itr.skipAllBefore(element);}
 				@Override public void remove() {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
 			};
 		}
@@ -1183,4 +1215,10 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	public ExtendedSet<T> unmodifiable() {
 		return new UnmodifiableExtendedSet();
 	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public abstract ExtendedIterator<T> iterator();
 }

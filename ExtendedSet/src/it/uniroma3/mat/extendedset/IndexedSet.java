@@ -23,7 +23,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -474,9 +473,9 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Iterator<T> iterator() {
-		return new Iterator<T>() {
-			private final Iterator<Integer> indexIterator = indices.iterator();
+	public ExtendedIterator<T> iterator() {
+		return new ExtendedIterator<T>() {
+			private final ExtendedIterator<Integer> indexIterator = indices.iterator();
 
 			/**
 			 * {@inheritDoc}
@@ -492,6 +491,14 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 			@Override
 			public T next() {
 				return indexToItem.get(indexIterator.next());
+			}
+			
+			/**
+			 * {@inheritDoc}
+			 */
+			@Override
+			public void skipAllBefore(T element) {
+				indexIterator.skipAllBefore(itemToIndex.get(element));
 			}
 
 			/**
@@ -508,9 +515,9 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Iterator<T> descendingIterator() {
-		return new Iterator<T>() {
-			private final Iterator<Integer> indexIterator = indices.descendingIterator();
+	public ExtendedIterator<T> descendingIterator() {
+		return new ExtendedIterator<T>() {
+			private final ExtendedIterator<Integer> indexIterator = indices.descendingIterator();
 
 			/**
 			 * {@inheritDoc}
@@ -526,6 +533,14 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 			@Override
 			public T next() {
 				return indexToItem.get(indexIterator.next());
+			}
+
+			/**
+			 * {@inheritDoc}
+			 */
+			@Override
+			public void skipAllBefore(T element) {
+				indexIterator.skipAllBefore(itemToIndex.get(element));
 			}
 
 			/**

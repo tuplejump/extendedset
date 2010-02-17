@@ -460,12 +460,40 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	public double collectionCompressionRatio();
 
 	/**
+	 * Extended version of the {@link Iterator} interface
+	 * 
+	 * @param <X>
+	 *            the type of elements maintained by this set
+	 */
+	public interface ExtendedIterator<X> extends Iterator<X> {
+		/**
+		 * Skips all the elements before the the specified element, so that
+		 * {@link Iterator#next()} gives the given element or, if it does not
+		 * exist, the element immediately after according to the sorting
+		 * provided by this {@link SortedSet} instance.
+		 * <p>
+		 * If <code>element</code> is less than the next element, it does
+		 * nothing
+		 * 
+		 * @param element
+		 *            first element to not skip
+		 */
+		public void skipAllBefore(X element);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public ExtendedIterator<T> iterator();
+
+	/**
 	 * Gets the descending order iterator over the elements of type
 	 * <code>T</code>
 	 * 
 	 * @return descending iterator
 	 */
-	public Iterator<T> descendingIterator();
+	public ExtendedIterator<T> descendingIterator();
 
 	/**
 	 * Allows to use the Java "for-each" statement in descending order
@@ -665,7 +693,6 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * @see #convert(Collection)
 	 */
 	public  ExtendedSet<T> convert(Object... e);	
-
 }	
 
 

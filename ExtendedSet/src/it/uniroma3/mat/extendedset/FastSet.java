@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -212,7 +211,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	/**
 	 * Iterates over bits
 	 */
-	private class BitIterator implements Iterator<Integer> {
+	private class BitIterator implements ExtendedIterator<Integer> {
 		// current bit
 		private Integer curr;
 		
@@ -251,6 +250,16 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 		 * {@inheritDoc}
 		 */
 		@Override
+		public void skipAllBefore(Integer element) {
+			if (element <= next)
+				return;
+			next = bits.nextSetBit(element);
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
 		public void remove() {
 			if (curr < 0 || !bits.get(curr))
 				throw new IllegalStateException();
@@ -261,7 +270,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	/**
 	 * Iterates over bits
 	 */
-	private class ReverseBitIterator implements Iterator<Integer> {
+	private class ReverseBitIterator implements ExtendedIterator<Integer> {
 		// current bit
 		private Integer curr;
 		
@@ -305,6 +314,22 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 		 * {@inheritDoc}
 		 */
 		@Override
+		public void skipAllBefore(Integer element) {
+			if (element >= next)
+				return;
+			
+			// NOTE: it searches for the next set bit. There is no faster way to
+			// get it, since there is no method similar to
+			// bits.nextSetBit(fromIndex) for scanning bits from MSB to LSB.
+			next = element;
+			while (hasNext() && !bits.get(next)) 
+				next--;
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
 		public void remove() {
 			if (curr < 0 || !bits.get(curr))
 				throw new IllegalStateException();
@@ -316,7 +341,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Iterator<Integer> iterator() {
+	public ExtendedIterator<Integer> iterator() {
 		return new BitIterator();
 	}
 
@@ -324,7 +349,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Iterator<Integer> descendingIterator() {
+	public ExtendedIterator<Integer> descendingIterator() {
 		return new ReverseBitIterator();
 	}
 	

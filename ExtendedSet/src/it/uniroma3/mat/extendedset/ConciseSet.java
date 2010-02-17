@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.Formatter;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
@@ -1670,7 +1669,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	/**
 	 * Iterator for set bits of {@link ConciseSet}, from LSB to MSB
 	 */
-	private class BitIterator implements Iterator<Integer> {
+	private class BitIterator implements ExtendedIterator<Integer> {
 		private WordIterator wordItr = new WordIterator();
 		private int rightmostBitOfCurrentWord = 0;
 		private int nextBitToCheck = 0;
@@ -1750,6 +1749,19 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		 * {@inheritDoc}
 		 */
 		@Override
+		public void skipAllBefore(Integer element) {
+			if (element <= rightmostBitOfCurrentWord + nextBitToCheck)
+				return;
+			throw new UnsupportedOperationException();
+//			if (maxLiteralLengthDivision(element) < rightmostBitOfCurrentWord) {
+//				
+//			}
+		}
+
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
 		public void remove() {
 			// it is difficult to remove the current bit in a sequence word and
 			// to contextually keep the word iterator updated!
@@ -1760,7 +1772,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	/**
 	 * Iterator for set bits of {@link ConciseSet}, from MSB to LSB
 	 */
-	private class ReverseBitIterator implements Iterator<Integer> {
+	private class ReverseBitIterator implements ExtendedIterator<Integer> {
 		private ReverseWordIterator wordItr = new ReverseWordIterator();
 		private int rightmostBitOfCurrentWord = maxLiteralLengthMultiplication(maxLiteralLengthDivision(maxSetBit));
 		private int nextBitToCheck = lastSetBitOfLastWord;
@@ -1840,6 +1852,14 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 
 			return rightmostBitOfCurrentWord + nextSetBit;
 		}
+		
+		/**
+		 * {@inheritDoc}
+		 */
+		@Override
+		public void skipAllBefore(Integer element) {
+			throw new UnsupportedOperationException();
+		}
 
 		/**
 		 * {@inheritDoc}
@@ -1856,7 +1876,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Iterator<Integer> iterator() {
+	public ExtendedIterator<Integer> iterator() {
 		return new BitIterator();
 	}
 
@@ -1864,7 +1884,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Iterator<Integer> descendingIterator() {
+	public ExtendedIterator<Integer> descendingIterator() {
 		return new ReverseBitIterator();
 	}
 	
@@ -2686,5 +2706,22 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		f.format("collection compression: %.2f%%\n", 100D * collectionCompressionRatio());
 
 		return s.toString();
+	}
+	
+	public static void main(String[] args) {
+		ConciseSet x = new ConciseSet();
+		x.fill(10, 30);
+		x.add(150);
+		x.fill(200, 201);
+		
+		ExtendedIterator<Integer> itr = x.descendingIterator();
+		while (itr.hasNext())
+			System.out.println(itr.next());
+		System.out.println();
+		
+		itr = x.descendingIterator();
+		itr.skipAllBefore(8);
+		while (itr.hasNext())
+			System.out.println(itr.next());
 	}
 }

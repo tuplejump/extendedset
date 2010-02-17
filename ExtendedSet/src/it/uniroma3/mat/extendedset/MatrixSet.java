@@ -584,7 +584,7 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */ @Override public boolean containsAny(Collection<? extends Integer> other) {return indices.containsAny(other);}
 	/** {@inheritDoc} */ @Override public boolean containsAtLeast(Collection<? extends Integer> other, int minElements) {return containsAtLeast(other, minElements);}
 	/** {@inheritDoc} */ @Override public Iterable<Integer> descending() {return indices.descending();}
-	/** {@inheritDoc} */ @Override public Iterator<Integer> descendingIterator() {return indices.descendingIterator();}
+	/** {@inheritDoc} */ @Override public ExtendedIterator<Integer> descendingIterator() {return indices.descendingIterator();}
 	/** {@inheritDoc} */ @Override public int differenceSize(Collection<? extends Integer> other) {return indices.differenceSize(other);}
 	/** {@inheritDoc} */ @Override public void fill(Integer from, Integer to) {indices.fill(from, to);}
 	/** {@inheritDoc} */ @Override public int intersectionSize(Collection<? extends Integer> other) {return indices.intersectionSize(other);}
@@ -601,7 +601,7 @@ public class MatrixSet<R, C> extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */ @Override public boolean contains(Object o) {return indices.contains(o);}
 	/** {@inheritDoc} */ @Override public boolean containsAll(Collection<?> c) {return indices.containsAll(c);}
 	/** {@inheritDoc} */ @Override public boolean isEmpty() {return indices.isEmpty();}
-	/** {@inheritDoc} */ @Override public Iterator<Integer> iterator() {return indices.iterator();}
+	/** {@inheritDoc} */ @Override public ExtendedIterator<Integer> iterator() {return indices.iterator();}
 	/** {@inheritDoc} */ @Override public boolean remove(Object o) {return indices.remove(o);}
 	/** {@inheritDoc} */ @Override public boolean removeAll(Collection<?> c) {return indices.removeAll(c);}
 	/** {@inheritDoc} */ @Override public boolean retainAll(Collection<?> c) {return indices.retainAll(c);}
