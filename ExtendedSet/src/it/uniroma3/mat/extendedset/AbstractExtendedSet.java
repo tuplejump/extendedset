@@ -1225,7 +1225,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 * {@inheritDoc}
 	 */
 	@Override
-	public double jaccardCoefficient(ExtendedSet<T> other) {
+	public double jaccardSimilarity(ExtendedSet<T> other) {
 		int inters = intersectionSize(other);
 		return (double) inters / (size() + other.size() - inters);
 	}
@@ -1235,14 +1235,14 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 */
 	@Override
 	public double jaccardDistance(ExtendedSet<T> other) {
-		return 1D - jaccardCoefficient(other);
+		return 1D - jaccardSimilarity(other);
 	}
 	
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public double weightedJaccardCoefficient(ExtendedSet<T> other) {
+	public double weightedJaccardSimilarity(ExtendedSet<T> other) {
 		ExtendedSet<T> inters = intersection(other);
 		double intersSum = 0D;
 		for (T t : inters) 
@@ -1287,6 +1287,6 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 */
 	@Override
 	public double weightedJaccardDistance(ExtendedSet<T> other) {
-		return 1D - weightedJaccardCoefficient(other);
+		return 1D - weightedJaccardSimilarity(other);
 	}
 }

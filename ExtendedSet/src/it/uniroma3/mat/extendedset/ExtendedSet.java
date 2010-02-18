@@ -705,13 +705,13 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 *            the other set
 	 * @return the Jaccard similarity coefficient
 	 */
-	public double jaccardCoefficient(ExtendedSet<T> other);
+	public double jaccardSimilarity(ExtendedSet<T> other);
 
 	/**
 	 * Computes the Jaccard distance between this set and the given set.
 	 * <p>
 	 * The coefficient is defined as 
-	 * <code>1 - </code> {@link #jaccardCoefficient(ExtendedSet)}.
+	 * <code>1 - </code> {@link #jaccardSimilarity(ExtendedSet)}.
 	 * 
 	 * @param other
 	 *            the other set
@@ -730,14 +730,14 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 *            the other set
 	 * @return the weighted Jaccard similarity coefficient
 	 */
-	public double weightedJaccardCoefficient(ExtendedSet<T> other);
+	public double weightedJaccardSimilarity(ExtendedSet<T> other);
 
 	/**
 	 * Computes the weighted version of the Jaccard distance between this set
 	 * and the given set.
 	 * <p>
 	 * The coefficient is defined as <code>1 - </code>
-	 * {@link #weightedJaccardCoefficient(ExtendedSet)}.
+	 * {@link #weightedJaccardSimilarity(ExtendedSet)}.
 	 * 
 	 * @param other
 	 *            the other set
