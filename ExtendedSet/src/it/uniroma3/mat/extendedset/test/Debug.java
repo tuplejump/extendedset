@@ -22,6 +22,7 @@ import it.uniroma3.mat.extendedset.ConciseSet;
 import it.uniroma3.mat.extendedset.ExtendedSet;
 import it.uniroma3.mat.extendedset.FastSet;
 import it.uniroma3.mat.extendedset.IndexedSet;
+import it.uniroma3.mat.extendedset.ExtendedSet.ExtendedIterator;
 import it.uniroma3.mat.extendedset.ExtendedSet.Statistics;
 
 import java.math.BigInteger;
@@ -67,6 +68,81 @@ public class Debug {
 			if (!bits.contains(i)) 
 				return false;
 		return bits.last().equals(items.last());
+	}
+	
+	/**
+	 * Populate a set with random values
+	 * 
+	 * @param set
+	 *            the set to populate
+	 * @param rnd
+	 *            random number generator
+	 * @param size
+	 *            number of elements
+	 * @param min
+	 *            smallest element
+	 * @param max
+	 *            greatest element
+	 */
+	private static void populate(ExtendedSet<Integer> set, Random rnd, int size, int min, int max) {
+		if (min > max) 
+			throw new IllegalArgumentException("min > max");
+		if ((max - min + 1) < size) 
+			throw new IllegalArgumentException("(max - min + 1) < size");
+		
+		// add elements
+		while (set.size() < size) {
+			if (rnd.nextDouble() < 0.8D) {
+				set.complement();
+				set.add(min + rnd.nextInt(max - min + 1));
+			} else {
+				if (rnd.nextDouble() < 0.2D) {
+					// sequence
+					int minSeq = min + rnd.nextInt(max - min + 1);
+					int maxSeq = min + rnd.nextInt(max - min + 1);
+					minSeq = Math.max(min, (minSeq / 31) * 31);
+					maxSeq = Math.max(min, (maxSeq / 31) * 31);
+					if (minSeq > maxSeq) {
+						int tmp = maxSeq;
+						maxSeq = minSeq;
+						minSeq = tmp;
+					}
+					set.fill(minSeq, maxSeq);
+				} else {
+					// singleton
+					set.add(min + rnd.nextInt(max - min + 1));
+				}
+			}
+		}
+		
+		// remove elements when the set is too large
+		while (set.size() > size) {
+			int toClear = set.size() - size;
+			int first;
+			int last;
+			if (rnd.nextBoolean()) {
+				first = set.last() - toClear + 1;
+				last = set.last();
+			} else {
+				first = set.first();
+				last = set.first() + toClear - 1;
+			}
+			set.clear(first, last);
+		}
+	}
+	
+	/**
+	 * Populate a set with random values, from 0 to the specified greatest element
+	 * 
+	 * @param set
+	 *            the set to populate
+	 * @param rnd
+	 *            random number generator
+	 * @param max
+	 *            greatest elements
+	 */
+	private static void populate(ExtendedSet<Integer> set, Random rnd, int max) {
+		populate(set, rnd, (int) (rnd.nextDouble() * max), 0, max);
 	}
 	
 	/**
@@ -1399,12 +1475,67 @@ public class Debug {
 	}
 	
 	/**
+	 * Test for {@link ExtendedIterator#skipAllBefore(Object)}
+	 * 
+	 * @param c class to test
+	 */
+	@SuppressWarnings("unchecked")
+	private static void testForSkip(Class<? extends ExtendedSet> c) {
+		ExtendedSet<Integer> bits;
+		try {
+			bits = c.newInstance();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+
+		Random rnd = new Random(31);
+		for (int i = 0; i < 10000; i++) {
+			int max = rnd.nextInt(1000);
+			bits.clear();
+			populate(bits, rnd, max);
+
+			for (int j = 0; j < 100; j++) {
+				int skip = rnd.nextInt(max + 1);
+				boolean reverse = rnd.nextBoolean();
+				System.out.format("%d) size=%d, skip=%d, reverse=%b ---> ", (i * 100) + j + 1, bits.size(), skip, reverse);
+
+				ExtendedIterator<Integer> itr1, itr2;
+				if (!reverse) {
+					itr1 = bits.iterator();
+					itr2 = bits.iterator();
+					while (itr1.hasNext() && itr1.next() < skip) {/* nothing */}
+				} else {
+					itr1 = bits.descendingIterator();
+					itr2 = bits.descendingIterator();
+					while (itr1.hasNext() && itr1.next() > skip) {/* nothing */}
+				}
+				if (!itr1.hasNext()) {
+					System.out.println("Skipped!");
+					continue;
+				}
+				itr2.skipAllBefore(skip);
+				itr2.next();
+				Integer i1, i2;
+				if (!(i1 = itr1.next()).equals(i2 = itr2.next())) {
+					System.out.println("Error!");
+					System.out.println("i1 = " + i1);
+					System.out.println("i2 = " + i2);
+					System.out.println(bits.debugInfo());
+					return;
+				}
+				System.out.println("OK!");
+			}
+		}
+		System.out.println("Done!");
+	}
+
+	/**
 	 * Test launcher
 	 * 
 	 * @param args ID of the test to execute (from 1 to 29)
 	 */
 	public static void main(String[] args) {
-		int testCase = 32;
+		int testCase = 33;
 		
 		if (args != null && args.length > 0) {
 			try {
@@ -1511,8 +1642,15 @@ public class Debug {
 		case 31:
 			testForEquals(FastSet.class);
 			break;
+		case 33:
+			testForSkip(ConciseSet.class);
+			break;
+		case 34:
+			testForSkip(FastSet.class);
+			break;
 		default:
 			System.out.println("Unknown test case!");
 		}
 	}
 }
+

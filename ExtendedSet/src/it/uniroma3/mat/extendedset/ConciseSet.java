@@ -1750,12 +1750,51 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		 */
 		@Override
 		public void skipAllBefore(Integer element) {
+			if (element > MAX_ALLOWED_SET_BIT)
+				throw new IndexOutOfBoundsException(element.toString());
+
+			// the element is before the next one
 			if (element <= rightmostBitOfCurrentWord + nextBitToCheck)
 				return;
-			throw new UnsupportedOperationException();
-//			if (maxLiteralLengthDivision(element) < rightmostBitOfCurrentWord) {
-//				
-//			}
+			
+			// next element
+			nextBitToCheck = element - rightmostBitOfCurrentWord;
+			
+			// the element is in the current word
+			if (nextBitToCheck < MAX_LITERAL_LENGHT)
+				return;
+			
+			// the element should be after the current word, but there are no more words
+			if (!wordItr.hasMoreLiterals())
+				return;
+			
+			// the element is after the current word
+			while (nextBitToCheck >= MAX_LITERAL_LENGHT) {
+				if (isLiteral(wordItr.currentWordCopy) || !isSequenceWithNoBits(wordItr.currentWordCopy)) {
+					// skip the current literal word or the first block of a
+					// sequence with (un)set bit
+					rightmostBitOfCurrentWord += MAX_LITERAL_LENGHT;
+					nextBitToCheck -= MAX_LITERAL_LENGHT;
+				} else {
+					int blocks = getSequenceCount(wordItr.currentWordCopy);
+					int bits = maxLiteralLengthMultiplication(1 + blocks);
+					if (isZeroSequence(wordItr.currentWordCopy)) {
+						if (bits > nextBitToCheck)
+							nextBitToCheck = 0;
+						else
+							nextBitToCheck -= bits;
+					} else {
+						if (bits > nextBitToCheck) {
+							blocks = maxLiteralLengthDivision(nextBitToCheck) - 1;
+							bits = maxLiteralLengthMultiplication(blocks + 1);
+						} 
+						nextBitToCheck -= bits;
+					}
+					rightmostBitOfCurrentWord += bits;
+					wordItr.currentWordCopy -= blocks;
+				}
+				wordItr.computeNextLiteral();
+			}
 		}
 
 		/**
@@ -1858,7 +1897,46 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		 */
 		@Override
 		public void skipAllBefore(Integer element) {
-			throw new UnsupportedOperationException();
+			if (element < 0)
+				throw new IndexOutOfBoundsException(element.toString());
+			
+			// the element is before the next one
+			if (element >= rightmostBitOfCurrentWord + nextBitToCheck)
+				return;
+			
+			// next element
+			nextBitToCheck = element - rightmostBitOfCurrentWord;
+			
+			// the element is in the current word
+			if (nextBitToCheck > 0)
+				return;
+			
+			// the element should be after the current word, but there are no more words
+			if (!wordItr.hasMoreLiterals())
+				return;
+			
+			// the element is after the current word
+			while (nextBitToCheck < 0) {
+				if (isLiteral(wordItr.currentWordCopy) || getSequenceCount(wordItr.currentWordCopy) == 0) {
+					// skip the current literal word or the first block of a
+					// sequence with (un)set bit
+					rightmostBitOfCurrentWord -= MAX_LITERAL_LENGHT;
+					nextBitToCheck += MAX_LITERAL_LENGHT;
+				} else {
+					int blocks = getSequenceCount(wordItr.currentWordCopy);
+					if (!isSequenceWithNoBits(wordItr.currentWordCopy))
+						blocks--;
+					int bits = maxLiteralLengthMultiplication(1 + blocks);
+					if (bits > -nextBitToCheck) {
+						blocks = maxLiteralLengthDivision(-nextBitToCheck - 1);
+						bits = maxLiteralLengthMultiplication(blocks + 1);
+					}
+					rightmostBitOfCurrentWord -= bits;
+					nextBitToCheck += bits;
+					wordItr.currentWordCopy -= blocks;
+				}
+				wordItr.computeNextLiteral();
+			}
 		}
 
 		/**
@@ -2648,6 +2726,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		f.format("Elements: %s\n", toString());
 		
 		// elements
+		int firstBitInWord = 0;
 		for (int i = 0; i <= lastWordIndex; i++) {
 			// raw representation of words[i]
 			f.format("words[%d] = ", i);
@@ -2670,6 +2749,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				// literal
 				s.append("literal: ");
 				s.append(toBinaryString(words[i]).substring(1));
+				f.format(" ---> [from %d to %d] ", firstBitInWord, firstBitInWord + MAX_LITERAL_LENGHT - 1);
+				firstBitInWord += MAX_LITERAL_LENGHT;
 			} else {
 				// sequence
 				if (isOneSequence(words[i])) {
@@ -2686,9 +2767,12 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				} else {
 					s.append(String.format("%4d", bit - 1));
 				}
+				int count = getSequenceCount(words[i]);
 				f.format(") followed by %d blocks (%d bits)", 
 						getSequenceCount(words[i]),
-						maxLiteralLengthMultiplication(getSequenceCount(words[i])));
+						maxLiteralLengthMultiplication(count));
+				f.format(" ---> [from %d to %d] ", firstBitInWord, firstBitInWord + (count + 1) * MAX_LITERAL_LENGHT - 1);
+				firstBitInWord += (count + 1) * MAX_LITERAL_LENGHT;
 			}
 			s.append('\n');
 		}
@@ -2706,22 +2790,5 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		f.format("collection compression: %.2f%%\n", 100D * collectionCompressionRatio());
 
 		return s.toString();
-	}
-	
-	public static void main(String[] args) {
-		ConciseSet x = new ConciseSet();
-		x.fill(10, 30);
-		x.add(150);
-		x.fill(200, 201);
-		
-		ExtendedIterator<Integer> itr = x.descendingIterator();
-		while (itr.hasNext())
-			System.out.println(itr.next());
-		System.out.println();
-		
-		itr = x.descendingIterator();
-		itr.skipAllBefore(8);
-		while (itr.hasNext())
-			System.out.println(itr.next());
 	}
 }
