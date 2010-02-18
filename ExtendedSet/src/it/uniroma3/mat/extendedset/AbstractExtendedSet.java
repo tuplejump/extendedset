@@ -1220,4 +1220,73 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 */
 	@Override
 	public abstract ExtendedIterator<T> iterator();
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public double jaccardCoefficient(ExtendedSet<T> other) {
+		int inters = intersectionSize(other);
+		return (double) inters / (size() + other.size() - inters);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public double jaccardDistance(ExtendedSet<T> other) {
+		return 1D - jaccardCoefficient(other);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public double weightedJaccardCoefficient(ExtendedSet<T> other) {
+		ExtendedSet<T> inters = intersection(other);
+		double intersSum = 0D;
+		for (T t : inters) 
+			if (t instanceof Integer) 
+				intersSum += (Integer) t;
+			else if (t instanceof Double) 
+				intersSum += (Double) t;
+			else if (t instanceof Float) 
+				intersSum += (Float) t;
+			else if (t instanceof Byte) 
+				intersSum += (Byte) t;
+			else if (t instanceof Long) 
+				intersSum += (Long) t;
+			else if (t instanceof Short) 
+				intersSum += (Short) t;
+			else
+				throw new IllegalArgumentException("A collection of numbers is required");
+
+		ExtendedSet<T> symmetricDiff = symmetricDifference(other);
+		double symmetricDiffSum = 0D;
+		for (T t : symmetricDiff) 
+			if (t instanceof Integer) 
+				symmetricDiffSum += (Integer) t;
+			else if (t instanceof Double) 
+				symmetricDiffSum += (Double) t;
+			else if (t instanceof Float) 
+				symmetricDiffSum += (Float) t;
+			else if (t instanceof Byte) 
+				symmetricDiffSum += (Byte) t;
+			else if (t instanceof Long) 
+				symmetricDiffSum += (Long) t;
+			else if (t instanceof Short) 
+				symmetricDiffSum += (Short) t;
+			else
+				throw new IllegalArgumentException("A collection of numbers is required");
+		
+		return intersSum / (intersSum + symmetricDiffSum);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public double weightedJaccardDistance(ExtendedSet<T> other) {
+		return 1D - weightedJaccardCoefficient(other);
+	}
 }
