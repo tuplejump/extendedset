@@ -224,7 +224,6 @@ public class Debug {
 	 * <p>
 	 * It adds randomly generated numbers
 	 */
-	@SuppressWarnings("unchecked")
 	private static void testForAppendRandom() {
 		ConciseSet bits = new ConciseSet();
 		TreeSet<Integer> items = new TreeSet<Integer>();
@@ -1190,7 +1189,6 @@ public class Debug {
 	/**
 	 * Simple test for {@link IndexedSet}
 	 */
-	@SuppressWarnings("unchecked")
 	private static void testForIndexedSet() {
 		Collection<String> allStrings = new ArrayList<String>();
 		allStrings.add("One");
@@ -1490,7 +1488,7 @@ public class Debug {
 
 		Random rnd = new Random(31);
 		for (int i = 0; i < 10000; i++) {
-			int max = rnd.nextInt(1000);
+			int max = rnd.nextInt(10000);
 			bits.clear();
 			populate(bits, rnd, max);
 

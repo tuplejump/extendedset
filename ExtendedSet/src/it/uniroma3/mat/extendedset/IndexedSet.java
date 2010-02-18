@@ -364,7 +364,8 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public Comparator<? super T> comparator() {
-		if (itemToIndex instanceof IndexedSet.UncheckedFakeMap || itemToIndex instanceof IndexedSet.CheckedFakeMap)
+		if (itemToIndex instanceof IndexedSet<?>.UncheckedFakeMap 
+				|| itemToIndex instanceof IndexedSet<?>.CheckedFakeMap)
 			return null;
 		return new Comparator<T>() {
 			@Override
@@ -731,7 +732,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 * @see #indexOf(Object)
 	 */
 	public ExtendedSet<Integer> indices() {
-		if (indexToItem instanceof IndexedSet.UncheckedFakeMap)
+		if (indexToItem instanceof IndexedSet<?>.UncheckedFakeMap)
 			return indices; 
 		return indices.headSet(indexToItem.size());
 	}

@@ -7,9 +7,9 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.Random;
 import java.util.SortedSet;
 import java.util.TreeSet;
+
 
 /**
  * Integer set internally represented by a bit-set, using a RLE compression
@@ -856,7 +856,7 @@ public class WAHSet extends AbstractSet<Integer> implements
 	}
 
 	/**
-	 * Print debug info (used by {@link #main(String[])})
+	 * Print debug info 
 	 * 
 	 * @return debug info
 	 */
@@ -1167,7 +1167,7 @@ public class WAHSet extends AbstractSet<Integer> implements
 	 * 
 	 * @param args
 	 */
-	public static void main(String[] args) {
+/*	public static void main(String[] args) {
 		WAHSet bitSet = new WAHSet();
 		TreeSet<Integer> elements = new TreeSet<Integer>();
 
@@ -1419,5 +1419,5 @@ public class WAHSet extends AbstractSet<Integer> implements
 			if (debugInfo)
 				System.out.println(bitSet1.debugInfo());
 		}
-	}
+	}*/
 }

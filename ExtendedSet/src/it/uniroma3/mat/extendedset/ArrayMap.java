@@ -227,7 +227,7 @@ public class ArrayMap<T> extends AbstractMap<Integer, T> {
 			return true;
 		if (!super.equals(obj))
 			return false;
-		if (!(obj instanceof ArrayMap))
+		if (!(obj instanceof ArrayMap<?>))
 			return false;
 		return Arrays.equals(array, ((ArrayMap<?>) obj).array);
 	}

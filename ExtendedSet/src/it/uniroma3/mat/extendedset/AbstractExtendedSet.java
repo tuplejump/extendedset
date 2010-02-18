@@ -981,7 +981,6 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		/**
 		 * {@inheritDoc}
 		 */
-		@SuppressWarnings("unchecked")
 		@Override
 		public int intersectionSize(Collection<? extends T> other) {
 			return filterByMask(AbstractExtendedSet.this.intersection(convert(other))).size();
@@ -1026,9 +1025,9 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		 * @return the container instance
 		 */
 		protected ExtendedSet<T> container() {
-			if (AbstractExtendedSet.this instanceof AbstractExtendedSet.UnmodifiableExtendedSet)
+			if (AbstractExtendedSet.this instanceof AbstractExtendedSet<?>.UnmodifiableExtendedSet)
 				return ((UnmodifiableExtendedSet) AbstractExtendedSet.this).container();
-			if (AbstractExtendedSet.this instanceof AbstractExtendedSet.ExtendedSubSet)
+			if (AbstractExtendedSet.this instanceof AbstractExtendedSet<?>.ExtendedSubSet)
 				return ((UnmodifiableExtendedSet) AbstractExtendedSet.this).container();
 			return AbstractExtendedSet.this;
 		}
@@ -1179,9 +1178,9 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		 * @return the container instance
 		 */
 		protected ExtendedSet<T> container() {
-			if (AbstractExtendedSet.this instanceof AbstractExtendedSet.UnmodifiableExtendedSet)
+			if (AbstractExtendedSet.this instanceof AbstractExtendedSet<?>.UnmodifiableExtendedSet)
 				return ((UnmodifiableExtendedSet) AbstractExtendedSet.this).container();
-			if (AbstractExtendedSet.this instanceof AbstractExtendedSet.ExtendedSubSet)
+			if (AbstractExtendedSet.this instanceof AbstractExtendedSet<?>.ExtendedSubSet)
 				return ((UnmodifiableExtendedSet) AbstractExtendedSet.this).container();
 			return AbstractExtendedSet.this;
 		}

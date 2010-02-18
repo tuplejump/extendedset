@@ -177,7 +177,7 @@ public class ResourceMonitor {
 
 		garbage.add(obj);
 		
-		if (obj instanceof Collection) {
+		if (obj instanceof Collection<?>) {
 			for (Object item : (Collection<?>) obj)
 				useObject(item);
 		} else if (obj instanceof Object[]) {

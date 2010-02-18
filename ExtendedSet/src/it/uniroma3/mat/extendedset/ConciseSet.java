@@ -1241,7 +1241,6 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	/**
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public int intersectionSize(Collection<? extends Integer> other) {
 		Statistics.increaseSizeCheckCount();
