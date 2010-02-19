@@ -43,7 +43,6 @@ import java.util.SortedSet;
  * @see AbstractExtendedSet
  * @see ConciseSet
  * @see FastSet
- * @see MatrixSet
  */
 public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	// indices
@@ -128,8 +127,8 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 		/**
 		 * {@inheritDoc}
 		 * <p>
-		 * There is no bound check, thus {@link IndexedSet#get(int)} and
-		 * {@link IndexedSet#indexOf(Object)} methods does not throw exceptions
+		 * There is no bound check, thus {@link IndexedSet#absoluteGet(int)} and
+		 * {@link IndexedSet#absoluteIndexOf(Object)} methods does not throw exceptions
 		 * when using indices below the lower bound
 		 */
 		@Override
@@ -222,7 +221,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 * not work when using this constructor.
 	 * <p>
 	 * <b>IMPORTANT:</b> in this case there is no bound check, thus
-	 * {@link #get(int)} and {@link #indexOf(Object)} methods does not throw
+	 * {@link #absoluteGet(int)} and {@link #absoluteIndexOf(Object)} methods does not throw
 	 * exceptions when using indices below the lower bound
 	 * <p>
 	 * <b>VERY IMPORTANT!</b> to correctly work and effectively reduce the
@@ -707,7 +706,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 * @param item
 	 * @return the index of the given item
 	 */
-	public Integer indexOf(T item) {
+	public Integer absoluteIndexOf(T item) {
 		return itemToIndex.get(item);
 	}
 
@@ -717,7 +716,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 * @param i index
 	 * @return the item 
 	 */
-	public T get(int i) {
+	public T absoluteGet(int i) {
 		return indexToItem.get(i);
 	}
 
@@ -728,8 +727,8 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 * exception.
 	 * 
 	 * @return the index set
-	 * @see #get(int)
-	 * @see #indexOf(Object)
+	 * @see #absoluteGet(int)
+	 * @see #absoluteIndexOf(Object)
 	 */
 	public ExtendedSet<Integer> indices() {
 		if (indexToItem instanceof IndexedSet<?>.UncheckedFakeMap)
@@ -896,7 +895,15 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public T position(int i) {
-		return indexToItem.get(indices.position(i));
+	public T get(int i) {
+		return indexToItem.get(indices.get(i));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int indexOf(T e) {
+		return indices.indexOf(itemToIndex.get(e));
 	}
 }

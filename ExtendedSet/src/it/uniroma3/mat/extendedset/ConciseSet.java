@@ -62,7 +62,6 @@ import java.util.SortedSet;
  * @see AbstractExtendedSet
  * @see FastSet
  * @see IndexedSet
- * @see MatrixSet
  */
 public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		SortedSet<Integer>, Cloneable {
@@ -1353,7 +1352,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Integer position(int i) {
+	public Integer get(int i) {
 		if (i < 0 || i >= size)
 			throw new IndexOutOfBoundsException();
 
@@ -1415,6 +1414,65 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		throw new RuntimeException("position not found");
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int indexOf(Integer e) {
+		// empty element
+		if (isEmpty())
+			return -1;
+
+		// returned value
+		int index = 0;
+
+		int blockIndex = maxLiteralLengthDivision(e);
+		int bitPosition = maxLiteralLengthModulus(e);
+		for (int i = 0; i <= lastWordIndex && blockIndex >= 0; i++) {
+			int w = words[i];
+			if (isLiteral(w)) {
+				// check if the current literal word is the "right" one
+				if (blockIndex == 0) {
+					if ((w & (1 << bitPosition)) == 0)
+						return -1;
+					return index + Integer.bitCount(w & ~(0xFFFFFFFF << bitPosition));
+				}
+				blockIndex--;
+				index += getLiteralBitCount(w);
+			} else {
+				// if we are at the beginning of a sequence, and it is
+				// a set bit, the bit already exists
+				if (blockIndex == 0) {
+					int l = getLiteral(w);
+					if ((l & (1 << bitPosition)) == 0)
+						return -1;
+					return index + Integer.bitCount(l & ~(0xFFFFFFFF << bitPosition));
+				}
+				
+				// if we are in the middle of a sequence of 1's, the bit already exist
+				if (blockIndex > 0 
+						&& blockIndex <= getSequenceCount(w) 
+						&& isOneSequence(w))
+					return index + maxLiteralLengthMultiplication(blockIndex) + bitPosition - (isSequenceWithNoBits(w) ? 0 : 1);
+
+				// next word
+				int blocks = getSequenceCount(w) + 1;
+				blockIndex -= blocks;
+				if (isZeroSequence(w)) {
+					if (!isSequenceWithNoBits(w))
+						index++;
+				} else {
+					index += maxLiteralLengthMultiplication(blocks);
+					if (!isSequenceWithNoBits(w))
+						index--;
+				}
+			}
+		}
+		
+		// not found
+		return -1;
+	}
+
 	/**
 	 * Checks if the <i>literal</i> contained within
 	 * {@code #getLastWord()} can be merged with the previous word
@@ -2293,28 +2351,29 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		int blockIndex = maxLiteralLengthDivision(b);
 		int bitPosition = maxLiteralLengthModulus(b);
 		for (int i = 0; i <= lastWordIndex && blockIndex >= 0; i++) {
-			if (isLiteral(words[i])) {
+			int w = words[i];
+			if (isLiteral(w)) {
 				// check if the current literal word is the "right" one
 				if (blockIndex == 0) {
 					// bit already set
-					return (words[i] & (1 << bitPosition)) != 0;
+					return (w & (1 << bitPosition)) != 0;
 				} 
 				blockIndex--;
 			} else {
 				// if we are at the beginning of a sequence, and it is
 				// a set bit, the bit already exists
 				if (blockIndex == 0 
-						&& (getLiteral(words[i]) & (1 << bitPosition)) != 0)
+						&& (getLiteral(w) & (1 << bitPosition)) != 0)
 					return true;
 				
 				// if we are in the middle of a sequence of 1's, the bit already exist
 				if (blockIndex > 0 
-						&& blockIndex <= getSequenceCount(words[i]) 
-						&& isOneSequence(words[i]))
+						&& blockIndex <= getSequenceCount(w) 
+						&& isOneSequence(w))
 					return true;
 
 				// next word
-				blockIndex -= getSequenceCount(words[i]) + 1;
+				blockIndex -= getSequenceCount(w) + 1;
 			}
 		}
 		

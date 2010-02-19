@@ -44,7 +44,6 @@ import java.util.SortedSet;
  * @see ConciseSet
  * @see FastSet
  * @see IndexedSet
- * @see MatrixSet
  */
 public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements ExtendedSet<T> {
 	/**
@@ -502,7 +501,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 * {@inheritDoc}
 	 */
 	@Override
-	public T position(int i) {
+	public T get(int i) {
 		int size = size();
 		if (i < 0 || i >= size)
 			throw new IndexOutOfBoundsException();
@@ -518,6 +517,21 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 				itr.next();
 		}
 		return itr.next();
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int indexOf(T e) {
+		Iterator<T> itr = iterator();
+		int i = 0;
+		while (itr.hasNext()) {
+			if (itr.next().equals(e))
+				return i;
+			i++;
+		}
+		return -1;
 	}
 	
 	/**
@@ -1123,7 +1137,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		/** {@inheritDoc} */ @Override public Object[] toArray() {return AbstractExtendedSet.this.toArray();}
 		/** {@inheritDoc} */ @Override public <X> X[] toArray(X[] a) {return AbstractExtendedSet.this.toArray(a);}
 		/** {@inheritDoc} */ @Override public String toString() {return AbstractExtendedSet.this.toString();}
-		/** {@inheritDoc} */ @Override public T position(int i) {return AbstractExtendedSet.this.position(i);}
+		/** {@inheritDoc} */ @Override public T get(int i) {return AbstractExtendedSet.this.get(i);}
+		/** {@inheritDoc} */ @Override public int indexOf(T e) {return AbstractExtendedSet.this.indexOf(e);}
 
 		/*
 		 * Special purpose methods
@@ -1226,6 +1241,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 */
 	@Override
 	public double jaccardSimilarity(ExtendedSet<T> other) {
+		if (isEmpty() && other.isEmpty())
+			return 1D;
 		int inters = intersectionSize(other);
 		return (double) inters / (size() + other.size() - inters);
 	}
@@ -1243,6 +1260,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 */
 	@Override
 	public double weightedJaccardSimilarity(ExtendedSet<T> other) {
+		if (isEmpty() && other.isEmpty())
+			return 1D;
 		ExtendedSet<T> inters = intersection(other);
 		double intersSum = 0D;
 		for (T t : inters) 

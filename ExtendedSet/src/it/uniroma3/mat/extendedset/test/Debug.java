@@ -1394,7 +1394,7 @@ public class Debug {
 	}
 	
 	/**
-	 * Stress test for {@link ConciseSet#position(int)}
+	 * Stress test for {@link ConciseSet#get(int)}
 	 */
 	private static void testForPosition() {
 		ConciseSet bits = new ConciseSet();
@@ -1416,11 +1416,12 @@ public class Debug {
 			int s = bits.size();
 			other.append('[');
 			for (int j = 0; j < s; j++) {
-				other.append(bits.position(j));
+				other.append(bits.get(j));
 				if (j < s - 1)
 					other.append(", ");
 			}
 			other.append(']');
+			
 			if (good.equals(other.toString())) {
 				System.out.println(i + ") OK");
 			} else {
@@ -1429,6 +1430,16 @@ public class Debug {
 				System.out.println(bits);
 				System.out.println(other);
 				return;
+			}
+			
+			int pos = 0;
+			for (Integer x : bits) {
+				if (bits.indexOf(x) != pos) {
+					System.out.println("ERROR! " + pos + " != " + bits.indexOf(x) + " for element " + x);
+					System.out.println(bits.debugInfo());
+					return;
+				}
+				pos++;
 			}
 		}
 	}
@@ -1533,7 +1544,7 @@ public class Debug {
 	 * @param args ID of the test to execute (from 1 to 29)
 	 */
 	public static void main(String[] args) {
-		int testCase = 33;
+		int testCase = 29;
 		
 		if (args != null && args.length > 0) {
 			try {

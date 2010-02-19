@@ -46,7 +46,6 @@ import java.util.SortedSet;
  * @see ConciseSet
  * @see FastSet
  * @see IndexedSet
- * @see MatrixSet
  */
 public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<ExtendedSet<T>> {
 	/**
@@ -651,8 +650,19 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 *             if <code>i</code> is less than zero, or greater or equal to
 	 *             {@link #size()}
 	 */
-	public T position(int i);
+	public T get(int i);
 	
+	/**
+	 * Provides position of element within the set.
+	 * <p>
+	 * It returns -1 if the element does not exist within the set.
+	 * 
+	 * @param e
+	 *            element of the set
+	 * @return the element position
+	 */
+	public int indexOf(T e);
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -704,6 +714,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * @param other
 	 *            the other set
 	 * @return the Jaccard similarity coefficient
+	 * @see #jaccardDistance(ExtendedSet)
 	 */
 	public double jaccardSimilarity(ExtendedSet<T> other);
 
@@ -716,6 +727,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * @param other
 	 *            the other set
 	 * @return the Jaccard distance
+	 * @see #jaccardSimilarity(ExtendedSet)
 	 */
 	public double jaccardDistance(ExtendedSet<T> other);
 
@@ -725,10 +737,17 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * <p>
 	 * The coefficient is defined as
 	 * <code>sum of min(A_i, B_i) / sum of max(A_i, B_i)</code>.
+	 * <p>
+	 * <b>NOTE:</b> <code>T</code> must be a number, namely one of
+	 * {@link Integer}, {@link Double}, {@link Float}, {@link Byte},
+	 * {@link Long}, {@link Short}.
 	 * 
 	 * @param other
 	 *            the other set
 	 * @return the weighted Jaccard similarity coefficient
+	 * @throws IllegalArgumentException
+	 *             if <code>T</code> is not a number
+	 * @see #weightedJaccardDistance(ExtendedSet)
 	 */
 	public double weightedJaccardSimilarity(ExtendedSet<T> other);
 
@@ -738,10 +757,17 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * <p>
 	 * The coefficient is defined as <code>1 - </code>
 	 * {@link #weightedJaccardSimilarity(ExtendedSet)}.
+	 * <p>
+	 * <b>NOTE:</b> <code>T</code> must be a number, namely one of
+	 * {@link Integer}, {@link Double}, {@link Float}, {@link Byte},
+	 * {@link Long}, {@link Short}.
 	 * 
 	 * @param other
 	 *            the other set
 	 * @return the weighted Jaccard distance
+	 * @throws IllegalArgumentException
+	 *             if <code>T</code> is not a number
+	 * @see #weightedJaccardSimilarity(ExtendedSet)
 	 */
 	public double weightedJaccardDistance(ExtendedSet<T> other);
 }	
