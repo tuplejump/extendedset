@@ -17,7 +17,7 @@ import java.util.Set;
  * @param <T> transaction type
  * @param <I> item type
  */
-public class ExtendedTransactionSet<A, T extends Element<A>, I extends Element<A>> extends TransactionSet<T, I> {
+public class ExtendedTransactionSet<A, T extends Entity<A>, I extends Entity<A>> extends TransactionSet<T, I> {
 	/**
 	 * @see TransactionSet#TransactionSet(Collection)
 	 */
