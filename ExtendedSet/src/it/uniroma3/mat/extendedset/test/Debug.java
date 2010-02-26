@@ -195,7 +195,7 @@ public class Debug {
 			items.add(2048 + i);
 		items.add(2158);
 		items.add(1000000);
-		items.add(ConciseSet.MAX_ALLOWED_SET_BIT);
+		items.add(ConciseSet.MAX_ALLOWED_INTEGER);
 
 		// append elements
 		for (Integer i : items) {

@@ -31,18 +31,21 @@ import java.util.NoSuchElementException;
 import java.util.SortedSet;
 
 /**
+ * This is CONCISE: COmpressed 'N' Composable Integer Set.
+ * <p>
  * This class is a {@link SortedSet} of integers that are internally represented
  * by compressed bitmaps though a RLE (Run-Length Encoding) compression
  * algorithm.
  * <p>
- * The RLE compression method is similar to WAH (<i>Word-Aligned Hybrid
- * compression</i>). However, when compared to WAH, this approach avoids that
- * sparse sets generates sequences of one literal word followed by one sequence
- * word. In this way, we have at most one word for each item to represent plus
- * one word for the first 0's sequence. Put another way, the memory footprint
- * required by a representation of <code>n</code> elements is at most the same
- * as an array of <code>n + 1</code> elements. In WAH, this requires an array
- * of size <code>2 * n</code> elements.
+ * The RLE compression method is mainly inspired by WAH (<i>Word-Aligned
+ * Hybrid</i> compression). However, CONCISE allows for a better compression for
+ * sparse data. When compared to WAH, this approach avoids that sparse sets
+ * generates sequences of one literal word followed by one sequence word. In
+ * this way, we have at most one word for each item to represent plus one word
+ * for the first 0's sequence. Put another way, the memory footprint required by
+ * a representation of <code>n</code> elements is at most the same as an array
+ * of <code>n + 1</code> elements. In WAH, this requires an array of size
+ * <code>2 * n</code> elements.
  * <p>
  * Notice that the returned iterator is <i>fail-fast</i>, similar to most
  * {@link Collection}-derived classes. If the set is structurally modified at
@@ -66,29 +69,32 @@ import java.util.SortedSet;
 public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		SortedSet<Integer>, Cloneable {
 	/**
-	 * Compressed bitmap, that is a collection of words. For each word:
+	 * This is the compressed bitmap, that is a collection of words. For each
+	 * word:
 	 * <ul>
 	 * <li> <tt>1* (0x80000000)</tt> means that it is a 31-bit <i>literal</i>.
-	 * <li> <tt>00* (0x00000000)</tt> indicates a <i>sequence</i> made up of
-	 * at most one set bit in the first 31 bits, and followed by blocks of 31
-	 * 0's. The following 5 bits (<tt>00xxxxx*</tt>) indicates which is the
-	 * set bit (<tt>00000</tt> = no set bit, <tt>00001</tt> = LSB,
-	 * <tt>11111</tt> = MSB), while the remaining 25 bits indicates the number
-	 * of following 0's blocks.
-	 * <li> <tt>01* (0x40000000)</tt> indicates a <i>sequence</i> made up of
-	 * at most one <i>un</i>set bit in the first 31 bits, and followed by
-	 * blocks of 31 1's. (see the <tt>00*</tt> case above).
+	 * <li> <tt>00* (0x00000000)</tt> indicates a <i>sequence</i> made up of at
+	 * most one set bit in the first 31 bits, and followed by blocks of 31 0's.
+	 * The following 5 bits (<tt>00xxxxx*</tt>) indicates which is the set bit (
+	 * <tt>00000</tt> = no set bit, <tt>00001</tt> = LSB, <tt>11111</tt> = MSB),
+	 * while the remaining 25 bits indicate the number of following 0's blocks.
+	 * <li> <tt>01* (0x40000000)</tt> indicates a <i>sequence</i> made up of at
+	 * most one <i>un</i>set bit in the first 31 bits, and followed by blocks of
+	 * 31 1's. (see the <tt>00*</tt> case above).
 	 * </ul>
 	 */
-	// TODO: siccome posso avere i literal 0xFFFFFFFF e 0x80000000, allora le
-	// sequence che hanno conta zero potrebbero indicare 2 blocchi, perché una
-	// sequence da 1 blocco non può esistere. Similmente, una sequence con bit
-	// settato e conta a zero indica due blocchi: se stesso e il successivo.
+	// TODO: since literal words 0xFFFFFFFF and 0x80000000 are allowed, then
+	// zero-length sequences (i.e., such that getSequenceCount() == 0) cannot
+	// exists. A possible improvement, that increases MAX_ALLOWED_INTEGER by
+	// 31, is that sequence words represents at least 2 blocks, namely
+	// getSequenceCount() is the number of subsequent blocks - 1.
+	// Alternatively, sequences such that getSequenceCount() == 0) may be used
+	// as "markers" for special purposes, for example by using the 5 bits used
+	// for set bit identification and the sequence type bit.
 	//
-	// TODO: devo dare la possibilità di inserire più sequence successive, in
-	// modo tale da ingrandire l'insieme. A questo punto devo dare tre versioni
-	// duplicate di add: una con int, l'altra con long, e l'altra ancora con
-	// BigInteger
+	// TODO: if we allow for using two sequences of the same type in two
+	// consecutively words, it is possible to virtually represent any integer
+	// (such as BigInteger).
 	private int[] words;
 
 	/**
@@ -149,7 +155,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * <tt>31 * (1 << 25)</tt>, followed by a literal with 30 0's and the
 	 * MSB (31<sup>st</sup> bit) equal to 1
 	 */
-	public final static int MAX_ALLOWED_SET_BIT = 31 * (1 << 25) + 30;
+	public final static int MAX_ALLOWED_INTEGER = 31 * (1 << 25) + 30;
 
 	/** 
 	 * Lowest representable integer.
@@ -898,10 +904,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		if (itr.endOfWords())
 			return;
 
-		// TODO: fare una copia più smart, dove confronto prima
-		// itr.currentWordCopy con words dell'oggetto che la contiene e se sono
-		// diversi allora faccio "compact", altrimenti faccio una copia
-		// brutale...
+		// TODO: it is possible to perform a faster copy by avoiding the
+		// compress() call when not strictly required
 		
 		// iterate over the remaining words
 		while (!itr.endOfWords()) {
@@ -1807,12 +1811,20 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		 */
 		@Override
 		public void skipAllBefore(Integer element) {
-			if (element > MAX_ALLOWED_SET_BIT)
+			if (element > MAX_ALLOWED_INTEGER)
 				throw new IndexOutOfBoundsException(element.toString());
 
 			// the element is before the next one
 			if (element <= rightmostBitOfCurrentWord + nextBitToCheck)
 				return;
+			
+			// the element is after the last one
+			if (element > maxSetBit){
+				// makes hasNext() return "false"
+				wordItr.remainingWords = 0;
+				wordItr.currentLiteral = 0;
+				return;
+			}
 			
 			// next element
 			nextBitToCheck = element - rightmostBitOfCurrentWord;
@@ -1822,8 +1834,12 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				return;
 			
 			// the element should be after the current word, but there are no more words
-			if (!wordItr.hasMoreLiterals())
+			if (!wordItr.hasMoreLiterals()) {
+				// makes hasNext() return "false"
+				wordItr.remainingWords = 0;
+				wordItr.currentLiteral = 0;
 				return;
+			}
 			
 			// the element is after the current word
 			while (nextBitToCheck >= MAX_LITERAL_LENGHT) {
@@ -1969,8 +1985,12 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				return;
 			
 			// the element should be after the current word, but there are no more words
-			if (!wordItr.hasMoreLiterals())
+			if (!wordItr.hasMoreLiterals()) {
+				// makes hasNext() return "false"
+				wordItr.currentWordIndex = -1;
+				wordItr.currentLiteral = 0;
 				return;
+			}
 			
 			// the element is after the current word
 			while (nextBitToCheck < 0) {
@@ -2178,7 +2198,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		final int b = e.intValue();
 
 		// range check
-		if (b < MIN_ALLOWED_SET_BIT || b > MAX_ALLOWED_SET_BIT)
+		if (b < MIN_ALLOWED_SET_BIT || b > MAX_ALLOWED_INTEGER)
 			throw new IndexOutOfBoundsException(Integer.toString(b));
 
 		// the element can be simply appended
@@ -2750,6 +2770,37 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		return (double) (lastWordIndex + 1) / size;
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public ExtendedSet<Integer> headSet(Integer toElement) {
+		if (toElement.compareTo(MAX_ALLOWED_INTEGER) > 0)
+			throw new IllegalArgumentException(toElement.toString());
+		return super.headSet(toElement);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public ExtendedSet<Integer> subSet(Integer fromElement, Integer toElement) {
+		if (toElement.compareTo(MAX_ALLOWED_INTEGER) > 0)
+			throw new IllegalArgumentException(toElement.toString());
+		if (fromElement.compareTo(0) < 0)
+			throw new IllegalArgumentException(fromElement.toString());
+		return super.subSet(fromElement, toElement);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public ExtendedSet<Integer> tailSet(Integer fromElement) {
+		if (fromElement.compareTo(0) < 0)
+			throw new IllegalArgumentException(fromElement.toString());
+		return super.tailSet(fromElement);
+	}
 	
 	/*
 	 * DEBUG METHODS
