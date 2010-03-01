@@ -2,7 +2,7 @@ package it.uniroma3.mat.extendedset.transactions;
 
 /**
  * A class for representing a single transaction-item relationship. This class
- * is mainly used in {@link TransactionSet} to iterate over the cells of a
+ * is mainly used in {@link PairSet} to iterate over the cells of a
  * binary matrix.
  * 
  * @author Alessandro Colantonio
@@ -12,7 +12,7 @@ package it.uniroma3.mat.extendedset.transactions;
  *            transaction type
  * @param <I>
  *            item type
- * @see TransactionSet
+ * @see PairSet
  */
 public class Pair<T, I> {
 	/** the transaction */

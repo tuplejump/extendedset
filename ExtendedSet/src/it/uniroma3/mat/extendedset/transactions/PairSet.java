@@ -43,9 +43,9 @@ import java.util.Map.Entry;
  * @see FastSet
  * 
  */
-public class TransactionSet<T, I> extends AbstractSet<Pair<T, I>> {
+public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 	/** transaction-item pair indices */
-	private final ExtendedSet<Integer> indices;
+	private /*final*/ ExtendedSet<Integer> indices;
 	
 	/** all possible transactions */
 	private final IndexedSet<T> allTransactions;
@@ -65,16 +65,16 @@ public class TransactionSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 * @param transactions
 	 *            collection of <i>all</i> possible transactions. The specified
 	 *            order will be preserved within when iterating over the
-	 *            {@link TransactionSet} instance.
+	 *            {@link PairSet} instance.
 	 * @param items
 	 *            collection of <i>all</i> possible items. The specified order
 	 *            will be preserved within each transaction
-	 *            {@link TransactionSet}.
+	 *            {@link PairSet}.
 	 * @param compressed
 	 *            <code>true</code> if a compressed internal representation
 	 *            should be used
 	 */
-	public TransactionSet(Collection<T> transactions, Collection<I> items, boolean compressed) {
+	public PairSet(Collection<T> transactions, Collection<I> items, boolean compressed) {
 		this(newEmptyTransactionSet(transactions, items, compressed));
 	}
 
@@ -97,23 +97,23 @@ public class TransactionSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 *             {@link Integer}.
 	 */
 	@SuppressWarnings("unchecked")
-	public TransactionSet(int maxTransactionCount, int maxItemCount, boolean compressed) {
-		this((TransactionSet<T, I>) newEmptyTransactionSet(maxTransactionCount, maxItemCount, compressed));
+	public PairSet(int maxTransactionCount, int maxItemCount, boolean compressed) {
+		this((PairSet<T, I>) newEmptyTransactionSet(maxTransactionCount, maxItemCount, compressed));
 	}
 
 	/**
 	 * Converts a generic collection of transaction-item pairs to a
-	 * {@link TransactionSet} instance.
+	 * {@link PairSet} instance.
 	 * 
 	 * @param pairs
 	 *            collection of {@link Pair} instances
 	 */
-	public TransactionSet(Collection<Pair<T, I>> pairs) {
+	public PairSet(Collection<? extends Pair<T, I>> pairs) {
 		this(convert(pairs));
 	}
 
 	/**
-	 * Converts an array of transaction-item pairs to a {@link TransactionSet}
+	 * Converts an array of transaction-item pairs to a {@link PairSet}
 	 * instance.
 	 * <p>
 	 * In this case, the types <code>T</code> and <code>I</code> must be the
@@ -126,13 +126,13 @@ public class TransactionSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 *             same type
 	 */
 	@SuppressWarnings("unchecked")
-	public TransactionSet(T[][] pairs) {
-		this((TransactionSet<T, I>) convert(pairs));
+	public PairSet(T[][] pairs) {
+		this((PairSet<T, I>) convert(pairs));
 	}
 
 	/**
 	 * Converts a generic collection of {@link Pair} to an
-	 * {@link TransactionSet} instance
+	 * {@link PairSet} instance
 	 * 
 	 * @param <XT>
 	 *            type of transactions
@@ -140,13 +140,13 @@ public class TransactionSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 *            type of items
 	 * @param as
 	 *            collection of {@link Pair} instances
-	 * @return the new {@link TransactionSet} instance, or the parameter if it is
-	 *         an instance of {@link TransactionSet}
+	 * @return the new {@link PairSet} instance, or the parameter if it is
+	 *         an instance of {@link PairSet}
 	 */
 	@SuppressWarnings("unchecked")
-	public static <XT, XI> TransactionSet<XT, XI> convert(Collection<Pair<XT, XI>> as) {
-		if (as instanceof TransactionSet)
-			return (TransactionSet<XT, XI>) as;
+	public static <XT, XI> PairSet<XT, XI> convert(Collection<? extends Pair<XT, XI>> as) {
+		if (as instanceof PairSet)
+			return (PairSet<XT, XI>) as;
 		
 		// compute transactions and items, in the same order of the collection
 		HashMap<XT, Integer> transactionToFreq = new HashMap<XT, Integer>();
@@ -185,7 +185,7 @@ public class TransactionSet<T, I> extends AbstractSet<Pair<T, I>> {
 			sortedItems.add(e.getKey());
 		
 		// add pairs to the final result, in the same order of the collection
-		TransactionSet<XT, XI> res = new TransactionSet<XT, XI>(sortedTransactions, sortedItems, true);
+		PairSet<XT, XI> res = new PairSet<XT, XI>(sortedTransactions, sortedItems, true);
 		for (Pair<XT, XI> a : as) 
 			res.add(a);
 		
@@ -194,15 +194,15 @@ public class TransactionSet<T, I> extends AbstractSet<Pair<T, I>> {
 
 	/**
 	 * Convert a generic array of transaction-item pairs to an
-	 * {@link TransactionSet} instance
+	 * {@link PairSet} instance
 	 * 
 	 * @param <X>
 	 *            type of transactions and items
 	 * @param pairs
 	 *            array of transaction-item pairs
-	 * @return the new {@link TransactionSet} instance
+	 * @return the new {@link PairSet} instance
 	 */
-	public static <X> TransactionSet<X, X> convert(X[][] pairs) {
+	public static <X> PairSet<X, X> convert(X[][] pairs) {
 		if (pairs == null || pairs[0].length != 2)
 			throw new IllegalArgumentException();
 		
@@ -214,9 +214,9 @@ public class TransactionSet<T, I> extends AbstractSet<Pair<T, I>> {
 	}
 
 	/**
-	 * Creates an empty instance of {@link TransactionSet}
+	 * Creates an empty instance of {@link PairSet}
 	 */
-	private static <XT, XI> TransactionSet<XT, XI> newEmptyTransactionSet(
+	private static <XT, XI> PairSet<XT, XI> newEmptyTransactionSet(
 			Collection<XT> transactions, Collection<XI> items, boolean compressed) {
 		if (transactions == null || items == null)
 			throw new NullPointerException();
@@ -239,7 +239,7 @@ public class TransactionSet<T, I> extends AbstractSet<Pair<T, I>> {
 		ExtendedSet<Integer> indices = compressed ? new ConciseSet() : new FastSet();
 		
 		// final pair set
-		return new TransactionSet<XT, XI>(
+		return new PairSet<XT, XI>(
 				allTransactions, 
 				allItems, 
 				allTransactions.size(), 
@@ -248,9 +248,9 @@ public class TransactionSet<T, I> extends AbstractSet<Pair<T, I>> {
 	}
 	
 	/**
-	 * Creates an empty instance of {@link TransactionSet}
+	 * Creates an empty instance of {@link PairSet}
 	 */
-	private static TransactionSet<Integer, Integer> newEmptyTransactionSet(
+	private static PairSet<Integer, Integer> newEmptyTransactionSet(
 			int maxTransactionCount, int maxItemCount, boolean compressed) {
 		return newEmptyTransactionSet(
 				new IndexedSet<Integer>(0, maxTransactionCount - 1, compressed).universe(),
@@ -261,7 +261,7 @@ public class TransactionSet<T, I> extends AbstractSet<Pair<T, I>> {
 	/**
 	 * Shallow-copy constructor
 	 */
-	private TransactionSet(TransactionSet<T, I> as) {
+	private PairSet(PairSet<T, I> as) {
 		allTransactions = as.allTransactions;
 		allItems = as.allItems;
 		maxTransactionCount = as.maxTransactionCount;
@@ -272,7 +272,7 @@ public class TransactionSet<T, I> extends AbstractSet<Pair<T, I>> {
 	/**
 	 * Shallow-copy constructor
 	 */
-	private TransactionSet(
+	private PairSet(
 			IndexedSet<T> allTransactions, 
 			IndexedSet<I> allItems,
 			int maxTransactionCount,
@@ -288,14 +288,22 @@ public class TransactionSet<T, I> extends AbstractSet<Pair<T, I>> {
 	/**
 	 * {@inheritDoc}
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
-	public TransactionSet<T, I> clone() {
-		return new TransactionSet<T, I>(
-				allTransactions, 
-				allItems, 
-				maxTransactionCount, 
-				maxItemCount, 
-				indices.clone());
+	public PairSet<T, I> clone() {
+//		return new TransactionSet<T, I>(
+//				allTransactions, 
+//				allItems, 
+//				maxTransactionCount, 
+//				maxItemCount, 
+//				indices.clone());
+		try {
+			PairSet<T, I> cloned = (PairSet<T, I>) super.clone();
+			cloned.indices = indices.clone();
+			return cloned;
+		} catch (CloneNotSupportedException e) {
+			throw new InternalError();
+		}
 	}
 
 	/**
@@ -561,9 +569,9 @@ public class TransactionSet<T, I> extends AbstractSet<Pair<T, I>> {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (!(obj instanceof TransactionSet<?, ?>))
+		if (!(obj instanceof PairSet<?, ?>))
 			return false;
-		TransactionSet<?, ?> other = (TransactionSet<?, ?>) obj;
+		PairSet<?, ?> other = (PairSet<?, ?>) obj;
 		return allTransactions == other.allTransactions && allItems == other.allItems
 				&& indices.equals(other.indices);
 	}
@@ -724,7 +732,7 @@ public class TransactionSet<T, I> extends AbstractSet<Pair<T, I>> {
 
 	/**
 	 * Returns the set of indices. Modifications to this set are reflected to
-	 * this {@link TransactionSet} instance. Trying to perform operation on
+	 * this {@link PairSet} instance. Trying to perform operation on
 	 * out-of-bound indices will throw an {@link IllegalArgumentException}
 	 * exception.
 	 * 
@@ -756,9 +764,9 @@ public class TransactionSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 *            the last one)
 	 * @return the specified subset
 	 */
-	public TransactionSet<T, I> subSet(T fromTransaction, T toTransaction, I fromItem, I toItem) {
+	public PairSet<T, I> subSet(T fromTransaction, T toTransaction, I fromItem, I toItem) {
 		// final set
-		TransactionSet<T, I> res = empty();
+		PairSet<T, I> res = empty();
 		
 		// trivial case
 		if (fromTransaction == null && toTransaction == null && fromItem == null && toItem == null)
@@ -801,9 +809,9 @@ public class TransactionSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 * @return all the transaction-item pairs that represent the specified
 	 *         subset
 	 */
-	public TransactionSet<T, I> subSet(Collection<T> involvedTransactions, Collection<I> involvedItems) {
+	public PairSet<T, I> subSet(Collection<T> involvedTransactions, Collection<I> involvedItems) {
 		// final set of pairs
-		TransactionSet<T, I> res = empty();
+		PairSet<T, I> res = empty();
 
 		// trivial case
 		if (involvedTransactions == null && involvedItems == null) 
@@ -835,8 +843,8 @@ public class TransactionSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 * 
 	 * @return the empty set
 	 */
-	public TransactionSet<T, I> empty() {
-		return new TransactionSet<T, I>(
+	public PairSet<T, I> empty() {
+		return new PairSet<T, I>(
 				allTransactions, 
 				allItems, 
 				maxTransactionCount,
@@ -850,7 +858,7 @@ public class TransactionSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		TransactionSet<String, Integer> m = new TransactionSet<String, Integer>(
+		PairSet<String, Integer> m = new PairSet<String, Integer>(
 				Arrays.asList("T1", "T2", "T3", "T4"), 
 				Arrays.asList(100, 200, 300), 
 				true);
