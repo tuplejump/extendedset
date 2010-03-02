@@ -7,17 +7,12 @@ import it.uniroma3.mat.extendedset.IndexedSet;
 import it.uniroma3.mat.extendedset.ExtendedSet.ExtendedIterator;
 
 import java.util.AbstractSet;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
-import java.util.List;
+import java.util.LinkedHashSet;
 import java.util.Set;
-import java.util.Map.Entry;
 
 /**
  * This class can be used to represent a set of transactions.
@@ -79,6 +74,31 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 	}
 
 	/**
+	 * Avoids to directly call the class constructor #PairSet(Collection,
+	 * Collection, boolean), thus allowing for a more readable code
+	 * 
+	 * @param <XT>
+	 *            transaction type
+	 * @param <XI>
+	 *            item type
+	 * @param transactions
+	 *            collection of <i>all</i> possible transactions. The specified
+	 *            order will be preserved within when iterating over the
+	 *            {@link PairSet} instance.
+	 * @param items
+	 *            collection of <i>all</i> possible items. The specified order
+	 *            will be preserved within each transaction
+	 *            {@link PairSet}.
+	 * @param compressed
+	 *            <code>true</code> if a compressed internal representation
+	 *            should be used
+	 * @return a new class instance           
+	 */
+	public static <XT, XI> PairSet<XT, XI> newPairSet(Collection<XT> transactions, Collection<XI> items, boolean compressed) {
+		return new PairSet<XT, XI>(transactions, items, compressed);
+	}
+
+	/**
 	 * Initializes the set by specifying the <i>number</i> of all possible
 	 * transactions and items
 	 * <p>
@@ -102,6 +122,23 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 	}
 
 	/**
+	 * Avoids to directly call the class constructor #PairSet(Collection,
+	 * Collection, boolean), thus allowing for a more readable code
+	 * 
+	 * @param maxTransactionCount
+	 *            maximum number of transactions
+	 * @param maxItemCount
+	 *            maximum number of items
+	 * @param compressed
+	 *            <code>true</code> if a compressed internal representation
+	 *            should be used
+	 * @return a new class instance           
+	 */
+	public static PairSet<Integer, Integer> newPairSet(int maxTransactionCount, int maxItemCount, boolean compressed) {
+		return new PairSet<Integer, Integer>(maxTransactionCount, maxItemCount, compressed);
+	}
+
+	/**
 	 * Converts a generic collection of transaction-item pairs to a
 	 * {@link PairSet} instance.
 	 * 
@@ -109,7 +146,7 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 *            collection of {@link Pair} instances
 	 */
 	public PairSet(Collection<? extends Pair<T, I>> pairs) {
-		this(convert(pairs));
+		this(newPairSet(pairs));
 	}
 
 	/**
@@ -127,7 +164,7 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 */
 	@SuppressWarnings("unchecked")
 	public PairSet(T[][] pairs) {
-		this((PairSet<T, I>) convert(pairs));
+		this((PairSet<T, I>) newPairSet(pairs));
 	}
 
 	/**
@@ -144,10 +181,11 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 *         an instance of {@link PairSet}
 	 */
 	@SuppressWarnings("unchecked")
-	public static <XT, XI> PairSet<XT, XI> convert(Collection<? extends Pair<XT, XI>> as) {
+	public static <XT, XI> PairSet<XT, XI> newPairSet(Collection<? extends Pair<XT, XI>> as) {
 		if (as instanceof PairSet)
 			return (PairSet<XT, XI>) as;
-		
+
+		/*
 		// compute transactions and items, in the same order of the collection
 		HashMap<XT, Integer> transactionToFreq = new HashMap<XT, Integer>();
 		HashMap<XI, Integer> itemToFreq = new HashMap<XI, Integer>();
@@ -183,9 +221,22 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 			sortedTransactions.add(e.getKey());
 		for (Entry<XI, Integer> e : sortedItemFreqs) 
 			sortedItems.add(e.getKey());
-		
+
 		// add pairs to the final result, in the same order of the collection
 		PairSet<XT, XI> res = new PairSet<XT, XI>(sortedTransactions, sortedItems, true);
+		for (Pair<XT, XI> a : as) 
+			res.add(a);
+		*/
+
+		Set<XT> ts = new LinkedHashSet<XT>();
+		Set<XI> is = new LinkedHashSet<XI>();
+		for (Pair<XT, XI> a : as) {
+			ts.add(a.transaction);
+			is.add(a.item);
+		}
+		
+		// add pairs to the final result, in the same order of the collection
+		PairSet<XT, XI> res = new PairSet<XT, XI>(ts, is, true);
 		for (Pair<XT, XI> a : as) 
 			res.add(a);
 		
@@ -202,7 +253,7 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 *            array of transaction-item pairs
 	 * @return the new {@link PairSet} instance
 	 */
-	public static <X> PairSet<X, X> convert(X[][] pairs) {
+	public static <X> PairSet<X, X> newPairSet(X[][] pairs) {
 		if (pairs == null || pairs[0].length != 2)
 			throw new IllegalArgumentException();
 		
@@ -210,7 +261,7 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 		for (int i = 0; i < pairs.length; i++) 
 			as.add(new Pair<X, X>(pairs[i][0], pairs[i][1]));
 		
-		return convert(as);
+		return newPairSet(as);
 	}
 
 	/**

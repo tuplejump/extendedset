@@ -1,5 +1,6 @@
 package it.uniroma3.mat.extendedset.transactions;
 
+import static it.uniroma3.mat.extendedset.transactions.PairSet.newPairSet;
 import static it.uniroma3.mat.extendedset.util.CollectionMap.newCollectionMap;
 import it.uniroma3.mat.extendedset.IndexedSet;
 import it.uniroma3.mat.extendedset.util.CollectionMap;
@@ -9,6 +10,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.Map.Entry;
 
@@ -150,53 +152,60 @@ public class PairSets {
 	 *         instance
 	 */
 	public static <T, I> PairSet<IndexedSet<T>, IndexedSet<I>> compact(PairSet<T, I> ts, boolean compressed) {
-		// TODO: improve by directly working on indices
-
 		// identify distinct transactions
 		CollectionMap<IndexedSet<I>, T, IndexedSet<T>> itemsToTransactions = newCollectionMap(ts.allTransactions().empty());
-		for (T t : ts.involvedTransactions()) 
-			itemsToTransactions.putItem(ts.itemsOf(t), t);
-
-		// sort by descending frequencies
-		List<Entry<IndexedSet<I>, IndexedSet<T>>> sortedItemsToTransactions = new ArrayList<Entry<IndexedSet<I>, IndexedSet<T>>>(itemsToTransactions.entrySet());
-		Collections.sort(sortedItemsToTransactions, new Comparator<Entry<IndexedSet<I>, IndexedSet<T>>>() {
-			@Override
-			public int compare(
-					Entry<IndexedSet<I>, IndexedSet<T>> o1,
-					Entry<IndexedSet<I>, IndexedSet<T>> o2) {
-				return o2.getValue().size() - o1.getKey().size();
-			}
-		});
-		List<IndexedSet<T>> transactions = new ArrayList<IndexedSet<T>>(sortedItemsToTransactions.size());
-		for (Entry<IndexedSet<I>, IndexedSet<T>> t : sortedItemsToTransactions) 
-			transactions.add(t.getValue());
+		for (T t : ts.allTransactions()) { 
+			IndexedSet<I> ii = ts.itemsOf(t);
+			if (!ii.isEmpty())
+				itemsToTransactions.putItem(ii, t);
+		}
+		List<IndexedSet<T>> transactions = sortedGroups(itemsToTransactions);
 			
-		
 		// identify distinct items
 		CollectionMap<IndexedSet<T>, I, IndexedSet<I>> transactionsToItems = newCollectionMap(ts.allItems().empty());
-		for (I i : ts.involvedItems()) 
-			transactionsToItems.putItem(ts.transactionsOf(i), i);
+		for (I i : ts.allItems()) {
+			IndexedSet<T> tt = ts.transactionsOf(i);
+			if (!tt.isEmpty())
+				transactionsToItems.putItem(tt, i);
+		}
+		List<IndexedSet<I>> items = sortedGroups(transactionsToItems);
 
-		// sort by descending frequencies
-		List<Entry<IndexedSet<T>, IndexedSet<I>>> sortedTransactionToItems = new ArrayList<Entry<IndexedSet<T>, IndexedSet<I>>>(transactionsToItems.entrySet());
-		Collections.sort(sortedTransactionToItems, new Comparator<Entry<IndexedSet<T>, IndexedSet<I>>>() {
-			@Override
-			public int compare(
-					Entry<IndexedSet<T>, IndexedSet<I>> o1,
-					Entry<IndexedSet<T>, IndexedSet<I>> o2) {
-				return o2.getValue().size() - o1.getKey().size();
-			}
-		});	
-		List<IndexedSet<I>> items = new ArrayList<IndexedSet<I>>(sortedTransactionToItems.size());
-		for (Entry<IndexedSet<T>, IndexedSet<I>> i : sortedTransactionToItems) 
-			items.add(i.getValue());
-		
 		// final result
-		PairSet<IndexedSet<T>, IndexedSet<I>> res = new PairSet<IndexedSet<T>, IndexedSet<I>>(transactions, items, compressed);
+		PairSet<IndexedSet<T>, IndexedSet<I>> res = newPairSet(transactions, items, compressed);
 		for (IndexedSet<T> t : res.allTransactions())
 			for (IndexedSet<I> i : res.allItems()) 
+				// check for only one representative pair
 				if (ts.contains(t.last(), i.last()))
 					res.add(t, i);
 		return res;
+	}
+
+	/**
+	 * Used by {@link #compact(PairSet, boolean)}
+	 * <p>
+	 * It returns all the groups (keys of the given {@link Map}) sorted by
+	 * ascending number of corresponding elements (values of the given
+	 * {@link Map})
+	 * 
+	 * @param <X>
+	 *            class of type {@link IndexedSet} representing all the elements
+	 *            associated to a group
+	 * @param groupToElements
+	 *            all the elements associated to a group
+	 * @return all the groups sorted by ascending number of elements
+	 */
+	private static <X extends IndexedSet<?>> List<X> sortedGroups(Map<?, X> groupToElements) {
+		// sort by descending frequencies
+		List<Entry<?, X>> sortedGroupToElements = new ArrayList<Entry<?, X>>(groupToElements.entrySet());
+		Collections.sort(sortedGroupToElements, new Comparator<Entry<?, X>>() {
+			@Override
+			public int compare(Entry<?, X> o1, Entry<?, X> o2) {
+				return o2.getValue().size() - o1.getValue().size();
+			}
+		});
+		List<X> groups = new ArrayList<X>(sortedGroupToElements.size());
+		for (Entry<?, X> t : sortedGroupToElements) 
+			groups.add(t.getValue());
+		return groups;
 	}
 }
