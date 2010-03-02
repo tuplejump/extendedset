@@ -6,7 +6,7 @@ import it.uniroma3.mat.extendedset.ExtendedSet;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,7 +27,7 @@ import java.util.Map.Entry;
  * @param <C>
  *            {@link Collection} subclass used to collect items
  */
-public class CollectionMap<K, I, C extends Collection<I>> extends HashMap<K, C> {
+public class CollectionMap<K, I, C extends Collection<I>> extends LinkedHashMap<K, C> {
 	private static final long serialVersionUID = -2613391212228461025L;
 
 	/** empty collection */

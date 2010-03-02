@@ -302,7 +302,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 */
 	private static boolean isLiteral(int word) {
 		// "word" must be 1*
-		return (word & 0x80000000) == 0x80000000;
+		// NOTE: this is faster than "return (word & 0x80000000) == 0x80000000"
+		return (word & 0x80000000) != 0;
 	}
 
 	/**

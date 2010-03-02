@@ -5,14 +5,10 @@ import static it.uniroma3.mat.extendedset.util.CollectionMap.newCollectionMap;
 import it.uniroma3.mat.extendedset.IndexedSet;
 import it.uniroma3.mat.extendedset.util.CollectionMap;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.Map.Entry;
 
 /**
  * This class consists exclusively of static methods that operate on or return
@@ -135,6 +131,59 @@ public class PairSets {
 	}
 
 	/**
+	 * Generates a new {@link GroupAndFirst} instance from the given
+	 * transaction/item set
+	 * 
+	 * @param <X>
+	 *            <code>T</code> if transaction, <code>I</code> if item
+	 * @param group
+	 *            transaction/item set
+	 * @return the new {@link GroupAndFirst} instance
+	 */
+	private static <XT, XI> Group<XT, XI> group(IndexedSet<XT> group, IndexedSet<XI> related) {
+		return new Group<XT, XI>(group, related);
+	}
+	
+	/**
+	 * @param <XT>
+	 * @param <XI>
+	 */
+	public static class Group<XT, XI> {
+		/** transaction/item grouping */
+		public final IndexedSet<XT> group;
+		
+		/** first element of the grouping */
+		private final XT first;
+
+		/** all items/transactions associated to the transaction/item grouping */
+		public final IndexedSet<XI> related;
+		
+		// cannot instantiate outside this class...
+		private Group(IndexedSet<XT> group, IndexedSet<XI> related) {
+			this.group = group;
+			this.related = related;
+			this.first = group.first();
+		}
+		
+		/** {@inheritDoc} */  
+		@Override public int hashCode() {
+			return first.hashCode();
+		}
+		
+		/** {@inheritDoc} */
+		@Override public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			return first.equals(((Group<?, ?>) obj).first);
+		}
+		
+	}
+	
+	/**
 	 * Generates a compact representation of the given {@link PairSet}
 	 * instance, where each transaction (item) is a collection of all
 	 * transactions (items) that share the same items (transactions).
@@ -151,61 +200,44 @@ public class PairSets {
 	 * @return the compact representation of the given {@link PairSet}
 	 *         instance
 	 */
-	public static <T, I> PairSet<IndexedSet<T>, IndexedSet<I>> compact(PairSet<T, I> ts, boolean compressed) {
-		// identify distinct transactions
-		CollectionMap<IndexedSet<I>, T, IndexedSet<T>> itemsToTransactions = newCollectionMap(ts.allTransactions().empty());
-		for (T t : ts.allTransactions()) { 
-			IndexedSet<I> ii = ts.itemsOf(t);
-			if (!ii.isEmpty())
-				itemsToTransactions.putItem(ii, t);
+	public static <T, I> PairSet<Group<T, I>, Group<I, T>> compact(PairSet<T, I> ts, boolean compressed) {
+		// identify all transactions associated to an item, and items associated to a transaction
+		CollectionMap<T, I, IndexedSet<I>> transactionToItems = newCollectionMap(ts.allItems().empty());
+		CollectionMap<I, T, IndexedSet<T>> itemToTransactions = newCollectionMap(ts.allTransactions().empty());
+		for (Pair<T, I> p : ts) {
+			transactionToItems.putItem(p.transaction, p.item);
+			itemToTransactions.putItem(p.item, p.transaction);
 		}
-		List<IndexedSet<T>> transactions = sortedGroups(itemsToTransactions);
-			
-		// identify distinct items
-		CollectionMap<IndexedSet<T>, I, IndexedSet<I>> transactionsToItems = newCollectionMap(ts.allItems().empty());
-		for (I i : ts.allItems()) {
-			IndexedSet<T> tt = ts.transactionsOf(i);
-			if (!tt.isEmpty())
-				transactionsToItems.putItem(tt, i);
-		}
-		List<IndexedSet<I>> items = sortedGroups(transactionsToItems);
+		
+		// identify distinct transactions and items
+		CollectionMap<IndexedSet<T>, I, IndexedSet<I>> transactionsToItemGroup = newCollectionMap(ts.allItems().empty());
+		CollectionMap<IndexedSet<I>, T, IndexedSet<T>> itemsToTransactionGroup = newCollectionMap(ts.allTransactions().empty());
+		transactionsToItemGroup.mapValueToKeys(itemToTransactions);
+		itemsToTransactionGroup.mapValueToKeys(transactionToItems);
 
+		// identify representative transactions and items
+		Map<T, Group<T, I>> transactionToGroup = new HashMap<T, Group<T, I>>();
+		for (T t: transactionToItems.keySet()) {
+			IndexedSet<I> items = transactionToItems.get(t);
+			transactionToGroup.put(t, group(itemsToTransactionGroup.get(items), items));
+		}
+		Map<I, Group<I, T>> itemToGroup = new HashMap<I, Group<I, T>>(); 
+		for (I i: itemToTransactions.keySet()) {
+			IndexedSet<T> transactions = itemToTransactions.get(i);
+			itemToGroup.put(i, group(transactionsToItemGroup.get(transactions), transactions));
+		}
 		// final result
-		PairSet<IndexedSet<T>, IndexedSet<I>> res = newPairSet(transactions, items, compressed);
-		for (IndexedSet<T> t : res.allTransactions())
-			for (IndexedSet<I> i : res.allItems()) 
-				// check for only one representative pair
-				if (ts.contains(t.last(), i.last()))
-					res.add(t, i);
+		// NOTE: first transactions and first items within each group are in the
+		// same order of the original matrix
+		PairSet<Group<T, I>, Group<I, T>> res = newPairSet(transactionToGroup.values(), itemToGroup.values(), compressed);
+		for (Pair<T, I> pair : ts) {
+			// add the pair, only once for each group-pair
+			Group<T, I> gt = transactionToGroup.get(pair.transaction);
+			Group<I, T> gi = itemToGroup.get(pair.item);
+			if (pair.transaction.equals(gt.first) && pair.item.equals(gi.first))
+				res.add(gt, gi);
+		}
+		
 		return res;
-	}
-
-	/**
-	 * Used by {@link #compact(PairSet, boolean)}
-	 * <p>
-	 * It returns all the groups (keys of the given {@link Map}) sorted by
-	 * ascending number of corresponding elements (values of the given
-	 * {@link Map})
-	 * 
-	 * @param <X>
-	 *            class of type {@link IndexedSet} representing all the elements
-	 *            associated to a group
-	 * @param groupToElements
-	 *            all the elements associated to a group
-	 * @return all the groups sorted by ascending number of elements
-	 */
-	private static <X extends IndexedSet<?>> List<X> sortedGroups(Map<?, X> groupToElements) {
-		// sort by descending frequencies
-		List<Entry<?, X>> sortedGroupToElements = new ArrayList<Entry<?, X>>(groupToElements.entrySet());
-		Collections.sort(sortedGroupToElements, new Comparator<Entry<?, X>>() {
-			@Override
-			public int compare(Entry<?, X> o1, Entry<?, X> o2) {
-				return o2.getValue().size() - o1.getValue().size();
-			}
-		});
-		List<X> groups = new ArrayList<X>(sortedGroupToElements.size());
-		for (Entry<?, X> t : sortedGroupToElements) 
-			groups.add(t.getValue());
-		return groups;
 	}
 }

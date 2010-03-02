@@ -731,9 +731,10 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 * @see #absoluteIndexOf(Object)
 	 */
 	public ExtendedSet<Integer> indices() {
-		if (indexToItem instanceof IndexedSet<?>.UncheckedFakeMap)
-			return indices; 
-		return indices.headSet(indexToItem.size());
+//		if (indexToItem instanceof IndexedSet<?>.UncheckedFakeMap)
+//			return indices; 
+//		return indices.headSet(indexToItem.size());
+		return indices; 
 	}
 	
 	/**

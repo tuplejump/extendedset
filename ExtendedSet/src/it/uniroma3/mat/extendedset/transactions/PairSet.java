@@ -144,9 +144,12 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 * 
 	 * @param pairs
 	 *            collection of {@link Pair} instances
+	 * @param compressed
+	 *            <code>true</code> if a compressed internal representation
+	 *            should be used
 	 */
-	public PairSet(Collection<? extends Pair<T, I>> pairs) {
-		this(newPairSet(pairs));
+	public PairSet(Collection<? extends Pair<T, I>> pairs, boolean compressed) {
+		this(newPairSet(pairs, compressed));
 	}
 
 	/**
@@ -158,13 +161,16 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 * 
 	 * @param pairs
 	 *            array of transaction-item pairs
+	 * @param compressed
+	 *            <code>true</code> if a compressed internal representation
+	 *            should be used
 	 * @throws ClassCastException
 	 *             when <code>T</code> and <code>I</code> are <i>not</i> of the
 	 *             same type
 	 */
 	@SuppressWarnings("unchecked")
-	public PairSet(T[][] pairs) {
-		this((PairSet<T, I>) newPairSet(pairs));
+	public PairSet(T[][] pairs, boolean compressed) {
+		this((PairSet<T, I>) newPairSet(pairs, compressed));
 	}
 
 	/**
@@ -177,11 +183,14 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 *            type of items
 	 * @param as
 	 *            collection of {@link Pair} instances
+	 * @param compressed
+	 *            <code>true</code> if a compressed internal representation
+	 *            should be used
 	 * @return the new {@link PairSet} instance, or the parameter if it is
 	 *         an instance of {@link PairSet}
 	 */
 	@SuppressWarnings("unchecked")
-	public static <XT, XI> PairSet<XT, XI> newPairSet(Collection<? extends Pair<XT, XI>> as) {
+	public static <XT, XI> PairSet<XT, XI> newPairSet(Collection<? extends Pair<XT, XI>> as, boolean compressed) {
 		if (as instanceof PairSet)
 			return (PairSet<XT, XI>) as;
 
@@ -236,7 +245,7 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 		}
 		
 		// add pairs to the final result, in the same order of the collection
-		PairSet<XT, XI> res = new PairSet<XT, XI>(ts, is, true);
+		PairSet<XT, XI> res = new PairSet<XT, XI>(ts, is, compressed);
 		for (Pair<XT, XI> a : as) 
 			res.add(a);
 		
@@ -251,9 +260,12 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 *            type of transactions and items
 	 * @param pairs
 	 *            array of transaction-item pairs
+	 * @param compressed
+	 *            <code>true</code> if a compressed internal representation
+	 *            should be used
 	 * @return the new {@link PairSet} instance
 	 */
-	public static <X> PairSet<X, X> newPairSet(X[][] pairs) {
+	public static <X> PairSet<X, X> newPairSet(X[][] pairs, boolean compressed) {
 		if (pairs == null || pairs[0].length != 2)
 			throw new IllegalArgumentException();
 		
@@ -261,7 +273,7 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 		for (int i = 0; i < pairs.length; i++) 
 			as.add(new Pair<X, X>(pairs[i][0], pairs[i][1]));
 		
-		return newPairSet(as);
+		return newPairSet(as, compressed);
 	}
 
 	/**
@@ -275,16 +287,16 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 		// all transactions
 		IndexedSet<XT> allTransactions;
 		if (transactions instanceof IndexedSet<?>)
-			allTransactions = ((IndexedSet<XT>) transactions).unmodifiable();
+			allTransactions = ((IndexedSet<XT>) transactions); //.unmodifiable();
 		else
-			allTransactions = new IndexedSet<XT>(transactions, compressed).universe().unmodifiable();
+			allTransactions = new IndexedSet<XT>(transactions, compressed).universe(); //.unmodifiable();
 
 		// all items
 		IndexedSet<XI> allItems; 
 		if (items instanceof IndexedSet<?>)
-			allItems = ((IndexedSet<XI>) items).unmodifiable();
+			allItems = ((IndexedSet<XI>) items); //.unmodifiable();
 		else
-			allItems = new IndexedSet<XI>(items, compressed).universe().unmodifiable();
+			allItems = new IndexedSet<XI>(items, compressed).universe(); //.unmodifiable();
 		
 		// empty index set
 		ExtendedSet<Integer> indices = compressed ? new ConciseSet() : new FastSet();
@@ -793,7 +805,8 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 * @see #indexOf(Object, Object)
 	 */
 	public ExtendedSet<Integer> indices() {
-		return indices.headSet(maxTransactionCount * maxItemCount);
+//		return indices.headSet(maxTransactionCount * maxItemCount);
+		return indices;
 	}
 
 	/**
@@ -931,6 +944,8 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 		
 		System.out.println(m.involvedItems());
 		System.out.println(m.involvedTransactions());
+		
+		System.out.println(PairSets.compact(m, false));
 	}
 
 }
