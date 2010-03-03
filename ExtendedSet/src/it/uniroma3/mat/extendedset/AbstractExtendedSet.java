@@ -20,11 +20,13 @@ package it.uniroma3.mat.extendedset;
 
 import java.util.AbstractSet;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.NoSuchElementException;
 import java.util.SortedSet;
 
 /**
@@ -106,11 +108,6 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
-	public abstract void complement();
-
-	/**
-	 * {@inheritDoc}
-	 */
 	public boolean containsAny(Collection<? extends T> other) {
 		return intersectionSize(other) > 0;
 	}
@@ -187,6 +184,26 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	@Override
 	public ExtendedSet<T> tailSet(T fromElement) {
 		return new ExtendedSubSet(fromElement, null);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public T first() {
+		if (isEmpty()) 
+			throw new NoSuchElementException();
+		return iterator().next();
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public T last() {
+		if (isEmpty()) 
+			throw new NoSuchElementException();
+		return descendingIterator().next();
 	}
 
 	/**
@@ -441,11 +458,6 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
-	public abstract String debugInfo();
-
-	/**
-	 * {@inheritDoc}
-	 */
 	@SuppressWarnings("unchecked")
 	@Override
 	public int compareTo(ExtendedSet<T> o) {
@@ -621,6 +633,35 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		return 1D - weightedJaccardSimilarity(other);
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public ExtendedSet<T> convert(Object... e) {
+		if (e == null)
+			return empty();
+		return convert(Arrays.asList(e));
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public ExtendedSet<T> convert(Collection<?> c) {
+		ExtendedSet<T> res = empty();
+		res.addAll((Collection<T>) c);
+		return res;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public String debugInfo() {
+		return toString();
+	}
+
 	/**
 	 * Base class for {@link ExtendedSubSet} and {@link UnmodifiableExtendedSet}
 	 */

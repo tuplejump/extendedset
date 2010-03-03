@@ -2065,16 +2065,6 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Integer first() {
-		if (isEmpty()) 
-			throw new NoSuchElementException();
-		return iterator().next();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
 	public Integer last() {
 		if (isEmpty()) 
 			throw new NoSuchElementException();

@@ -6,8 +6,8 @@ import java.util.Set;
 /**
  * Interface to get transaction or item attributes
  * <p>
- * <b>IMPORTANT:</b> {@link #hashCode()} and {@link #equals(Object)} must be
- * properly overridden
+ * <b>IMPORTANT:</b> {@link Object#hashCode()} and {@link Object#equals(Object)}
+ * must be properly overridden
  * 
  * @author Alessandro Colantonio
  * @version $Id$
