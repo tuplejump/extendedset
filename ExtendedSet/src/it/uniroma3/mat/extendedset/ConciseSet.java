@@ -2100,17 +2100,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		// useless to convert...
 		if (c instanceof ConciseSet)
 			return (ConciseSet) c;
-		if (c instanceof AbstractExtendedSet.UnmodifiableExtendedSet) {
-			ExtendedSet<?> x = ((AbstractExtendedSet.UnmodifiableExtendedSet) c).container();
-			if (x instanceof ConciseSet)
-				return (ConciseSet) x;
-		}
-		if (c instanceof AbstractExtendedSet.ExtendedSubSet) {
-			ExtendedSet<?> x = ((AbstractExtendedSet.ExtendedSubSet) c).container();
-			if (x instanceof ConciseSet)
-				return (ConciseSet) ((AbstractExtendedSet.ExtendedSubSet) c).convert(c);
-		}
-
+		if (c instanceof AbstractExtendedSet.FilteredSet) 
+			return asConciseSet(((AbstractExtendedSet.FilteredSet) c).filtered());
 		
 		// try to convert the collection
 		ConciseSet res = new ConciseSet();
@@ -2207,6 +2198,9 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			append(b);
 			return true;
 		}
+
+		if (b == maxSetBit)
+			return false;
 
 		// check if the element can be put in a literal word
 		int blockIndex = maxLiteralLengthDivision(b);

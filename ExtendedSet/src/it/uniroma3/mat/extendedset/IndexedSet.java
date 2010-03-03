@@ -813,11 +813,8 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 		// useless to convert...
 		if (hasSameIndices(c))
 			return (IndexedSet<T>) c;
-		if (c instanceof AbstractExtendedSet.ExtendedSubSet) {
-			ExtendedSet<?> x = ((AbstractExtendedSet.ExtendedSubSet) c).container();
-			if (hasSameIndices(x)) 
-				return (IndexedSet<T>) ((AbstractExtendedSet.ExtendedSubSet) c).convert(c);
-		}
+		if (c instanceof AbstractExtendedSet.FilteredSet) 
+			return convert(((AbstractExtendedSet.FilteredSet) c).filtered());
 
 		// convert the collection
 		IndexedSet<T> res = empty();

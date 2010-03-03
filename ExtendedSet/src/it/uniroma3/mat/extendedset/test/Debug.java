@@ -1538,127 +1538,163 @@ public class Debug {
 		System.out.println("Done!");
 	}
 
+	private enum TestCase {
+		APPEND_SIMPLE_CONCISESET,
+		APPEND_SIMPLE_FASTSET,
+		APPEND_COMPLEX_CONCISESET,
+		APPEND_COMPLEX_FASTSET,
+		INDEXEDSET,
+		APPEND_RANDOM_CONCISESET,
+		INTERSECTION_SIMPLE_CONCISESET,
+		INTERSECTION_SIMPLE_FASTSET,
+		INTERSECTION_COMPLEX_CONCISESET,
+		INTERSECTION_COMPLEX_FASTSET,
+		UNION_SIMPLE_CONCISESET,
+		UNION_SIMPLE_FASTSET,
+		COMPLEMENT_CONCISESET,
+		COMPLEMENT_FASTSET,
+		MIXED_STUFF_CONCISESET,
+		MIXED_STUFF_FASTSET,
+		ADDITION_STRESS_CONCISESET,
+		REMOVAL_STRESS_CONCISESET,
+		RANDOM_OPERATION_STRESS_CONCISESET,
+		RANDOM_OPERATION_STRESS_FASTSET,
+		SUBSET_ADDITION_STRESS_CONCISESET,
+		SUBSET_REMOVAL_STRESS_CONCISESET,
+		SUBSET_RANDOM_OPERATION_STRESS_CONCISESET,
+		COMPARATOR_SIMPLE_CONCISESET,
+		COMPARATOR_SIMPLE_FASTSET,
+		COMPARATOR_COMPLEX_CONCISESET,
+		COMPARATOR_COMPLEX_FASTSET,
+		DESCENDING_ITERATOR_CONCISESET,
+		DESCENDING_ITERATOR_FASTSET,
+		POSITION_CONCISESET,
+		EQUALS_CONCISESET,
+		EQUALS_FASTSET,
+		SKIP_CONCISESET,
+		SKIP_FASTSET,
+		;
+	}
+	
 	/**
 	 * Test launcher
 	 * 
-	 * @param args ID of the test to execute (from 1 to 29)
+	 * @param args ID of the test to execute
 	 */
 	public static void main(String[] args) {
-		int testCase = 29;
+		TestCase testCase = TestCase.SUBSET_ADDITION_STRESS_CONCISESET;
 		
 		if (args != null && args.length > 0) {
 			try {
-				testCase = Integer.parseInt(args[0]);
+				testCase = TestCase.values()[Integer.parseInt(args[0])];
 			} catch (NumberFormatException ignore) {
 				// nothing to do
 			}
 		}
 		
 		switch (testCase) {
-		case 1:
+		case APPEND_SIMPLE_CONCISESET:
 			testForAppendSimple(ConciseSet.class);
 			break;
-		case 15:
+		case APPEND_SIMPLE_FASTSET:
 			testForAppendSimple(FastSet.class);
 			break;
-		case 2:
+		case APPEND_COMPLEX_CONCISESET:
 			testForAppendComplex(ConciseSet.class);
 			break;
-		case 16:
+		case APPEND_COMPLEX_FASTSET:
 			testForAppendComplex(FastSet.class);
 			break;
-		case 17:
-			testForIndexedSet();
-			break;
-		case 3:
+		case APPEND_RANDOM_CONCISESET:
 			testForAppendRandom();
 			break;
-		case 4:
+		case INDEXEDSET:
+			testForIndexedSet();
+			break;
+		case INTERSECTION_SIMPLE_CONCISESET:
 			testForIntersectionSimple(ConciseSet.class);
 			break;
-		case 18:
+		case INTERSECTION_SIMPLE_FASTSET:
 			testForIntersectionSimple(FastSet.class);
 			break;
-		case 5:
+		case INTERSECTION_COMPLEX_CONCISESET:
 			testForIntersectionComplex(ConciseSet.class);
 			break;
-		case 19:
+		case INTERSECTION_COMPLEX_FASTSET:
 			testForIntersectionComplex(FastSet.class);
 			break;
-		case 6:
+		case UNION_SIMPLE_CONCISESET:
 			testForUnionSimple(ConciseSet.class);
 			break;
-		case 20:
+		case UNION_SIMPLE_FASTSET:
 			testForUnionSimple(FastSet.class);
 			break;
-		case 7:
+		case COMPLEMENT_CONCISESET:
 			testForComplement(ConciseSet.class);
 			break;
-		case 21:
+		case COMPLEMENT_FASTSET:
 			testForComplement(FastSet.class);
 			break;
-		case 8:
+		case MIXED_STUFF_CONCISESET:
 			testForMixedStuff(ConciseSet.class);
 			break;
-		case 22:
+		case MIXED_STUFF_FASTSET:
 			testForMixedStuff(FastSet.class);
 			break;
-		case 9:
+		case ADDITION_STRESS_CONCISESET:
 			testForAdditionStress();
 			break;
-		case 10:
+		case REMOVAL_STRESS_CONCISESET:
 			testForRemovalStress();
 			break;
-		case 11:
+		case RANDOM_OPERATION_STRESS_CONCISESET:
 			testForRandomOperationsStress(ConciseSet.class);
 			break;
-		case 32:
+		case RANDOM_OPERATION_STRESS_FASTSET:
 			testForRandomOperationsStress(FastSet.class);
 			break;
-		case 12:
+		case SUBSET_ADDITION_STRESS_CONCISESET:
 			testForSubSetAdditionStress();
 			break;
-		case 13:
+		case SUBSET_REMOVAL_STRESS_CONCISESET:
 			testForSubSetRemovalStress();
 			break;
-		case 14:
+		case SUBSET_RANDOM_OPERATION_STRESS_CONCISESET:
 			testForSubSetRandomOperationsStress();
 			break;
-		case 23:
+		case COMPARATOR_SIMPLE_CONCISESET:
 			testForComparatorSimple(ConciseSet.class);
 			break;
-		case 24:
+		case COMPARATOR_SIMPLE_FASTSET:
 			testForComparatorSimple(FastSet.class);
 			break;
-		case 25:
+		case COMPARATOR_COMPLEX_CONCISESET:
 			testForComparatorComplex(ConciseSet.class);
 			break;
-		case 26:
+		case COMPARATOR_COMPLEX_FASTSET:
 			testForComparatorComplex(FastSet.class);
 			break;
-		case 27:
+		case DESCENDING_ITERATOR_CONCISESET:
 			testForDescendingIterator(ConciseSet.class);
 			break;
-		case 28:
+		case DESCENDING_ITERATOR_FASTSET:
 			testForDescendingIterator(FastSet.class);
 			break;
-		case 29:
+		case POSITION_CONCISESET:
 			testForPosition();
 			break;
-		case 30:
+		case EQUALS_CONCISESET:
 			testForEquals(ConciseSet.class);
 			break;
-		case 31:
+		case EQUALS_FASTSET:
 			testForEquals(FastSet.class);
 			break;
-		case 33:
+		case SKIP_CONCISESET:
 			testForSkip(ConciseSet.class);
 			break;
-		case 34:
+		case SKIP_FASTSET:
 			testForSkip(FastSet.class);
 			break;
-		default:
-			System.out.println("Unknown test case!");
 		}
 	}
 }

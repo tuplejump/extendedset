@@ -7,11 +7,16 @@ import it.uniroma3.mat.extendedset.IndexedSet;
 import it.uniroma3.mat.extendedset.ExtendedSet.ExtendedIterator;
 
 import java.util.AbstractSet;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -70,7 +75,7 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 *            should be used
 	 */
 	public PairSet(Collection<T> transactions, Collection<I> items, boolean compressed) {
-		this(newEmptyTransactionSet(transactions, items, compressed));
+		this(newEmptyPairSet(transactions, items, compressed));
 	}
 
 	/**
@@ -118,7 +123,7 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 */
 	@SuppressWarnings("unchecked")
 	public PairSet(int maxTransactionCount, int maxItemCount, boolean compressed) {
-		this((PairSet<T, I>) newEmptyTransactionSet(maxTransactionCount, maxItemCount, compressed));
+		this((PairSet<T, I>) newEmptyPairSet(maxTransactionCount, maxItemCount, compressed));
 	}
 
 	/**
@@ -181,7 +186,7 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 *            type of transactions
 	 * @param <XI>
 	 *            type of items
-	 * @param as
+	 * @param ps
 	 *            collection of {@link Pair} instances
 	 * @param compressed
 	 *            <code>true</code> if a compressed internal representation
@@ -190,64 +195,54 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 *         an instance of {@link PairSet}
 	 */
 	@SuppressWarnings("unchecked")
-	public static <XT, XI> PairSet<XT, XI> newPairSet(Collection<? extends Pair<XT, XI>> as, boolean compressed) {
-		if (as instanceof PairSet)
-			return (PairSet<XT, XI>) as;
+	public static <XT, XI> PairSet<XT, XI> newPairSet(Collection<? extends Pair<XT, XI>> ps, boolean compressed) {
+		if (ps instanceof PairSet)
+			return (PairSet<XT, XI>) ps;
 
-		/*
-		// compute transactions and items, in the same order of the collection
-		HashMap<XT, Integer> transactionToFreq = new HashMap<XT, Integer>();
-		HashMap<XI, Integer> itemToFreq = new HashMap<XI, Integer>();
-		Integer frequency;
-		for (Pair<XT, XI> a : as) {
-			frequency = transactionToFreq.get(a.transaction);
-			transactionToFreq.put(a.transaction, frequency == null ? 1 : frequency + 1);
+		PairSet<XT, XI> res;
+		
+		if (!compressed) {
+			// identify all possible transactions and items
+			Set<XT> ts = new LinkedHashSet<XT>();
+			Set<XI> is = new LinkedHashSet<XI>();
+			for (Pair<XT, XI> a : ps) {
+				ts.add(a.transaction);
+				is.add(a.item);
+			}
 			
-			frequency = itemToFreq.get(a.item);
-			itemToFreq.put(a.item, frequency == null ? 1 : frequency + 1);
-		}
-		
-		// sort transactions and items by descending frequencies
-		List<Entry<XT, Integer>> sortedTransactionFreqs = new ArrayList<Entry<XT, Integer>>(transactionToFreq.entrySet());
-		List<Entry<XI, Integer>> sortedItemFreqs = new ArrayList<Entry<XI, Integer>>(itemToFreq.entrySet());
-		Collections.sort(sortedTransactionFreqs, new Comparator<Entry<XT, Integer>>() {
-			@Override
-			public int compare(Entry<XT, Integer> o1, Entry<XT, Integer> o2) {
-				return o2.getValue().compareTo(o1.getValue());
+			// add pairs to the final result, in the same order of the collection
+			res = new PairSet<XT, XI>(ts, is, compressed);
+			for (Pair<XT, XI> a : ps) 
+				res.add(a);
+		} else {
+			// identify all possible transactions and items
+			final Map<XT, Integer> ts = new LinkedHashMap<XT, Integer>();
+			final Map<XI, Integer> is = new LinkedHashMap<XI, Integer>();
+			int ti = 0, ii = 0;
+			for (Pair<XT, XI> p : ps) {
+				if (!ts.containsKey(p.transaction))
+					ts.put(p.transaction, ti++);
+				if (!is.containsKey(p.item))
+					is.put(p.item, ii++);
 			}
-		});
-		Collections.sort(sortedItemFreqs, new Comparator<Entry<XI, Integer>>() {
-			@Override
-			public int compare(Entry<XI, Integer> o1, Entry<XI, Integer> o2) {
-				return o2.getValue().compareTo(o1.getValue());
-			}
-		});
-		
-		// final list of transactions and items
-		List<XT> sortedTransactions = new ArrayList<XT>(transactionToFreq.size());
-		List<XI> sortedItems = new ArrayList<XI>(itemToFreq.size());
-		for (Entry<XT, Integer> e : sortedTransactionFreqs) 
-			sortedTransactions.add(e.getKey());
-		for (Entry<XI, Integer> e : sortedItemFreqs) 
-			sortedItems.add(e.getKey());
 
-		// add pairs to the final result, in the same order of the collection
-		PairSet<XT, XI> res = new PairSet<XT, XI>(sortedTransactions, sortedItems, true);
-		for (Pair<XT, XI> a : as) 
-			res.add(a);
-		*/
+			// sort the collection according to the sets of transactions and items
+			List<Pair<XT, XI>> sorted = new ArrayList<Pair<XT, XI>>(ps);
+			Collections.sort(sorted, new Comparator<Pair<XT, XI>>() {
+				@Override
+				public int compare(Pair<XT, XI> o1, Pair<XT, XI> o2) {
+					int r = ts.get(o1.transaction) - ts.get(o2.transaction);
+					if (r == 0)
+						r = is.get(o1.item) - is.get(o2.item);
+					return r;
+				}
+			});
 
-		Set<XT> ts = new LinkedHashSet<XT>();
-		Set<XI> is = new LinkedHashSet<XI>();
-		for (Pair<XT, XI> a : as) {
-			ts.add(a.transaction);
-			is.add(a.item);
+			// add pairs to the final result, according to the identified order 
+			res = new PairSet<XT, XI>(ts.keySet(), is.keySet(), compressed);
+			for (Pair<XT, XI> p : sorted) 
+				res.add(p);
 		}
-		
-		// add pairs to the final result, in the same order of the collection
-		PairSet<XT, XI> res = new PairSet<XT, XI>(ts, is, compressed);
-		for (Pair<XT, XI> a : as) 
-			res.add(a);
 		
 		return res;
 	}
@@ -269,7 +264,7 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 		if (pairs == null || pairs[0].length != 2)
 			throw new IllegalArgumentException();
 		
-		Set<Pair<X, X>> as = new HashSet<Pair<X, X>>(pairs.length);
+		List<Pair<X, X>> as = new ArrayList<Pair<X, X>>(pairs.length);
 		for (int i = 0; i < pairs.length; i++) 
 			as.add(new Pair<X, X>(pairs[i][0], pairs[i][1]));
 		
@@ -279,7 +274,7 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 	/**
 	 * Creates an empty instance of {@link PairSet}
 	 */
-	private static <XT, XI> PairSet<XT, XI> newEmptyTransactionSet(
+	private static <XT, XI> PairSet<XT, XI> newEmptyPairSet(
 			Collection<XT> transactions, Collection<XI> items, boolean compressed) {
 		if (transactions == null || items == null)
 			throw new NullPointerException();
@@ -313,9 +308,9 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 	/**
 	 * Creates an empty instance of {@link PairSet}
 	 */
-	private static PairSet<Integer, Integer> newEmptyTransactionSet(
+	private static PairSet<Integer, Integer> newEmptyPairSet(
 			int maxTransactionCount, int maxItemCount, boolean compressed) {
-		return newEmptyTransactionSet(
+		return newEmptyPairSet(
 				new IndexedSet<Integer>(0, maxTransactionCount - 1, compressed).universe(),
 				new IndexedSet<Integer>(0, maxItemCount - 1, compressed).universe(),
 				compressed);
@@ -354,12 +349,6 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 	@SuppressWarnings("unchecked")
 	@Override
 	public PairSet<T, I> clone() {
-//		return new TransactionSet<T, I>(
-//				allTransactions, 
-//				allItems, 
-//				maxTransactionCount, 
-//				maxItemCount, 
-//				indices.clone());
 		try {
 			PairSet<T, I> cloned = (PairSet<T, I>) super.clone();
 			cloned.indices = indices.clone();
@@ -700,8 +689,12 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 */
 	public IndexedSet<T> involvedTransactions() {
 		IndexedSet<T> inv = allTransactions.empty();
-		for (Integer ai : indices)
-			inv.indices().add(ai / maxItemCount);
+		ExtendedIterator<Integer> itr = indices.iterator();
+		while (itr.hasNext()) {
+			int t = itr.next() / maxItemCount;
+			inv.indices().add(t);
+			itr.skipAllBefore((t + 1) * maxItemCount);
+		}
 		return inv;
 	}
 
@@ -714,8 +707,9 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 */
 	public IndexedSet<I> involvedItems() {
 		IndexedSet<I> inv = allItems.empty();
-		for (Integer ai : indices) 
-			inv.indices().add(ai % maxItemCount);
+		ExtendedIterator<Integer> itr = indices.iterator();
+		while (itr.hasNext() && (inv.size() < allItems.size()))
+			inv.indices().add(itr.next() % maxItemCount);
 		return inv;
 	}
 
@@ -883,18 +877,29 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 		
 		// identify indices
 		if (involvedTransactions == null) {
+			// identify all potential indices
+			Collection<Integer> pis = new ArrayList<Integer>(involvedItems.size());
+			for (I p : involvedItems) 
+				pis.add(allItems.absoluteIndexOf(p));
 			for (int ui = 0; ui < maxTransactionCount; ui++) 
-				for (I p : involvedItems) 
-					res.indices.add(ui * maxItemCount + allItems.absoluteIndexOf(p));
+				for (Integer pi : pis)
+					res.indices.add(ui * maxItemCount + pi);
 		} else if (involvedItems == null) {
+			// identify all potential indices
 			for (T u : involvedTransactions) {
 				int first = allTransactions.absoluteIndexOf(u) * maxItemCount;
 				res.indices.fill(first, first + maxItemCount - 1);
 			}
 		} else {
-			for (T u : involvedTransactions) 
-				for (I p : involvedItems) 
-					res.add(u, p);
+			// identify all potential indices
+			Collection<Integer> pis = new ArrayList<Integer>(involvedItems.size());
+			for (I p : involvedItems) 
+				pis.add(allItems.absoluteIndexOf(p));
+			for (T u : involvedTransactions) {
+				int ui = allTransactions.absoluteIndexOf(u);
+				for (Integer pi : pis)
+					res.indices.add(ui * maxItemCount + pi);
+			}
 		}
 
 		// remove out-of-range pairs
@@ -923,15 +928,15 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 	 */
 	public static void main(String[] args) {
 		PairSet<String, Integer> m = new PairSet<String, Integer>(
-				Arrays.asList("T1", "T2", "T3", "T4"), 
-				Arrays.asList(100, 200, 300), 
+				Arrays.asList("T1", "T2", "T3", "T4", "T5", "T6"), 
+				Arrays.asList(100, 200, 300, 400, 500, 600), 
 				true);
 		m.add("T3", 200);
-		m.add("T1", 100);
+		m.add("T6", 100);
 		m.add("T2", 100);
 		m.add("T2", 200);
 		m.add("T4", 300);
-		m.add("T4", 200);
+		m.add("T4", 600);
 		System.out.println(m);
 		System.out.println(m.debugInfo());
 		

@@ -131,7 +131,7 @@ public class PairSets {
 	}
 
 	/**
-	 * Generates a new {@link GroupAndFirst} instance from the given
+	 * Generates a new {@link Group} instance from the given
 	 * transaction/item set
 	 * 
 	 * @param <X>
@@ -143,10 +143,14 @@ public class PairSets {
 	private static <XT, XI> Group<XT, XI> group(IndexedSet<XT> group, IndexedSet<XI> related) {
 		return new Group<XT, XI>(group, related);
 	}
-	
+
 	/**
+	 * Group of items or transactions
+	 * 
 	 * @param <XT>
+	 *            transactions/items of the grouping
 	 * @param <XI>
+	 *            items/transactions involved with the grouping
 	 */
 	public static class Group<XT, XI> {
 		/** transaction/item grouping */
@@ -226,6 +230,7 @@ public class PairSets {
 			IndexedSet<T> transactions = itemToTransactions.get(i);
 			itemToGroup.put(i, group(transactionsToItemGroup.get(transactions), transactions));
 		}
+		
 		// final result
 		// NOTE: first transactions and first items within each group are in the
 		// same order of the original matrix

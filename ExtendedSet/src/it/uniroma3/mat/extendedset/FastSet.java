@@ -601,16 +601,8 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 		// useless to convert...
 		if (c instanceof FastSet)
 			return (FastSet) c;
-		if (c instanceof AbstractExtendedSet.UnmodifiableExtendedSet) {
-			ExtendedSet<?> x = ((AbstractExtendedSet.UnmodifiableExtendedSet) c).container();
-			if (x instanceof FastSet)
-				return (FastSet) x;
-		}
-		if (c instanceof AbstractExtendedSet.ExtendedSubSet) {
-			ExtendedSet<?> x = ((AbstractExtendedSet.ExtendedSubSet) c).container();
-			if (x instanceof FastSet)
-				return (FastSet) ((AbstractExtendedSet.ExtendedSubSet) c).convert(c);
-		}
+		if (c instanceof AbstractExtendedSet.FilteredSet) 
+			return asFastSet(((AbstractExtendedSet.FilteredSet) c).filtered());
 
 		// try to convert the collection
 		FastSet res = new FastSet();
