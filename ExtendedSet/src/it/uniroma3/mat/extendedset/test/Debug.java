@@ -24,6 +24,7 @@ import it.uniroma3.mat.extendedset.FastSet;
 import it.uniroma3.mat.extendedset.IndexedSet;
 import it.uniroma3.mat.extendedset.ExtendedSet.ExtendedIterator;
 import it.uniroma3.mat.extendedset.ExtendedSet.Statistics;
+import it.uniroma3.mat.extendedset.util.MTRandom;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -229,7 +230,7 @@ public class Debug {
 		TreeSet<Integer> items = new TreeSet<Integer>();
 
 		// random number generator
-		Random rnd = new Random(31);
+		Random rnd = new MTRandom(31);
 
 		bits.clear();
 		items.clear();
@@ -328,7 +329,7 @@ public class Debug {
 	@SuppressWarnings("unchecked")
 	private static void testForIntersectionComplex(Class<? extends ExtendedSet> c) {
 		// generate items to intersect completely at random
-		Random rnd = new Random(31);
+		Random rnd = new MTRandom(31);
 
 		ExtendedSet<Integer> bitsLeft;
 		ExtendedSet<Integer> bitsRight;
@@ -545,7 +546,7 @@ public class Debug {
 		ConciseSet currentBits = new ConciseSet();
 		TreeSet<Integer> currentItems = new TreeSet<Integer>();
 
-		Random rnd = new Random();
+		Random rnd = new MTRandom();
 
 		// add 100000 random numbers
 		for (int i = 0; i < 100000; i++) {
@@ -630,7 +631,7 @@ public class Debug {
 		ConciseSet currentBits = new ConciseSet();
 		TreeSet<Integer> currentItems = new TreeSet<Integer>();
 
-		Random rnd = new Random();
+		Random rnd = new MTRandom();
 
 		// create a 1-filled bitset
 		currentBits.add(10001);
@@ -736,7 +737,7 @@ public class Debug {
 		TreeSet<Integer> itemsLeft = new TreeSet<Integer>();
 		TreeSet<Integer> itemsRight = new TreeSet<Integer>();
 
-		Random rnd = new Random();
+		Random rnd = new MTRandom();
 
 		// random operation loop
 		for (int i = 0; i < 1000000; i++) {
@@ -883,7 +884,7 @@ public class Debug {
 		ConciseSet currentBits = new ConciseSet();
 		TreeSet<Integer> currentItems = new TreeSet<Integer>();
 
-		Random rnd = new Random();
+		Random rnd = new MTRandom();
 
 		for (int j = 0; j < 100000; j++) {
 			// keep the previous result
@@ -948,7 +949,7 @@ public class Debug {
 			return;
 		}
 
-		Random rnd = new Random();
+		Random rnd = new MTRandom();
 
 		for (int j = 0; j < 100000; j++) {
 			// keep the previous result
@@ -1007,7 +1008,7 @@ public class Debug {
 		ConciseSet bitsPrevious = new ConciseSet();
 		TreeSet<Integer> items = new TreeSet<Integer>();
 
-		Random rnd = new Random();
+		Random rnd = new MTRandom();
 
 		// random operation loop
 		for (int i = 0; i < 100000; i++) {
@@ -1313,7 +1314,7 @@ public class Debug {
 			throw new RuntimeException(e);
 		}
 
-		Random rnd = new Random(31);
+		Random rnd = new MTRandom(31);
 		for (int i = 0; i < 10000; i++) {
 			// empty numbers
 			BigInteger correctLeft = BigInteger.ZERO;
@@ -1367,7 +1368,7 @@ public class Debug {
 			throw new RuntimeException(e);
 		}
 		
-		Random rnd = new Random(31);
+		Random rnd = new MTRandom(31);
 		for (int i = 0; i < 100000; i++) {
 			HashSet<Integer> x = new HashSet<Integer>(bits);
 			HashSet<Integer> y = new HashSet<Integer>();
@@ -1398,7 +1399,7 @@ public class Debug {
 	 */
 	private static void testForPosition() {
 		ConciseSet bits = new ConciseSet();
-		Random rnd = new Random(31);
+		Random rnd = new MTRandom(31);
 		for (int i = 0; i < 1000; i++) {
 			// new set
 			bits.clear();
@@ -1497,7 +1498,7 @@ public class Debug {
 			throw new RuntimeException(e);
 		}
 
-		Random rnd = new Random(31);
+		Random rnd = new MTRandom(31);
 		for (int i = 0; i < 10000; i++) {
 			int max = rnd.nextInt(10000);
 			bits.clear();
@@ -1582,7 +1583,7 @@ public class Debug {
 	 * @param args ID of the test to execute
 	 */
 	public static void main(String[] args) {
-		TestCase testCase = TestCase.SKIP_CONCISESET;
+		TestCase testCase = TestCase.APPEND_COMPLEX_CONCISESET;
 		
 		if (args != null && args.length > 0) {
 			try {

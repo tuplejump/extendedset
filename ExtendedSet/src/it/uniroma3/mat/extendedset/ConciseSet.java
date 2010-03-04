@@ -632,6 +632,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		private int currentWordCopy;	// copy of the current word
 		private int currentLiteral;		// literal contained within the current word
 		private int remainingWords;		// remaining words from "index" to the end
+		private boolean moreThanOneLiteralInCurrentWordCopy; // true if the current word is a sequence with many words
 		
 		/*
 		 * Initialize data 
@@ -642,12 +643,14 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				currentWordCopy = words[currentWordIndex];
 				currentLiteral = getLiteral(currentWordCopy);
 				remainingWords = lastWordIndex;
+				moreThanOneLiteralInCurrentWordCopy = !isLiteral(currentWordCopy) && (getSequenceCount(currentWordCopy) != 0);
 			} else {
 				// empty set
 				currentWordIndex = 0;
 				currentWordCopy = 0;
 				currentLiteral = 0;
 				remainingWords = -1;
+				moreThanOneLiteralInCurrentWordCopy = false;
 			}
 		}
 		
@@ -667,8 +670,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		 * @return <code>true</code> if there are literals to iterate
 		 */
 		public final boolean hasMoreLiterals() {
-			return hasMoreWords() 
-				|| (!isLiteral(currentWordCopy) && getSequenceCount(currentWordCopy) > 0);
+			return hasMoreWords() || moreThanOneLiteralInCurrentWordCopy; 
 		}
 
 		/**
@@ -687,18 +689,19 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		 * {@link #currentWordCopy}.
 		 */ 
 		public final void computeNextLiteral() {
-			if (isLiteral(currentWordCopy) || getSequenceCount(currentWordCopy) == 0) {
+			if (moreThanOneLiteralInCurrentWordCopy) {
+				// decrease the counter and avoid to generate again the 1-bit literal
+				currentWordCopy = getSequenceWithNoBits(currentWordCopy) - 1;
+			} else {
 				// NOTE: when remainingWords < 0, then currentLiteral and
 				// currentWordCopy are not valid!!!
 				currentWordIndex++;
 				if (hasMoreWords()) 
 					currentWordCopy = words[currentWordIndex];
 				remainingWords--;
-			} else {
-				// decrease the counter and avoid to generate again the 1-bit literal
-				currentWordCopy = getSequenceWithNoBits(currentWordCopy) - 1;
 			}
 			currentLiteral = getLiteral(currentWordCopy);
+			moreThanOneLiteralInCurrentWordCopy = !isLiteral(currentWordCopy) && (getSequenceCount(currentWordCopy) != 0);
 		}
 	}
 	
@@ -1752,20 +1755,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		 */
 		@Override
 		public boolean hasNext() {
-			// check for concurrent modification 
-			if (initialModCount != modCount)
-				throw new ConcurrentModificationException();
-
-			// there are no words
-			if (isEmpty())
-				return false;
-
-			// there are other literals to read
-			if (wordItr.hasMoreLiterals())
-				return true;
-
-			// check if we already reached the last bit of the last word
-			return getNextSetBit() < MAX_LITERAL_LENGHT;
+			return wordItr.hasMoreLiterals() || getNextSetBit() < MAX_LITERAL_LENGHT;
 		}
 
 		/**
@@ -1907,20 +1897,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		 */
 		@Override
 		public boolean hasNext() {
-			// check for concurrent modification 
-			if (initialModCount != modCount)
-				throw new ConcurrentModificationException();
-
-			// there are no words
-			if (isEmpty())
-				return false;
-
-			// there are other literals to read
-			if (wordItr.hasMoreLiterals())
-				return true;
-
-			// check if we already reached the last bit of the last word
-			return getNextSetBit() >= 0;
+			return wordItr.hasMoreLiterals() || getNextSetBit() >= 0;
 		}
 
 		/**
@@ -2033,6 +2010,14 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 */
 	@Override
 	public ExtendedIterator<Integer> iterator() {
+		if (isEmpty()) {
+			return new ExtendedIterator<Integer>() {
+				@Override public void skipAllBefore(Integer element) {/*empty*/}
+				@Override public boolean hasNext() {return false;}
+				@Override public Integer next() {throw new NoSuchElementException();}
+				@Override public void remove() {throw new UnsupportedOperationException();}
+			};
+		}
 		return new BitIterator();
 	}
 
@@ -2041,6 +2026,14 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 */
 	@Override
 	public ExtendedIterator<Integer> descendingIterator() {
+		if (isEmpty()) {
+			return new ExtendedIterator<Integer>() {
+				@Override public void skipAllBefore(Integer element) {/*empty*/}
+				@Override public boolean hasNext() {return false;}
+				@Override public Integer next() {throw new NoSuchElementException();}
+				@Override public void remove() {throw new UnsupportedOperationException();}
+			};
+		}
 		return new ReverseBitIterator();
 	}
 	
