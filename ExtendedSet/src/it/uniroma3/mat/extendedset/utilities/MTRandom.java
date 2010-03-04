@@ -1,4 +1,4 @@
-package it.uniroma3.mat.extendedset.util;
+package it.uniroma3.mat.extendedset.utilities;
 
 /*
  * MTRandom : A Java implementation of the MT19937 (Mersenne Twister)

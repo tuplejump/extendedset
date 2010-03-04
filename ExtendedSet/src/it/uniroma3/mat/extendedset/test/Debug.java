@@ -24,7 +24,7 @@ import it.uniroma3.mat.extendedset.FastSet;
 import it.uniroma3.mat.extendedset.IndexedSet;
 import it.uniroma3.mat.extendedset.ExtendedSet.ExtendedIterator;
 import it.uniroma3.mat.extendedset.ExtendedSet.Statistics;
-import it.uniroma3.mat.extendedset.util.MTRandom;
+import it.uniroma3.mat.extendedset.utilities.MTRandom;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
