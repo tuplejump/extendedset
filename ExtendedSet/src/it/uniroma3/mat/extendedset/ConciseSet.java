@@ -632,7 +632,6 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		private int currentWordCopy;	// copy of the current word
 		private int currentLiteral;		// literal contained within the current word
 		private int remainingWords;		// remaining words from "index" to the end
-		private boolean moreThanOneLiteralInCurrentWordCopy; // true if the current word is a sequence with many words
 		
 		/*
 		 * Initialize data 
@@ -643,15 +642,34 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				currentWordCopy = words[currentWordIndex];
 				currentLiteral = getLiteral(currentWordCopy);
 				remainingWords = lastWordIndex;
-				moreThanOneLiteralInCurrentWordCopy = !isLiteral(currentWordCopy) && (getSequenceCount(currentWordCopy) != 0);
 			} else {
 				// empty set
 				currentWordIndex = 0;
 				currentWordCopy = 0;
 				currentLiteral = 0;
 				remainingWords = -1;
-				moreThanOneLiteralInCurrentWordCopy = false;
 			}
+		}
+
+		/**
+		 * Checks if the current word represents more than one literal
+		 * 
+		 * @return <code>true</code> if the current word represents more than
+		 *         one literal
+		 */
+		private boolean hasCurrentWordManyLiterals() {
+			/*
+			 * The complete statement should be:
+			 * 
+			 *     return !isLiteral(currentWordCopy) && getSequenceCount(currentWordCopy) > 0;
+			 *     
+			 * that is equivalent to:
+			 * 
+			 *     return ((currentWordCopy & 0x80000000) == 0) && (currentWordCopy & 0x01FFFFFF) > 0;
+			 *     
+			 * and thus equivalent to...
+			 */
+			return (currentWordCopy & 0x81FFFFFF) > 0;
 		}
 		
 		/**
@@ -670,7 +688,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		 * @return <code>true</code> if there are literals to iterate
 		 */
 		public final boolean hasMoreLiterals() {
-			return hasMoreWords() || moreThanOneLiteralInCurrentWordCopy; 
+			return hasMoreWords() || hasCurrentWordManyLiterals();
 		}
 
 		/**
@@ -688,20 +706,18 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		 * necessary, and modifies the copy of the current word
 		 * {@link #currentWordCopy}.
 		 */ 
-		public final void computeNextLiteral() {
-			if (moreThanOneLiteralInCurrentWordCopy) {
+		public final void prepareNextLiteral() {
+			if (!hasCurrentWordManyLiterals()) {
+				if (remainingWords == -1)
+					throw new NoSuchElementException();
+				if (remainingWords > 0) 
+					currentWordCopy = words[++currentWordIndex];
+				remainingWords--;
+			} else {
 				// decrease the counter and avoid to generate again the 1-bit literal
 				currentWordCopy = getSequenceWithNoBits(currentWordCopy) - 1;
-			} else {
-				// NOTE: when remainingWords < 0, then currentLiteral and
-				// currentWordCopy are not valid!!!
-				currentWordIndex++;
-				if (hasMoreWords()) 
-					currentWordCopy = words[currentWordIndex];
-				remainingWords--;
 			}
 			currentLiteral = getLiteral(currentWordCopy);
-			moreThanOneLiteralInCurrentWordCopy = !isLiteral(currentWordCopy) && (getSequenceCount(currentWordCopy) != 0);
 		}
 	}
 	
@@ -809,13 +825,15 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 
 		/**
 		 * Prepares the next literal, similar to
-		 * {@link WordIterator#computeNextLiteral()}. <b>NOTE:</b> it supposes
+		 * {@link WordIterator#prepareNextLiteral()}. <b>NOTE:</b> it supposes
 		 * that {@link #hasMoreLiterals()} returns <code>true</code>.
 		 */ 
-		public final void computeNextLiteral() {
-			if (isLiteral(currentWordCopy) || getSequenceCount(currentWordCopy) == 0) { 
+		public final void prepareNextLiteral() {
+			if (isLiteral(currentWordCopy) || getSequenceCount(currentWordCopy) == 0) {
 				if (--currentWordIndex >= 0)
 					currentWordCopy = words[currentWordIndex];
+				if (currentWordCopy == -2)
+					throw new NoSuchElementException();
 			} else {
 				currentWordCopy--;
 			}
@@ -923,7 +941,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				increaseLastWordSequenceCount(skipSequence(itr));
 
 			// next literal
-			itr.computeNextLiteral();
+			itr.prepareNextLiteral();
 		}
 	}
 	
@@ -1010,7 +1028,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 					WordIterator op1Itr = op1.new WordIterator();
 					op1Itr.currentWordCopy -= maxLiteralLengthDivision(op2.maxSetBit) + 1;
 					if (op1Itr.currentWordCopy < 0)
-						op1Itr.computeNextLiteral();
+						op1Itr.prepareNextLiteral();
 					
 					// ... finally, append op1
 					res.appendRemainingWords(op1Itr);
@@ -1209,8 +1227,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				res.increaseLastWordSequenceCount(skipSequence(thisItr, otherItr));
 
 			// next literal
-			thisItr.computeNextLiteral();
-			otherItr.computeNextLiteral();
+			thisItr.prepareNextLiteral();
+			otherItr.prepareNextLiteral();
 		}
 
 		// if one bit string is greater than the other one, we add the remaining
@@ -1295,8 +1313,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				res += curRes * skipSequence(thisItr, otherItr);
 
 			// next literals
-			thisItr.computeNextLiteral();
-			otherItr.computeNextLiteral();
+			thisItr.prepareNextLiteral();
+			otherItr.prepareNextLiteral();
 		}
 
 		// return the intersection size
@@ -1770,9 +1788,6 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			// loop until we find some set bit
 			int nextSetBit = MAX_LITERAL_LENGHT;
 			while (nextSetBit >= MAX_LITERAL_LENGHT) {
-				if (!hasNext())
-					throw new NoSuchElementException();
-
 				// next bit in the current literal
 				nextSetBit = getNextSetBit();
 
@@ -1790,7 +1805,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 						wordItr.currentWordCopy -= blocks;
 					}
 					nextBitToCheck = 0;
-					wordItr.computeNextLiteral();
+					wordItr.prepareNextLiteral();
 				}
 			}
 
@@ -1857,7 +1872,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 					rightmostBitOfCurrentWord += bits;
 					wordItr.currentWordCopy -= blocks;
 				}
-				wordItr.computeNextLiteral();
+				wordItr.prepareNextLiteral();
 			}
 		}
 
@@ -1912,9 +1927,6 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			// loop until we find some set bit
 			int nextSetBit = -1;
 			while (nextSetBit < 0) {
-				if (!hasNext())
-					throw new NoSuchElementException();
-
 				// next bit in the current literal
 				nextSetBit = getNextSetBit();
 
@@ -1936,7 +1948,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 						}
 					}
 					nextBitToCheck = MAX_LITERAL_LENGHT - 1;
-					wordItr.computeNextLiteral();
+					wordItr.prepareNextLiteral();
 				}
 			}
 
@@ -1990,7 +2002,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 					nextBitToCheck += bits;
 					wordItr.currentWordCopy -= blocks;
 				}
-				wordItr.computeNextLiteral();
+				wordItr.prepareNextLiteral();
 			}
 		}
 
@@ -2415,8 +2427,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				skipSequence(thisItr, otherItr);
 
 			// next literals
-			thisItr.computeNextLiteral();
-			otherItr.computeNextLiteral();
+			thisItr.prepareNextLiteral();
+			otherItr.prepareNextLiteral();
 		}
 
 		// the intersection is equal to the other set
@@ -2466,8 +2478,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			skipSequence(thisItr, otherItr);
 
 			// next literals
-			thisItr.computeNextLiteral();
-			otherItr.computeNextLiteral();
+			thisItr.prepareNextLiteral();
+			otherItr.prepareNextLiteral();
 		}
 
 		// the intersection is equal to the empty set
@@ -2529,8 +2541,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				res += curRes * skipSequence(thisItr, otherItr);
 
 			// next literals
-			thisItr.computeNextLiteral();
-			otherItr.computeNextLiteral();
+			thisItr.prepareNextLiteral();
+			otherItr.prepareNextLiteral();
 		}
 
 		// return the intersection size
@@ -2704,8 +2716,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			skipSequence(thisIterator, otherIterator);
 
 			// next literals
-			thisIterator.computeNextLiteral();
-			otherIterator.computeNextLiteral();
+			thisIterator.prepareNextLiteral();
+			otherIterator.prepareNextLiteral();
 		}
 		return thisIterator.hasMoreLiterals() ? 1 : (otherIterator.hasMoreLiterals() ? -1 : 0);
 	}
