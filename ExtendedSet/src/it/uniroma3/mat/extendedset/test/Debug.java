@@ -1582,7 +1582,7 @@ public class Debug {
 	 * @param args ID of the test to execute
 	 */
 	public static void main(String[] args) {
-		TestCase testCase = TestCase.SUBSET_ADDITION_STRESS_CONCISESET;
+		TestCase testCase = TestCase.SKIP_CONCISESET;
 		
 		if (args != null && args.length > 0) {
 			try {

@@ -18,8 +18,6 @@
 
 package it.uniroma3.mat.extendedset;
 
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -77,35 +75,25 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 			this.inverse = inverse;
 		}
 
-		/**
-		 * {@inheritDoc}
-		 */
-		@Override
-		public Integer get(Object key) {
+		@Override public Integer get(Object key) {
 			Integer value = (Integer) key - (inverse ? shift : 0);
 			if (value.compareTo(0) < 0 || value.compareTo(size) >= 0)
 				throw new IndexOutOfBoundsException(key.toString());
 			return value + (inverse ? 0 : shift);
 		}
 		
-		/**
-		 * {@inheritDoc}
-		 */
-		@Override
-		public int size() {
-			return size;
-		}
+		@Override public int size() {return size;}
 
-		/** {@inheritDoc} */ @Override public void clear() {throw new UnsupportedOperationException();}
-		/** {@inheritDoc} */ @Override public boolean containsKey(Object key) {throw new UnsupportedOperationException();}
-		/** {@inheritDoc} */ @Override public boolean containsValue(Object value) {throw new UnsupportedOperationException();}
-		/** {@inheritDoc} */ @Override public Set<Entry<Integer, Integer>> entrySet() {throw new UnsupportedOperationException();}
-		/** {@inheritDoc} */ @Override public boolean isEmpty() {throw new UnsupportedOperationException();}
-		/** {@inheritDoc} */ @Override public Set<Integer> keySet() {throw new UnsupportedOperationException();}
-		/** {@inheritDoc} */ @Override public Integer put(Integer key, Integer value) {throw new UnsupportedOperationException();}
-		/** {@inheritDoc} */ @Override public void putAll(Map<? extends Integer, ? extends Integer> m) {throw new UnsupportedOperationException();}
-		/** {@inheritDoc} */ @Override public Integer remove(Object key) {throw new UnsupportedOperationException();}
-		/** {@inheritDoc} */ @Override public Collection<Integer> values() {throw new UnsupportedOperationException();}
+		@Override public void clear() {throw new UnsupportedOperationException();}
+		@Override public boolean containsKey(Object key) {throw new UnsupportedOperationException();}
+		@Override public boolean containsValue(Object value) {throw new UnsupportedOperationException();}
+		@Override public Set<Entry<Integer, Integer>> entrySet() {throw new UnsupportedOperationException();}
+		@Override public boolean isEmpty() {throw new UnsupportedOperationException();}
+		@Override public Set<Integer> keySet() {throw new UnsupportedOperationException();}
+		@Override public Integer put(Integer key, Integer value) {throw new UnsupportedOperationException();}
+		@Override public void putAll(Map<? extends Integer, ? extends Integer> m) {throw new UnsupportedOperationException();}
+		@Override public Integer remove(Object key) {throw new UnsupportedOperationException();}
+		@Override public Collection<Integer> values() {throw new UnsupportedOperationException();}
 	}
 	
 	/**
@@ -131,10 +119,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 		 * {@link IndexedSet#absoluteIndexOf(Object)} methods does not throw exceptions
 		 * when using indices below the lower bound
 		 */
-		@Override
-		public Integer get(Object key) {
-			return (Integer) key + shift;
-		}
+		@Override public Integer get(Object key) {return (Integer) key + shift;}
 		
 		/**
 		 * {@inheritDoc}
@@ -142,21 +127,18 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 		 * By not supporting this method we make the method
 		 * {@link IndexedSet#universe()} not working
 		 */
-		@Override
-		public int size() {
-			throw new UnsupportedOperationException();
-		}
+		@Override public int size() {throw new UnsupportedOperationException();}
 
-		/** {@inheritDoc} */ @Override public void clear() {throw new UnsupportedOperationException();}
-		/** {@inheritDoc} */ @Override public boolean containsKey(Object key) {throw new UnsupportedOperationException();}
-		/** {@inheritDoc} */ @Override public boolean containsValue(Object value) {throw new UnsupportedOperationException();}
-		/** {@inheritDoc} */ @Override public Set<Entry<Integer, Integer>> entrySet() {throw new UnsupportedOperationException();}
-		/** {@inheritDoc} */ @Override public boolean isEmpty() {throw new UnsupportedOperationException();}
-		/** {@inheritDoc} */ @Override public Set<Integer> keySet() {throw new UnsupportedOperationException();}
-		/** {@inheritDoc} */ @Override public Integer put(Integer key, Integer value) {throw new UnsupportedOperationException();}
-		/** {@inheritDoc} */ @Override public void putAll(Map<? extends Integer, ? extends Integer> m) {throw new UnsupportedOperationException();}
-		/** {@inheritDoc} */ @Override public Integer remove(Object key) {throw new UnsupportedOperationException();}
-		/** {@inheritDoc} */ @Override public Collection<Integer> values() {throw new UnsupportedOperationException();}
+		@Override public void clear() {throw new UnsupportedOperationException();}
+		@Override public boolean containsKey(Object key) {throw new UnsupportedOperationException();}
+		@Override public boolean containsValue(Object value) {throw new UnsupportedOperationException();}
+		@Override public Set<Entry<Integer, Integer>> entrySet() {throw new UnsupportedOperationException();}
+		@Override public boolean isEmpty() {throw new UnsupportedOperationException();}
+		@Override public Set<Integer> keySet() {throw new UnsupportedOperationException();}
+		@Override public Integer put(Integer key, Integer value) {throw new UnsupportedOperationException();}
+		@Override public void putAll(Map<? extends Integer, ? extends Integer> m) {throw new UnsupportedOperationException();}
+		@Override public Integer remove(Object key) {throw new UnsupportedOperationException();}
+		@Override public Collection<Integer> values() {throw new UnsupportedOperationException();}
 	}
 
 	/**
@@ -204,11 +186,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 				itemToIndex.put(indexToItem.get(i), i);
 		}
 
-		// indices
-		if (compressed)
-			indices = new ConciseSet();
-		else
-			indices = new FastSet();
+		indices = compressed ? new ConciseSet() : new FastSet();
 	}
 
 	/**
@@ -238,15 +216,9 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@SuppressWarnings("unchecked")
 	public IndexedSet(int first, boolean compressed) {
-		// maps
 		indexToItem = (Map<Integer, T>) new UncheckedFakeMap(first);
 		itemToIndex = (Map<T, Integer>) new UncheckedFakeMap(-first);
-
-		// indices
-		if (compressed)
-			indices = new ConciseSet();
-		else
-			indices = new FastSet();
+		indices = compressed ? new ConciseSet() : new FastSet();
 	}
 
 	/**
@@ -272,17 +244,11 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@SuppressWarnings("unchecked")
 	public IndexedSet(int first, int last, boolean compressed) {
-		// maps
 		if (first > last)
 			throw new IllegalArgumentException("first > last");
 		indexToItem = (Map<Integer, T>) new CheckedFakeMap(last - first + 1, first, false);
 		itemToIndex = (Map<T, Integer>) new CheckedFakeMap(last - first + 1, first, true);
-
-		// indices
-		if (compressed)
-			indices = new ConciseSet();
-		else
-			indices = new FastSet();
+		indices = compressed ? new ConciseSet() : new FastSet();
 	}
 
 	/**
@@ -475,39 +441,11 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@Override
 	public ExtendedIterator<T> iterator() {
 		return new ExtendedIterator<T>() {
-			private final ExtendedIterator<Integer> indexIterator = indices.iterator();
-
-			/**
-			 * {@inheritDoc}
-			 */
-			@Override
-			public boolean hasNext() {
-				return indexIterator.hasNext();
-			}
-
-			/**
-			 * {@inheritDoc}
-			 */
-			@Override
-			public T next() {
-				return indexToItem.get(indexIterator.next());
-			}
-			
-			/**
-			 * {@inheritDoc}
-			 */
-			@Override
-			public void skipAllBefore(T element) {
-				indexIterator.skipAllBefore(itemToIndex.get(element));
-			}
-
-			/**
-			 * {@inheritDoc}
-			 */
-			@Override
-			public void remove() {
-				indexIterator.remove();
-			}
+			final ExtendedIterator<Integer> itr = indices.iterator();
+			@Override public boolean hasNext() {return itr.hasNext();}
+			@Override public T next() {return indexToItem.get(itr.next());}
+			@Override public void skipAllBefore(T element) {itr.skipAllBefore(itemToIndex.get(element));}
+			@Override public void remove() {itr.remove();}
 		};
 	}
 
@@ -517,39 +455,11 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@Override
 	public ExtendedIterator<T> descendingIterator() {
 		return new ExtendedIterator<T>() {
-			private final ExtendedIterator<Integer> indexIterator = indices.descendingIterator();
-
-			/**
-			 * {@inheritDoc}
-			 */
-			@Override
-			public boolean hasNext() {
-				return indexIterator.hasNext();
-			}
-
-			/**
-			 * {@inheritDoc}
-			 */
-			@Override
-			public T next() {
-				return indexToItem.get(indexIterator.next());
-			}
-
-			/**
-			 * {@inheritDoc}
-			 */
-			@Override
-			public void skipAllBefore(T element) {
-				indexIterator.skipAllBefore(itemToIndex.get(element));
-			}
-
-			/**
-			 * {@inheritDoc}
-			 */
-			@Override
-			public void remove() {
-				indexIterator.remove();
-			}
+			final ExtendedIterator<Integer> itr = indices.descendingIterator();
+			@Override public boolean hasNext() {return itr.hasNext();}
+			@Override public T next() {return indexToItem.get(itr.next());}
+			@Override public void skipAllBefore(T element) {itr.skipAllBefore(itemToIndex.get(element));}
+			@Override public void remove() {itr.remove();}
 		};
 	}
 
@@ -635,8 +545,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public IndexedSet<T> complemented() {
-		return new IndexedSet<T>(itemToIndex, indexToItem, 
-				this.indices.complemented());
+		return new IndexedSet<T>(itemToIndex, indexToItem, this.indices.complemented());
 	}
 
 	/**
@@ -694,9 +603,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	public IndexedSet<T> universe() {
 		ExtendedSet<Integer> allItems = indices.empty();
-		allItems.add(indexToItem.size() - 1);
-		allItems.complement();
-		allItems.add(indexToItem.size() - 1);
+		allItems.fill(0, indexToItem.size() - 1);
 		return new IndexedSet<T>(itemToIndex, indexToItem, allItems);
 	}
 
@@ -807,41 +714,28 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@SuppressWarnings("unchecked")
 	@Override
 	public IndexedSet<T> convert(Collection<?> c) {
-		if (c == null)
-			return new IndexedSet<T>(itemToIndex, indexToItem, indices.empty());
+		if (c == null || c.isEmpty())
+			return empty();
 
 		// useless to convert...
 		if (hasSameIndices(c))
 			return (IndexedSet<T>) c;
-		if (c instanceof AbstractExtendedSet.FilteredSet) 
-			return convert(((AbstractExtendedSet.FilteredSet) c).filtered());
-
-		// convert the collection
+		
+		// NOTE: cannot call super.convert(c) because of loop
 		IndexedSet<T> res = empty();
-		Collection<Integer> is = new ArrayList<Integer>();
-		for (Object o : c) 
-			is.add(itemToIndex.get(o));
-		res.indices.addAll(is);
+		for (T t : (Collection<T>) c) 
+			res.add(t);
 		return res;
 	}
-
+	
 	/**
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public IndexedSet<T> convert(Object... e) {
-		if (e == null)
-			return new IndexedSet<T>(itemToIndex, indexToItem, indices.empty());
-		if (e.length == 1) {
-			IndexedSet<T> res = empty();
-			res.add((T) e[0]);
-			return res;
-		} 
-			
-		return convert(Arrays.asList(e));
+		return (IndexedSet<T>) super.convert(e);
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -870,25 +764,40 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	}
 
 	/**
-	 * Add specific methods to {@link AbstractExtendedSet#UnmodifiableExtendedSet} 
-	 */
-	protected class UnmodifiableIndexedSet extends IndexedSet<T>  {
-		/**
-		 * Create an instance with unmodifiable indices
-		 */
-		public UnmodifiableIndexedSet() {
-			super(itemToIndex, indexToItem, indices.unmodifiable());
-		}
-	}
-	
-	/**
-	 * @return the read-only version of the current set
+	 * {@inheritDoc}
 	 */
 	@Override
 	public IndexedSet<T> unmodifiable() {
-		return new UnmodifiableIndexedSet();
+		return new IndexedSet<T>(itemToIndex, indexToItem, indices.unmodifiable());
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public IndexedSet<T> subSet(T fromElement, T toElement) {
+		return new IndexedSet<T>(itemToIndex, indexToItem, 
+				indices.subSet(itemToIndex.get(fromElement), itemToIndex.get(toElement)));
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public IndexedSet<T> headSet(T toElement) {
+		return new IndexedSet<T>(itemToIndex, indexToItem, 
+				indices.headSet(itemToIndex.get(toElement)));
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public IndexedSet<T> tailSet(T fromElement) {
+		return new IndexedSet<T>(itemToIndex, indexToItem, 
+				indices.tailSet(itemToIndex.get(fromElement)));
+	}
+
 	/**
 	 * {@inheritDoc}
 	 */

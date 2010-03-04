@@ -799,22 +799,19 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		/** Returns a read-only subset */
 		private ExtendedSet<T> unmodifiableSubSet(T min, T max) {
 			ExtendedSet<T> res;
-			if (max != null) {
-				ExtendedSet<T> mask = empty();
-				mask.add(max);
-				mask.complement();
-				if (min != null) {
-					ExtendedSet<T> tmp = empty();
-					tmp.add(min);
-					tmp.complement();
-					mask.removeAll(tmp);
-				}
-				res = AbstractExtendedSet.this.intersection(mask).unmodifiable();
+			ExtendedSet<T> range = AbstractExtendedSet.this.empty();
+			if (min != null && max != null) {
+				range.fill(min, max);
+				range.remove(max);
+				res = AbstractExtendedSet.this.intersection(range).unmodifiable();
+			} else if (max != null) {
+				range.add(max);
+				range.complement();
+				res = AbstractExtendedSet.this.intersection(range).unmodifiable();
 			} else {
-				ExtendedSet<T> mask = empty();
-				mask.add(min);
-				mask.complement();
-				res = AbstractExtendedSet.this.difference(mask).unmodifiable();
+				range.add(min);
+				range.complement();
+				res = AbstractExtendedSet.this.difference(range).unmodifiable();
 			}
 			return res;
 		}
@@ -874,17 +871,12 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 
 			// add all elements that are strictly less than "max"
 			range = AbstractExtendedSet.this.empty();
-			if (max != null) {
+			if (min != null && max != null) {
+				range.fill(min, max);
+				range.remove(max);
+			} else if (max != null) {
 				range.add(max);
 				range.complement();
-
-				// remove all elements that are strictly less than "min"
-				if (min != null) {
-					ExtendedSet<T> tmp = AbstractExtendedSet.this.empty();
-					tmp.add(min);
-					tmp.complement();
-					range.removeAll(tmp);
-				}
 			} else {
 				range.add(min);
 				range.complement();

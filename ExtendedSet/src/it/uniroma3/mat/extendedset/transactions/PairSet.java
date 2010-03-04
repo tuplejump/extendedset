@@ -647,7 +647,7 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 		ExtendedIterator<Integer> itr = indices.iterator();
 		itr.skipAllBefore(indexOfFirst);
 		Integer next;
-		while (itr.hasNext() && (next = itr.next()) <= indexOfLast) 
+		while (itr.hasNext() && ((next = itr.next()) <= indexOfLast)) 
 			res.indices().add(next - indexOfFirst);
 		return res;
 	}
@@ -949,8 +949,6 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
 		
 		System.out.println(m.involvedItems());
 		System.out.println(m.involvedTransactions());
-		
-		System.out.println(PairSets.compact(m, false));
 	}
 
 }

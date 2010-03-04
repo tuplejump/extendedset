@@ -1307,7 +1307,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	public int complementSize() {
 		if (isEmpty())
 			return 0;
-		return this.maxSetBit - this.size + 1;
+		return maxSetBit - size + 1;
 	}
 
 	/**
@@ -1823,7 +1823,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			if (element > maxSetBit){
 				// makes hasNext() return "false"
 				wordItr.remainingWords = 0;
-				wordItr.currentLiteral = 0;
+				wordItr.currentWordCopy = ALL_ZEROS_LITERAL;
 				return;
 			}
 			
@@ -1989,7 +1989,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			if (!wordItr.hasMoreLiterals()) {
 				// makes hasNext() return "false"
 				wordItr.currentWordIndex = -1;
-				wordItr.currentLiteral = 0;
+				wordItr.currentWordCopy = ALL_ZEROS_LITERAL;
 				return;
 			}
 			

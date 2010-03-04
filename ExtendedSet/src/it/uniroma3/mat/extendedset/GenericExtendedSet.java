@@ -1,16 +1,16 @@
 package it.uniroma3.mat.extendedset;
 
-import java.util.AbstractCollection;
+import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedSet;
-import java.util.TreeSet;
 
 /**
  * {@link ExtendedSet}-based class internally managed by any {@link Set} instance
@@ -32,40 +32,40 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	/**
 	 * Set of all integers &gt;= 0
 	 */
-	public static final Collection<Integer> ALL_POSITIVE_INTEGERS = new AbstractCollection<Integer>() {
+	public static final SortedSet<Integer> ALL_POSITIVE_INTEGERS = new IntegerUniverse();
+	private static class IntegerUniverse extends AbstractSet<Integer> implements SortedSet<Integer> {
+		int min = 0;
+		int max = Integer.MAX_VALUE;
 		@Override
 		public Iterator<Integer> iterator() {
 			return new Iterator<Integer>() {
-				private Integer curr = 0;
-				
-				@Override
-				public boolean hasNext() {
-					return curr != null;
-				}
-
-				@Override
-				public Integer next() {
+				private Integer curr = min;
+				@Override public boolean hasNext() {return curr != null;}
+				@Override public Integer next() {
 					Integer prev = curr;
-					if (curr < Integer.MAX_VALUE)
-						curr++;
-					else
-						curr = null;
+					if (curr < max) curr++;
+					else curr = null;
 					return prev;
 				}
-
-				@Override
-				public void remove() {
-					throw new UnsupportedOperationException();
-				}
+				@Override public void remove() {throw new UnsupportedOperationException();}
 			};
 		}
-
-		/** {@inheritDoc} */
-		@Override
-		public int size() {
-			return Integer.MAX_VALUE;
+		@Override public boolean contains(Object o) {return o != null && o instanceof Integer && ((Integer) o) >= min && ((Integer) o) <= max;}
+		@Override public int size() {return max - min + 1;}
+		@Override public Comparator<? super Integer> comparator() {return null;}
+		@Override public Integer first() {return min;}
+		@Override public Integer last() {return max;}
+		@Override public SortedSet<Integer> subSet(Integer fromElement, Integer toElement) {
+			if (fromElement < 0 || fromElement > toElement)
+				throw new IllegalArgumentException();
+			IntegerUniverse sub = new IntegerUniverse();
+			sub.min = fromElement;
+			sub.max = toElement;
+			return sub;
 		}
-	};
+		@Override public SortedSet<Integer> headSet(Integer toElement) {return subSet(0, toElement);}
+		@Override public SortedSet<Integer> tailSet(Integer fromElement) {return subSet(fromElement, Integer.MAX_VALUE);}
+	}
 
 	/**
 	 * Empty-set constructor
@@ -231,6 +231,49 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 * {@inheritDoc}
 	 */
 	@Override
+	public ExtendedSet<T> headSet(T toElement) {
+		if (elements instanceof SortedSet<?>) {
+			GenericExtendedSet<T> c = empty();
+			c.elements = ((SortedSet<T>) elements).headSet(toElement);
+			return c;
+		}
+		return super.headSet(toElement);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public ExtendedSet<T> tailSet(T fromElement) {
+		if (elements instanceof SortedSet<?>) {
+			GenericExtendedSet<T> c = empty();
+			c.elements = ((SortedSet<T>) elements).tailSet(fromElement);
+			return c;
+		}
+		return super.headSet(fromElement);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public ExtendedSet<T> subSet(T fromElement, T toElement) {
+		if (elements instanceof SortedSet<?>) {
+			GenericExtendedSet<T> c = empty();
+			c.elements = ((SortedSet<T>) elements).subSet(fromElement, toElement);
+			return c;
+		}
+		return super.headSet(toElement);
+	}
+
+	/*
+	 * ExtendedSet methods 
+	 */
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
 	public GenericExtendedSet<T> intersection(Collection<? extends T> other) {
 		return (GenericExtendedSet<T>) super.intersection(other);
 	}
@@ -275,37 +318,84 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 				add(u);
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public ExtendedSet<T> unmodifiable() {
+		GenericExtendedSet<T> c = empty();
+		c.elements = Collections.unmodifiableSet(elements);
+		return c;
+	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void fill(T from, T to) {
+		if (universe instanceof SortedSet<?>) { 
+			addAll(((SortedSet<T>) universe).subSet(from, to));
+		} else {
+			Iterator<T> uniItr = universe.iterator();
+			T curr = null;
+			while (uniItr.hasNext() && (curr = uniItr.next()).compareTo(from) < 0) {/*empty*/}
+			do add(curr);
+			while (uniItr.hasNext() && (curr = uniItr.next()).compareTo(to) <= 0);
+		}
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void clear(T from, T to) {
+		if (universe instanceof SortedSet<?>) { 
+			removeAll(((SortedSet<T>) universe).subSet(from, to));
+		} else {
+			Iterator<T> uniItr = universe.iterator();
+			T curr = null;
+			while (uniItr.hasNext() && (curr = uniItr.next()).compareTo(from) < 0) {/*empty*/}
+			do remove(curr);
+			while (uniItr.hasNext() && (curr = uniItr.next()).compareTo(to) <= 0);
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public GenericExtendedSet<T> convert(Collection<?> c) {
+		return (GenericExtendedSet<T>) super.convert(c);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public GenericExtendedSet<T> convert(Object... e) {
+		return (GenericExtendedSet<T>) super.convert(e);
+	}
+	
 	/**
 	 * Test
 	 * 
 	 * @param args
 	 */
 	public static void main(String[] args) {
-//		GenericExtendedSet<Integer> s = new GenericExtendedSet<Integer>(HashSet.class, ALL_POSITIVE_INTEGERS);
-		GenericExtendedSet<Integer> s = new GenericExtendedSet<Integer>(TreeSet.class, ALL_POSITIVE_INTEGERS);
-		s.add(4);
-		s.add(40);
-		s.add(3);
-		s.add(1);
-		s.add(11000);
-		System.out.println(s);
+		GenericExtendedSet<Integer> s = new GenericExtendedSet<Integer>(HashSet.class, ALL_POSITIVE_INTEGERS);
+		s = s.convert(4, 40, 3, 1, 11000);
+		System.out.println("s = " + s.debugInfo() + " ---> " + s);
 		
-		GenericExtendedSet<Integer> t = s.empty();
-
-		t.add(2);
-		t.add(4);
-		t.add(3);
-		t.add(10);
-		t.add(11);
-		t.add(20);
-		System.out.println(t);
+		GenericExtendedSet<Integer> t = s.convert(2, 4, 3, 10, 11, 20, 40);
+		System.out.println("t = " + t.debugInfo() + " ---> " + t);
 		
-		System.out.println(t.intersection(s));
+		System.out.println("t.intersection(s) = " + t.intersection(s));
+		System.out.println("t.subSet(3, 11).intersection(s) = " + t.subSet(3, 11).intersection(s));
 		
-		System.out.println(s.debugInfo());
+		System.out.println("t.complemented() = " + t.complemented());
 		
-		System.out.println(t.complemented());
-		System.out.println(t.complemented().complemented());
+		t.fill(10, 50);
+		t.clear(20, 30);
+		System.out.println("t + from 10 to 50, 20-30 excuded: " + t);
 	}
 }
