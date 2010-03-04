@@ -28,9 +28,13 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	private final Class<? extends Set> setClass;
 
 	private final Collection<T> universe;
-	
+
 	/**
-	 * Set of all integers &gt;= 0
+	 * Set of all integers &gt;= 0.
+	 * <p>
+	 * To be used with
+	 * {@link GenericExtendedSet#GenericExtendedSet(Class, Collection)} when the
+	 * type <code>T</code> is {@link Integer}
 	 */
 	public static final SortedSet<Integer> ALL_POSITIVE_INTEGERS = new IntegerUniverse();
 	private static class IntegerUniverse extends AbstractSet<Integer> implements SortedSet<Integer> {
@@ -73,9 +77,17 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 * @param setClass
 	 *            {@link Set}-derived class
 	 * @param universe
-	 *            all possible elements. If <code>null</code>,
-	 *            {@link #complement()} will throw
-	 *            {@link UnsupportedOperationException}.
+	 *            all possible elements manageable by the instance. It is used
+	 *            by, {@link ExtendedSet#complement()},
+	 *            {@link ExtendedSet#complemented()},
+	 *            {@link ExtendedSet#fill(Object, Object)}, and
+	 *            {@link ExtendedSet#clear(Object, Object)}, which will throw
+	 *            {@link UnsupportedOperationException} if the universe equals
+	 *            <code>null</code>. Notice that the universe <i>must</i> be
+	 *            aligned with the actual element set managed by the instance.
+	 *            No checks will be done to ensure that each element of the set
+	 *            is actually within the given universe.
+	 * @see GenericExtendedSet#ALL_POSITIVE_INTEGERS           
 	 */
 	@SuppressWarnings("unchecked")
 	public GenericExtendedSet(Class<? extends Set> setClass, Collection<T> universe) {
@@ -93,9 +105,15 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 */
 	@Override
 	public double bitmapCompressionRatio() {
+		if (universe == null)
+			throw new UnsupportedOperationException("missing universe");
 		if (isEmpty())
 			return 0D;
-		return size() / Math.ceil(size() / 32D);
+		if (universe instanceof SortedSet<?>) {
+			int last = ((SortedSet<T>) universe).headSet(last()).size();
+			return size() / Math.ceil(last / 32D);
+		}
+		throw new UnsupportedOperationException();
 	}
 
 	/**
@@ -333,6 +351,8 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 */
 	@Override
 	public void fill(T from, T to) {
+		if (universe == null)
+			throw new UnsupportedOperationException("missing universe");
 		if (universe instanceof SortedSet<?>) { 
 			addAll(((SortedSet<T>) universe).subSet(from, to));
 		} else {
@@ -349,6 +369,8 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 */
 	@Override
 	public void clear(T from, T to) {
+		if (universe == null)
+			throw new UnsupportedOperationException("missing universe");
 		if (universe instanceof SortedSet<?>) { 
 			removeAll(((SortedSet<T>) universe).subSet(from, to));
 		} else {
