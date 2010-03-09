@@ -832,7 +832,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			if (isLiteral(currentWordCopy) || getSequenceCount(currentWordCopy) == 0) {
 				if (--currentWordIndex >= 0)
 					currentWordCopy = words[currentWordIndex];
-				if (currentWordCopy == -2)
+				if (currentWordIndex == -2)
 					throw new NoSuchElementException();
 			} else {
 				currentWordCopy--;

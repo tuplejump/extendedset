@@ -38,7 +38,7 @@ import java.util.NoSuchElementException;
  */
 public class FastSet extends AbstractExtendedSet<Integer> {
 	// plain bitmap representation
-	private final BitSet bits;
+	private /*final*/ BitSet bits;
 	
 	// set size (only for fast size() call)
 	private int size;
@@ -61,25 +61,28 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 		addAll(c);
 	}
 
-	/**
-	 * Cloning constructor
-	 * 
-	 * @param bits
-	 *            bits of the other {@link FastSet} instance. The object will be duplicated.
-	 * @param size
-	 *            size of the other {@link FastSet} instance
-	 */
-	private FastSet(BitSet bits, int size) {
-		this.bits = (BitSet) bits.clone();
-		this.size = size;
-	}
+//	/**
+//	 * Cloning constructor
+//	 * 
+//	 * @param bits
+//	 *            bits of the other {@link FastSet} instance. The object will be duplicated.
+//	 * @param size
+//	 *            size of the other {@link FastSet} instance
+//	 */
+//	private FastSet(BitSet bits, int size) {
+//		this.bits = (BitSet) bits.clone();
+//		this.size = size;
+//	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public FastSet clone() {
-		return new FastSet(bits, size);
+		FastSet cloned = (FastSet) super.clone();
+		cloned.bits = (BitSet) bits.clone();
+		return cloned;
+//		return new FastSet(bits, size);
 	}
 
 	/**

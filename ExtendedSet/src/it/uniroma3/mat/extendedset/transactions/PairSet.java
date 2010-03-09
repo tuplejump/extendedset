@@ -43,7 +43,7 @@ import java.util.Set;
  * @see FastSet
  * 
  */
-public class PairSet<T, I> extends AbstractSet<Pair<T, I>> {
+public class PairSet<T, I> extends AbstractSet<Pair<T, I>> implements Cloneable {
 	/** transaction-item pair indices */
 	private /*final*/ ExtendedSet<Integer> indices;
 	

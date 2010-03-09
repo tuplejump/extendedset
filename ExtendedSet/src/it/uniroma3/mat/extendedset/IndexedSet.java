@@ -638,6 +638,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 * @see #absoluteIndexOf(Object)
 	 */
 	public ExtendedSet<Integer> indices() {
+		//TODO: optimize indices.headSet
 //		if (indexToItem instanceof IndexedSet<?>.UncheckedFakeMap)
 //			return indices; 
 //		return indices.headSet(indexToItem.size());
@@ -812,5 +813,21 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@Override
 	public int indexOf(T e) {
 		return indices.indexOf(itemToIndex.get(e));
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void clear(T from, T to) {
+		indices.clear(itemToIndex.get(from), itemToIndex.get(to));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void fill(T from, T to) {
+		indices.fill(itemToIndex.get(from), itemToIndex.get(to));
 	}
 }
