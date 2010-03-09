@@ -359,6 +359,23 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> implements Cloneable 
 	}
 
 	/**
+	 * Checks if the given collection is a instance of {@link PairSet} with
+	 * the same index mappings
+	 * 
+	 * @param c
+	 *            collection to check
+	 * @return <code>true</code> if the given collection is a instance of
+	 *         {@link PairSet} with the same index mappings
+	 */
+	@SuppressWarnings("unchecked")
+	private boolean hasSameIndices(Collection<?> c) {
+		return c != null 
+				&& (c instanceof PairSet) 
+				&& (allTransactions == ((PairSet) c).allTransactions)
+				&& (allItems == ((PairSet) c).allItems);
+	}
+
+	/**
 	 * Returns the pair corresponding to the given index
 	 * 
 	 * @param index
@@ -414,6 +431,17 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> implements Cloneable 
 	 */
 	public boolean add(T transaction, I item) {
 		return indices.add(indexOf(transaction, item));
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public boolean addAll(Collection<? extends Pair<T, I>> c) {
+		if (hasSameIndices(c))
+			return indices.addAll(((PairSet) c).indices);
+		return super.addAll(c);
 	}
 
 	/**
@@ -471,6 +499,17 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> implements Cloneable 
 		return indices.contains(indexOf(transaction, item));
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public boolean containsAll(Collection<?> c) {
+		if (hasSameIndices(c))
+			return indices.containsAll(((PairSet) c).indices);
+		return super.containsAll(c);
+	}
+
 	/**
 	 * Checks if the pairs obtained from the Cartesian product of
 	 * transactions and items are contained
@@ -553,6 +592,17 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> implements Cloneable 
 		return indices.remove(indexOf(transacion, item));
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public boolean removeAll(Collection<?> c) {
+		if (hasSameIndices(c))
+			return indices.removeAll(((PairSet) c).indices);
+		return super.removeAll(c);
+	}
+	
 	/**
 	 * Removes the pairs obtained from the Cartesian product of transactions and
 	 * items

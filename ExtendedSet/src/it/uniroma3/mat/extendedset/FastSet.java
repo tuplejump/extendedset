@@ -61,19 +61,6 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 		addAll(c);
 	}
 
-//	/**
-//	 * Cloning constructor
-//	 * 
-//	 * @param bits
-//	 *            bits of the other {@link FastSet} instance. The object will be duplicated.
-//	 * @param size
-//	 *            size of the other {@link FastSet} instance
-//	 */
-//	private FastSet(BitSet bits, int size) {
-//		this.bits = (BitSet) bits.clone();
-//		this.size = size;
-//	}
-
 	/**
 	 * {@inheritDoc}
 	 */
@@ -82,7 +69,6 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 		FastSet cloned = (FastSet) super.clone();
 		cloned.bits = (BitSet) bits.clone();
 		return cloned;
-//		return new FastSet(bits, size);
 	}
 
 	/**
@@ -187,11 +173,12 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 			return true;
 		if (isEmpty())
 			return false;
-		if (c.size() > size)
+		final int cSize = c.size();
+		if (cSize > size)
 			return false;
 
 		if (c instanceof FastSet) 
-			return this.intersectionSize((FastSet) c) == size;
+			return this.intersectionSize((FastSet) c) == cSize;
 		
 		return super.containsAll(c);
 	}
