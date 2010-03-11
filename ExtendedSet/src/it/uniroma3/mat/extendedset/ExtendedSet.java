@@ -21,7 +21,6 @@ package it.uniroma3.mat.extendedset;
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Formatter;
 import java.util.Iterator;
 import java.util.List;
@@ -93,162 +92,82 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 			equalsCount = 0;
 		}
 
-		/**
-		 * Resets the counter of intersections
+		/*
+		 * Resets
 		 */
-		public static void resetIntersectionCount() {
-			intersectionCount = 0;
-		}
+		
+		/** Resets the counter of performed intersections */
+		public static void resetIntersectionCount() {intersectionCount = 0;}
 
-		/**
-		 * Resets the counter of unions
-		 */
-		public static void resetUnionCount() {
-			unionCount = 0;
-		}
+		/** Resets the counter of performed unions */
+		public static void resetUnionCount() {unionCount = 0;}
 
-		/**
-		 * Resets the counter of symmetric differences
-		 */
-		public static void resetSymmetricDifferenceCount() {
-			symmetricDifferenceCount = 0;
-		}
+		/** Resets the counter of performed symmetric differences */
+		public static void resetSymmetricDifferenceCount() {symmetricDifferenceCount = 0;}
 
-		/**
-		 * Resets the counter of differences
-		 */
-		public static void resetDifferenceCount() {
-			differenceCount = 0;
-		}
+		/** Resets the counter of performed differences */
+		public static void resetDifferenceCount() {differenceCount = 0;}
 
-		/**
-		 * Resets the counter of size checks
-		 */
-		public static void resetSizeCheckCount() {
-			sizeCheckCount = 0;
-		}
+		/** Resets the counter of performed size checks */
+		public static void resetSizeCheckCount() {sizeCheckCount = 0;}
 
-		/**
-		 * Resets the counter of equals
-		 */
-		public static void resetEqualsCount() {
-			equalsCount = 0;
-		}
+		/** Resets the counter of performed equals */
+		public static void resetEqualsCount() {equalsCount = 0;}
 
-		/**
-		 * Increases the counter of intersections
+		/*
+		 * Increments
 		 */
-		public static void increaseIntersectionCount() {
-			intersectionCount++;
-		}
+		
+		/** Increases the counter of performed intersections */
+		public static void increaseIntersectionCount() {intersectionCount++;}
 
-		/**
-		 * Increases the counter of unions
-		 */
-		public static void increaseUnionCount() {
-			unionCount++;
-		}
+		/** Increases the counter of performed unions */
+		public static void increaseUnionCount() {unionCount++;}
 
-		/**
-		 * Increases the counter of symmetric differences
-		 */
-		public static void increaseSymmetricDifferenceCount() {
-			symmetricDifferenceCount++;
-		}
+		/** Increases the counter of performed symmetric differences */
+		public static void increaseSymmetricDifferenceCount() {symmetricDifferenceCount++;}
 
-		/**
-		 * Increases the counter of differences
-		 */
-		public static void increaseDifferenceCount() {
-			differenceCount++;
-		}
+		/** Increases the counter of performed differences */
+		public static void increaseDifferenceCount() {differenceCount++;}
 
-		/**
-		 * Increases the counter of size checks
-		 */
-		public static void increaseSizeCheckCount() {
-			sizeCheckCount++;
-		}
+		/** Increases the counter of performed size checks */
+		public static void increaseSizeCheckCount() {sizeCheckCount++;}
 
-		/**
-		 * Increases the counter of equals
-		 */
-		public static void increaseEqualsCount() {
-			equalsCount++;
-		}
+		/** Increases the counter of performed equals */
+		public static void increaseEqualsCount() {equalsCount++;}
 
-		/**
-		 * Gets the counter of intersections
-		 * 
-		 * @return the counter
+		/*
+		 * Getters
 		 */
-		public static long getIntersectionCount() {
-			return intersectionCount;
-		}
+		
+		/** @return the counter of performed intersections */
+		public static long getIntersectionCount() {return intersectionCount;}
 
-		/**
-		 * Gets the counter of unions
-		 * 
-		 * @return the counter
-		 */
-		public static long getUnionCount() {
-			return unionCount;
-		}
+		/** @return the counter of performed unions */
+		public static long getUnionCount() {return unionCount;}
 
-		/**
-		 * Gets the counter of symmetric differences
-		 * 
-		 * @return the counter
-		 */
-		public static long getSymmetricDifferenceCount() {
-			return symmetricDifferenceCount;
-		}
+		/** @return the counter of performed symmetric differences */
+		public static long getSymmetricDifferenceCount() {return symmetricDifferenceCount;}
 
-		/**
-		 * Gets the counter of differences
-		 * 
-		 * @return the counter
-		 */
-		public static long getDifferenceCount() {
-			return differenceCount;
-		}
+		/** @return the counter of performed differences */
+		public static long getDifferenceCount() {return differenceCount;}
 
-		/**
-		 * Gets the counter of size checks
-		 * 
-		 * @return the counter
-		 */
-		public static long getSizeCheckCount() {
-			return sizeCheckCount;
-		}
+		/** @return the counter of performed size checks */
+		public static long getSizeCheckCount() {return sizeCheckCount;}
 
-		/**
-		 * Gets the counter of equals
-		 * 
-		 * @return the counter
-		 */
-		public static long getEqualsCount() {
-			return equalsCount;
-		}
+		/** @return the counter of performed equals */
+		public static long getEqualsCount() {return equalsCount;}
 
-		/**
-		 * Gets summary information
-		 * 
-		 * @return the summary information string
-		 */
+		/** @return the summary information string */
 		public static String summary() {
 			final StringBuilder s = new StringBuilder();
 			final Formatter f = new Formatter(s);
-
 			f.format("intersectionCount: %d\n", intersectionCount);
 			f.format("unionCount: %d\n", unionCount);
-			f
-					.format("symmetricDifferenceCount: %d\n",
-							symmetricDifferenceCount);
+			f.format("symmetricDifferenceCount: %d\n", symmetricDifferenceCount);
 			f.format("differenceCount: %d\n", differenceCount);
 			f.format("sizeCheckCount: %d\n", sizeCheckCount);
 			f.format("equalsCount: %d\n", equalsCount);
-
 			return s.toString();
 		}
 	}
@@ -424,23 +343,6 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * @return cloned object
 	 */
 	public ExtendedSet<T> clone();
-
-	/**
-	 * Compare sets according to their lexicographical order.
-	 * <p>
-	 * 
-	 * @param <X>
-	 *            the type of elements maintained the compared sets
-	 */
-	public static class ExtendedSetComparator<X> implements Comparator<ExtendedSet<X>> {
-		/**
-		 * {@inheritDoc}
-		 */
-		@Override
-		public int compare(ExtendedSet<X> o1, ExtendedSet<X> o2) {
-			return o1.compareTo(o2);
-		}
-	}
 
 	/**
 	 * Computes the compression factor of the bitmap representation (1 means
@@ -702,7 +604,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * @return the generated instance. 
 	 * @see #convert(Collection)
 	 */
-	public  ExtendedSet<T> convert(Object... e);	
+	public  ExtendedSet<T> convert(T... e);	
 	
 	/**
 	 * Computes the Jaccard similarity coefficient between this set and the

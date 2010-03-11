@@ -2085,7 +2085,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * @return the generated instance. <b>NOTE:</b> if the parameter is already
 	 *         an instance of the current class, the method returns the
 	 *         parameter.
-	 * @see #asConciseSet(Object...)
+	 * @see #asConciseSet(Integer...)
 	 */
 	@SuppressWarnings("unchecked")
 	public static ConciseSet asConciseSet(Collection<?> c) {
@@ -2095,15 +2095,15 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		// useless to convert...
 		if (c instanceof ConciseSet)
 			return (ConciseSet) c;
-		if (c instanceof AbstractExtendedSet.FilteredSet) 
-			return asConciseSet(((AbstractExtendedSet.FilteredSet) c).filtered());
+		if (c instanceof AbstractExtendedSet<?>.FilteredSet) 
+			return asConciseSet(((AbstractExtendedSet<?>.FilteredSet) c).filtered());
 		
 		// try to convert the collection
 		ConciseSet res = new ConciseSet();
 		if (!c.isEmpty()) {
 			// sorted element (in order to use the append() method)
 			Collection<Integer> elements;
-			if ((c instanceof SortedSet) && (((SortedSet) c).comparator() == null)) {
+			if ((c instanceof SortedSet<?>) && (((SortedSet<?>) c).comparator() == null)) {
 				// if elements are already ordered according to the natural
 				// order of Integer, simply use them
 				elements = (SortedSet<Integer>) c;
@@ -2130,12 +2130,12 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * @return the generated instance. 
 	 * @see #asConciseSet(Collection)
 	 */
-	public static ConciseSet asConciseSet(Object... e) {
+	public static ConciseSet asConciseSet(Integer... e) {
 		if (e == null)
 			return new ConciseSet();
 		if (e.length == 1) {
 			ConciseSet res = new ConciseSet();
-			res.append((Integer) e[0]);
+			res.append(e[0]);
 			return res;
 		} 
 		
@@ -2154,7 +2154,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ConciseSet convert(Object... e) {
+	public ConciseSet convert(Integer... e) {
 		return asConciseSet(e);
 	}
 
@@ -2397,7 +2397,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	public boolean containsAll(Collection<?> c) {
 		Statistics.increaseSizeCheckCount();
 
-		if (c == null || c.isEmpty())
+		if (c == null || c.isEmpty() || c == this)
 			return true;
 		if (isEmpty())
 			return false;
@@ -2444,6 +2444,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 
 		if (other == null || other.isEmpty() || this.isEmpty())
 			return false;
+		if (other == this)
+			return true;
 		if (other.size() == 1)
 			return contains(getSingleElement(other));
 		
@@ -2499,6 +2501,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		// empty arguments
 		if (this.size < minElements || other == null || other.size() < minElements)
 			return false;
+		if (other == this)
+			return true;
 
 		// single-element intersection
 		if (minElements == 1 && other.size() == 1)
@@ -2565,7 +2569,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		modCount++;
 		Statistics.increaseIntersectionCount();
 
-		if (isEmpty())
+		if (isEmpty() || c == this)
 			return false;
 		if (c == null || c.isEmpty()) {
 			clear();
@@ -2597,7 +2601,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	public boolean addAll(Collection<? extends Integer> c) {
 		modCount++;
 		Statistics.increaseUnionCount();
-		if (c == null || c.isEmpty())
+		if (c == null || c.isEmpty() || c == this)
 			return false;
 
 		if (c.size() == 1) 
@@ -2618,6 +2622,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 
 		if (c == null || c.isEmpty() || isEmpty())
 			return false;
+		if (c == this)
+			clear();
 		
 		if (c.size() == 1) 
 			return remove(getSingleElement(c));

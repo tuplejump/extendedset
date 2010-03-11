@@ -1,21 +1,3 @@
-/* (c) 2010 Alessandro Colantonio
- * <mailto:colanton@mat.uniroma3.it>
- * <http://ricerca.mat.uniroma3.it/users/colanton>
- *  
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by 
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *  
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of 
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
- * GNU General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
- */ 
-
 package it.uniroma3.mat.extendedset;
 
 import java.util.Arrays;
@@ -26,7 +8,11 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
- * An {@link AbstractExtendedSet} implementation based on {@link BitSet}
+ * An {@link ExtendedSet} implementation, representing a set of {@link Integer}
+ * instances, based on a bit vector
+ * <p>
+ * Union and intersection operations are mainly derived from bitwise "or" and
+ * "and" of {@link BitSet}.
  * 
  * @author Alessandro Colantonio
  * @version $Id$
@@ -37,24 +23,33 @@ import java.util.NoSuchElementException;
  * @see IndexedSet
  */
 public class FastSet extends AbstractExtendedSet<Integer> {
-	// plain bitmap representation
-	private /*final*/ BitSet bits;
-	
-	// set size (only for fast size() call)
+	/** number of bits within each word */
+	private final static int BITS_PER_WORD = 32;
+
+	/** 32-bit string of all 1's */
+	private static final int ALL_ONES_WORD = 0xFFFFFFFF;
+
+	/** all bits, grouped in blocks of length 32 */
+	private int[] words;
+
+	/** the number of words in the logical size of this {@link FastSet} */
+	private int wordsInUse;
+
+	/** cached set size (only for fast size() call). When -1, the cache is invalid */
 	private int size;
-	
+
 	/**
-	 * Empty integer set
+	 * Creates a new set. All bits are initially <code>false</code>.
 	 */
 	public FastSet() {
-		bits = new BitSet();
-		size = 0;
+		clear();
 	}
-	
+
 	/**
 	 * Creates a bit-string from an existing collection
 	 * 
 	 * @param c
+	 *            collection of {@link Integer} instances
 	 */
 	public FastSet(Collection<? extends Integer> c) {
 		this();
@@ -62,21 +57,77 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * Given a bit index, it returns the index of the word containing it
 	 */
-	@Override
-	public FastSet clone() {
-		FastSet cloned = (FastSet) super.clone();
-		cloned.bits = (BitSet) bits.clone();
-		return cloned;
+	private static int wordIndex(int bitIndex) {
+		if (bitIndex < 0)
+			throw new IndexOutOfBoundsException("index < 0: " + bitIndex);
+		return bitIndex >> 5;
+	}
+
+	/**
+	 * Sets the field {@link #wordsInUse} with the logical size in words of the
+	 * bit set.
+	 */
+	private void fixWordsInUse() {
+		int i = wordsInUse - 1;
+		while (i >= 0 && words[i] == 0)
+			i--;
+		wordsInUse = i + 1;
+	}
+
+	/**
+	 * Ensures that the {@link FastSet} can hold enough words.
+	 * 
+	 * @param wordsRequired
+	 *            the minimum acceptable number of words.
+	 */
+	private void ensureCapacity(int wordsRequired) {
+		if (words.length >= wordsRequired) 
+			return;
+		int newLength = words.length;
+        while (newLength <= wordsRequired)
+        	newLength <<= 1;
+		words = Arrays.copyOf(words, newLength);
+	}
+
+	/**
+	 * Ensures that the {@link FastSet} can accommodate a given word index
+	 * 
+	 * @param wordIndex
+	 *            the index to be accommodated.
+	 */
+	private void expandTo(int wordIndex) {
+		int wordsRequired = wordIndex + 1;
+		if (wordsInUse < wordsRequired) {
+			ensureCapacity(wordsRequired);
+			wordsInUse = wordsRequired;
+		}
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
+	public FastSet clone() {
+		FastSet result = (FastSet) super.clone();
+		result.words = Arrays.copyOf(words, wordsInUse);
+		return result;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
 	public int hashCode() {
-		return bits.hashCode();
+		if (isEmpty())
+			return 0;
+
+		int h = 1;
+		for (int i = 0; i < wordsInUse; i++)
+			h = (h << 5) - h + words[i];
+
+		return h;
 	}
 
 	/**
@@ -85,22 +136,27 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	@Override
 	public boolean equals(Object obj) {
 		Statistics.increaseEqualsCount();
-
 		if (this == obj)
 			return true;
 		if (obj == null)
 			return false;
-
+		if (!(obj instanceof Collection<?>))
+			return false;
 		FastSet other = convert((Collection<?>) obj);
-		return size == other.size && bits.equals(other.bits);
+		if (wordsInUse != other.wordsInUse)
+			return false;
+		for (int i = 0; i < wordsInUse; i++)
+			if (words[i] != other.words[i])
+				return false;
+		return true;
 	}
-
+	
 	/**
-	 * {@inheritDoc}
+	 *  {@inheritDoc}
 	 */
 	@Override
 	public boolean isEmpty() {
-		return size == 0;
+		return wordsInUse == 0;
 	}
 
 	/**
@@ -108,6 +164,12 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public int size() {
+		// check if the cached size is invalid
+		if (size < 0) {
+			size = 0;
+			for (int i = 0; i < wordsInUse; i++)
+				size += Integer.bitCount(words[i]);
+		}
 		return size;
 	}
 
@@ -115,15 +177,42 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean add(Integer i) {
-		if (i < 0)
-			throw new IndexOutOfBoundsException();
-		if (bits.get(i)) 
+	public boolean add(Integer bitIndex) {
+		int wordIndex = wordIndex(bitIndex);
+		expandTo(wordIndex);
+		int before = words[wordIndex];
+		words[wordIndex] |= (1 << bitIndex);
+		if (size >= 0 && before != words[wordIndex]) {
+			size++;
+			return true;
+		} 
+		return false;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean remove(Object o) {
+		if (o == null || isEmpty() || !(o instanceof Integer))
+			return false;
+		
+		final int bitIndex = (Integer) o;
+		if (bitIndex < 0)
 			return false;
 
-		bits.set(i);
-		size++;
-		return true;
+		int wordIndex = wordIndex(bitIndex);
+		if (wordIndex >= wordsInUse)
+			return false;
+		int before = words[wordIndex];
+		words[wordIndex] &= ~(1 << bitIndex);
+		if (before != words[wordIndex]) {
+			if (size >= 0)
+				size--;
+			fixWordsInUse();
+			return true;
+		} 
+		return false;
 	}
 
 	/**
@@ -132,14 +221,38 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	@Override
 	public boolean addAll(Collection<? extends Integer> c) {
 		Statistics.increaseUnionCount();
-		if (c == null || c.isEmpty())
+		if (c == null || c.isEmpty() || this == c)
 			return false;
 
 		if (c instanceof FastSet) {
-			int sizeBefore = size;
-			bits.or(((FastSet) c).bits);
-			size = bits.cardinality();
-			return sizeBefore != size;
+			final FastSet other = (FastSet) c;
+
+			int wordsInCommon = Math.min(wordsInUse, other.wordsInUse);
+
+			boolean modified = false;
+			if (wordsInUse < other.wordsInUse) {
+				modified = true;
+				ensureCapacity(other.wordsInUse);
+				wordsInUse = other.wordsInUse;
+			}
+
+			// Perform logical OR on words in common
+			for (int i = 0; i < wordsInCommon; i++) {
+				int before = words[i];
+				words[i] |= other.words[i];
+				modified |= before != words[i];
+			}
+
+			// Copy any remaining words
+			if (wordsInCommon < other.wordsInUse) {
+				modified = true;
+				System.arraycopy(
+						other.words, wordsInCommon, words, 
+						wordsInCommon, wordsInUse - wordsInCommon);
+			}
+			if (modified)
+				size = -1;
+			return modified;
 		} 
 		
 		return super.addAll(c);
@@ -149,8 +262,81 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * {@inheritDoc}
 	 */
 	@Override
+	public boolean removeAll(Collection<?> c) {
+		Statistics.increaseDifferenceCount();
+		if (c == null || c.isEmpty() || isEmpty())
+			return false;
+		if (c == this) {
+			clear();
+			return true;
+		}
+		
+		if (c instanceof FastSet) {
+			final FastSet other = (FastSet) c;
+
+			// Perform logical (a & !b) on words in common
+			boolean modified = false;
+			for (int i = Math.min(wordsInUse, other.wordsInUse) - 1; i >= 0; i--) {
+				int before = words[i];
+				words[i] &= ~other.words[i];
+				modified |= before != words[i];
+			}
+			if (modified) {
+				fixWordsInUse();
+				size = -1;
+			}
+			return modified;
+		} 
+			
+		return super.removeAll(c);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean retainAll(Collection<?> c) {
+		Statistics.increaseIntersectionCount();
+		if (isEmpty() || c == this)
+			return false;
+		if (c == null || c.isEmpty()) {
+			clear();
+			return true;
+		}
+		
+		if (c instanceof FastSet) {
+			final FastSet other = (FastSet) c;
+
+			boolean modified = false;
+			if (wordsInUse > other.wordsInUse) {
+				modified = true;
+				while (wordsInUse > other.wordsInUse)
+					words[--wordsInUse] = 0;
+			}
+
+			// Perform logical AND on words in common
+			for (int i = 0; i < wordsInUse; i++) {
+				int before = words[i];
+				words[i] &= other.words[i];
+				modified |= before != words[i];
+			}
+			if (modified) {
+				fixWordsInUse();
+				size = -1;
+			}
+			return modified;
+		} 
+		
+		return super.retainAll(c);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
 	public void clear() {
-		bits.clear();
+		words = new int[8];
+		wordsInUse = 0;
 		size = 0;
 	}
 
@@ -159,9 +345,12 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public boolean contains(Object o) {
-		if (o == null || isEmpty())
+		if (o == null || isEmpty() || !(o instanceof Integer))
 			return false;
-		return bits.get((Integer) o);
+		int bitIndex = (Integer) o;
+		int wordIndex = wordIndex(bitIndex);
+		return (wordIndex < wordsInUse)
+				&& ((words[wordIndex] & (1 << bitIndex)) != 0);
 	}
 
 	/**
@@ -169,16 +358,24 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public boolean containsAll(Collection<?> c) {
-		if (c == null || c.isEmpty())
+		if (c == null || c.isEmpty() || c == this)
 			return true;
 		if (isEmpty())
 			return false;
-		final int cSize = c.size();
-		if (cSize > size)
-			return false;
 
-		if (c instanceof FastSet) 
-			return this.intersectionSize((FastSet) c) == cSize;
+		if (c instanceof FastSet) {
+			final FastSet other = (FastSet) c;
+
+			if (other.wordsInUse > wordsInUse)
+				return false;
+
+			for (int i = 0; i < wordsInUse; i++) {
+				int o = other.words[i];
+				if ((words[i] & o) != o)
+					return false;
+			}
+			return true;
+		} 
 		
 		return super.containsAll(c);
 	}
@@ -187,14 +384,71 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean containsAny(Collection<? extends Integer> other) {
-		if (other == null || other.isEmpty() || isEmpty())
+	public boolean containsAtLeast(Collection<? extends Integer> c, int minElements) {
+		if (minElements < 1)
+			throw new IllegalArgumentException();
+		if (c == null || c.isEmpty() || c == this)
+			return true;
+		if (isEmpty())
+			return false;
+
+		if (c instanceof FastSet) {
+			final FastSet other = (FastSet) c;
+
+			int count = 0;
+			for (int i = 0; i < wordsInUse; i++) {
+				count += Integer.bitCount(words[i] & other.words[i]);
+				if (count >= minElements)
+					return true;
+			}
+			return false;
+		} 
+		
+		return super.containsAtLeast(c, minElements);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean containsAny(Collection<? extends Integer> c) {
+		if (c == null || c.isEmpty() || isEmpty())
 			return false;
 		
-		if (other instanceof FastSet) 
-			return this.bits.intersects(((FastSet) other).bits);
+		if (c instanceof FastSet) {
+			final FastSet other = (FastSet) c;
+			
+			for (int i = Math.min(wordsInUse, other.wordsInUse) - 1; i >= 0; i--)
+				if ((words[i] & other.words[i]) != 0)
+					return true;
+			return false;
+		}
 
-		return intersectionSize(other) > 0;
+		return super.containsAny(c);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int intersectionSize(Collection<? extends Integer> c) {
+		if (c == null || c.isEmpty())
+			return 0;
+		if (c == this)
+			return size();
+		if (isEmpty())
+			return 0;
+
+		if (c instanceof FastSet) {
+			final FastSet other = (FastSet) c;
+
+			int count = 0;
+			for (int i = Math.min(wordsInUse, other.wordsInUse) - 1; i >= 0; i--) 
+				count += Integer.bitCount(words[i] & other.words[i]);
+			return count;
+		} 
+		
+		return super.intersectionSize(c);
 	}
 
 	/**
@@ -202,17 +456,37 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	private class BitIterator implements ExtendedIterator<Integer> {
 		// current bit
-		private Integer curr;
+		private int curr;
 		
 		// next bit to poll
-		private Integer next;
+		private int next;
+
+		/**
+		 * Returns the index of the first bit that is set to <code>true</code> that
+		 * occurs on or after the specified starting index. If no such bit exists,
+		 * then -1 is returned.
+		 */
+		private int nextSetBit(int fromIndex) {
+			int u = wordIndex(fromIndex);
+			if (u >= wordsInUse)
+				return -1;
+			int word = words[u] & (ALL_ONES_WORD << fromIndex);
+			while (true) {
+				if (word != 0)
+					return (u * BITS_PER_WORD)
+							+ Integer.numberOfTrailingZeros(word);
+				if (++u == wordsInUse)
+					return -1;
+				word = words[u];
+			}
+		}
 
 		/**
 		 * Constructor
 		 */
 		public BitIterator() {
 			curr = -1;
-			next = bits.nextSetBit(0);
+			next = nextSetBit(0);
 		}
 
 		/**
@@ -231,7 +505,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 			if (!hasNext())
 				throw new NoSuchElementException();
 			curr = next;
-			next = bits.nextSetBit(curr + 1);
+			next = nextSetBit(curr + 1);
 			return curr;
 		}
 
@@ -242,7 +516,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 		public void skipAllBefore(Integer element) {
 			if (element <= next)
 				return;
-			next = bits.nextSetBit(element);
+			next = nextSetBit(element);
 		}
 
 		/**
@@ -250,9 +524,9 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 		 */
 		@Override
 		public void remove() {
-			if (curr < 0 || !bits.get(curr))
+			if (curr < 0 || !contains(curr))
 				throw new IllegalStateException();
-			bits.clear(curr);
+			FastSet.this.remove(curr);
 		}
 	}
 
@@ -261,17 +535,39 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	private class ReverseBitIterator implements ExtendedIterator<Integer> {
 		// current bit
-		private Integer curr;
+		private int curr;
 		
 		// next bit to poll
-		private Integer next;
+		private int next;
+
+		/**
+		 * Returns the index of the first bit that is set to <code>true</code> that
+		 * occurs on or before the specified starting index. If no such bit exists,
+		 * then -1 is returned.
+		 */
+		private int nextSetBit(int fromIndex) {
+			if (fromIndex < 0)
+				return -1;
+			int u = wordIndex(fromIndex);
+			if (u >= wordsInUse)
+				return last();
+			int word = words[u] & (ALL_ONES_WORD >>> -(fromIndex + 1));
+			while (true) {
+				if (word != 0)
+					return ((u + 1) * BITS_PER_WORD)
+							- Integer.numberOfLeadingZeros(word) - 1;
+				if (--u < 0)
+					return -1;
+				word = words[u];
+			}
+		}
 
 		/**
 		 * Constructor
 		 */
 		public ReverseBitIterator() {
 			curr = -1;
-			next = bits.length() - 1;
+			next = isEmpty() ? -1 : last();
 		}
 
 		/**
@@ -289,13 +585,8 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 		public Integer next() {
 			if (!hasNext())
 				throw new NoSuchElementException();
-
-			// NOTE: it searches for the next set bit. There is no faster way to
-			// get it, since there is no method similar to
-			// bits.nextSetBit(fromIndex) for scanning bits from MSB to LSB.
-			curr = next--;
-			while (hasNext() && !bits.get(next)) 
-				next--;
+			curr = next;
+			next = nextSetBit(curr - 1);
 			return curr;
 		}
 
@@ -306,13 +597,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 		public void skipAllBefore(Integer element) {
 			if (element >= next)
 				return;
-			
-			// NOTE: it searches for the next set bit. There is no faster way to
-			// get it, since there is no method similar to
-			// bits.nextSetBit(fromIndex) for scanning bits from MSB to LSB.
-			next = element;
-			while (hasNext() && !bits.get(next)) 
-				next--;
+			next = nextSetBit(element);
 		}
 
 		/**
@@ -320,9 +605,9 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 		 */
 		@Override
 		public void remove() {
-			if (curr < 0 || !bits.get(curr))
+			if (curr < 0 || !contains(curr))
 				throw new IllegalStateException();
-			bits.clear(curr);
+			FastSet.this.remove(curr);
 		}
 	}
 
@@ -346,78 +631,8 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean remove(Object o) {
-		if (o == null || isEmpty())
-			return false;
-		
-		int i = (Integer) o;
-		if (this.bits.get(i)) {
-			this.bits.clear(i);
-			size--;
-			return true;
-		} 
-
-		return false;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean removeAll(Collection<?> c) {
-		Statistics.increaseDifferenceCount();
-		if (c == null || c.isEmpty() || isEmpty())
-			return false;
-		
-		if (c instanceof FastSet) {
-			int sizeBefore = size;
-			bits.andNot(((FastSet) c).bits);
-			size = bits.cardinality();
-			return sizeBefore != size;
-		} 
-			
-		return super.removeAll(c);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean retainAll(Collection<?> c) {
-		Statistics.increaseIntersectionCount();
-		if (isEmpty())
-			return false;
-		if (c == null || c.isEmpty()) {
-			clear();
-			return true;
-		}
-		
-		if (c instanceof FastSet) {
-			int sizeBefore = size;
-			bits.and(((FastSet) c).bits);
-			size = bits.cardinality();
-			return sizeBefore != size;
-		} 
-		
-		return super.retainAll(c);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
 	public Comparator<? super Integer> comparator() {
 		return null;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Integer first() {
-		if (isEmpty())
-			throw new NoSuchElementException();
-		return bits.nextSetBit(0);
 	}
 
 	/**
@@ -427,7 +642,9 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	public Integer last() {
 		if (isEmpty())
 			throw new NoSuchElementException();
-		return bits.length() - 1;
+		return BITS_PER_WORD
+			* (wordsInUse - 1)
+			+ (BITS_PER_WORD - Integer.numberOfLeadingZeros(words[wordsInUse - 1])) - 1;
 	}
 
 	/**
@@ -437,13 +654,13 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	public void complement() {
 		if (isEmpty())
 			return;
-		final BitSet old = (BitSet) bits.clone();
-		final int lastBit = last();
-		bits.clear();
-		bits.set(0, lastBit);
-		bits.xor(old);
-		bits.clear(lastBit);
-		size = lastBit - size + 1;
+		if (size > 0)
+			size = last() - size + 1;
+		int lastWordMask = ALL_ONES_WORD >>> Integer.numberOfLeadingZeros(words[wordsInUse - 1]);
+		for (int i = 0; i < wordsInUse - 1; i++)
+			words[i] ^= ALL_ONES_WORD;
+		words[wordsInUse - 1] ^= lastWordMask;
+		fixWordsInUse();
 	}
 
 	/**
@@ -453,7 +670,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	public int complementSize() {
 		if (isEmpty())
 			return 0;
-		return bits.length() - size;
+		return last() - size() + 1;
 	}
 
 	/**
@@ -461,28 +678,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public FastSet complemented() {
-		final FastSet res = this.clone();
-		res.complement();
-		return res;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public FastSet difference(Collection<? extends Integer> other) {
-		Statistics.increaseDifferenceCount();
-		if (other == null)
-			return clone();
-
-		FastSet cloned = clone();
-		if (other instanceof FastSet) {
-			cloned.bits.andNot(((FastSet) other).bits);
-			cloned.size = cloned.bits.cardinality();
-		} else {
-			cloned.removeAll(other);
-		}
-		return cloned;
+		return (FastSet) super.complemented();
 	}
 
 	/**
@@ -497,60 +693,40 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public FastSet symmetricDifference(Collection<? extends Integer> other) {
+	public FastSet symmetricDifference(Collection<? extends Integer> c) {
 		Statistics.increaseSymmetricDifferenceCount();
-		if (other == null)
+		if (c == null || c.isEmpty())
 			return clone();
+		if (c == this)
+			return empty();
 		
-		FastSet cloned = clone();
-		if (other instanceof FastSet) {
-			cloned.bits.xor(((FastSet) other).bits);
-			cloned.size = cloned.bits.cardinality();
-		} else {
-			cloned.addAll(other);
-			cloned.removeAll(this.intersection(other));
-		}
-		return cloned;
-	}
+		if (c instanceof FastSet) {
+			FastSet cloned = clone();
+			final FastSet other = (FastSet) c;
+			cloned.size = -1;
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public FastSet intersection(Collection<? extends Integer> other) {
-		Statistics.increaseIntersectionCount();
-		if (other == null)
-			return new FastSet();
+			int wordsInCommon = Math.min(cloned.wordsInUse, other.wordsInUse);
+
+			if (cloned.wordsInUse < other.wordsInUse) {
+				cloned.ensureCapacity(other.wordsInUse);
+				cloned.wordsInUse = other.wordsInUse;
+			}
+
+			// Perform logical XOR on words in common
+			for (int i = 0; i < wordsInCommon; i++)
+				cloned.words[i] ^= other.words[i];
+
+			// Copy any remaining words
+			if (wordsInCommon < other.wordsInUse)
+				System.arraycopy(other.words, wordsInCommon, cloned.words, wordsInCommon,
+						other.wordsInUse - wordsInCommon);
+			cloned.fixWordsInUse();
+			return cloned;
+		} 
 		
-		FastSet cloned = this.clone();
-		if (other instanceof FastSet) {
-			cloned.bits.and(((FastSet) other).bits);
-			cloned.size = cloned.bits.cardinality();
-		} else {
-			cloned.retainAll(other);
-		}
-		return cloned;
+		return (FastSet) super.symmetricDifference(c);
 	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public FastSet union(Collection<? extends Integer> other) {
-		Statistics.increaseUnionCount();
-		if (other == null)
-			return clone();
-		
-		FastSet cloned = this.clone();
-		if (other instanceof FastSet) {
-			cloned.bits.or(((FastSet) other).bits);
-			cloned.size = cloned.bits.cardinality();
-		} else {
-			cloned.addAll(other);
-		}
-		return cloned;
-	}
-
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -568,12 +744,10 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	public double collectionCompressionRatio() {
 		if (isEmpty())
 			return 0D;
-		// NOTE: bits.size() returns the actual number of allocated words.
-		// Instead, we are interested in the logical allocation.
-		int s = bits.length();
+		int s = last() + 1;
 		if ((s & 0x0000001F) == 0)
-			return s / (32D * size);
-		return ((s | 0x0000001F) + 1) / (32D * size);
+			return (double) s / (size() << 5);
+		return (double) ((s | 0x0000001F) + 1) / (size() << 5);
 	}
 
 	/**
@@ -585,34 +759,32 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@SuppressWarnings("unchecked")
 	public static FastSet asFastSet(Collection<?> c) {
-		if (c == null)
+		if (c == null || c.isEmpty())
 			return new FastSet();
 		
 		// useless to convert...
 		if (c instanceof FastSet)
 			return (FastSet) c;
-		if (c instanceof AbstractExtendedSet.FilteredSet) 
-			return asFastSet(((AbstractExtendedSet.FilteredSet) c).filtered());
+		if (c instanceof AbstractExtendedSet<?>.FilteredSet) 
+			return asFastSet(((AbstractExtendedSet<?>.FilteredSet) c).filtered());
 
 		// try to convert the collection
-		FastSet res = new FastSet();
-		res.addAll((Collection<? extends Integer>) c);
-		return res;
+		return new FastSet((Collection<? extends Integer>) c);
 	}
 
 	/**
-	 * Similar to {@link #convert(Object...)}, but static
+	 * Similar to {@link #convert(Integer...)}, but static
 	 * 
 	 * @param e
 	 *            array to convert
 	 * @return the generated {@link FastSet} instance
 	 */
-	public static FastSet asFastSet(Object... e) {
+	public static FastSet asFastSet(Integer... e) {
 		if (e == null)
 			return new FastSet();
 		if (e.length == 1) {
 			FastSet res = new FastSet();
-			res.add((Integer) e[0]);
+			res.add(e[0]);
 			return res;
 		} 
 		
@@ -631,7 +803,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public FastSet convert(Object... e) {
+	public FastSet convert(Integer... e) {
 		return asFastSet(e);
 	}
 	
@@ -657,18 +829,95 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void fill(Integer from, Integer to) {
-		bits.set(from, to + 1);
-		size = bits.cardinality();
+	public void fill(Integer fromIndex, Integer toIndex) {
+		if (fromIndex > toIndex)
+			throw new IndexOutOfBoundsException("fromIndex: " + fromIndex
+					+ " > toIndex: " + toIndex);
+
+		// Increase capacity if necessary
+		int startWordIndex = wordIndex(fromIndex);
+		int endWordIndex = wordIndex(toIndex);
+		expandTo(endWordIndex);
+
+		boolean modified = false;
+		int firstWordMask = ALL_ONES_WORD << fromIndex;
+		int lastWordMask = ALL_ONES_WORD >>> -(toIndex + 1);
+		if (startWordIndex == endWordIndex) {
+			// Case 1: One word
+			int before = words[startWordIndex];
+			words[startWordIndex] |= (firstWordMask & lastWordMask);
+			modified = words[startWordIndex] != before;
+		} else {
+			// Case 2: Multiple words
+			// Handle first word
+			int before = words[startWordIndex];
+			words[startWordIndex] |= firstWordMask;
+			modified = words[startWordIndex] != before;
+
+			// Handle intermediate words, if any
+			for (int i = startWordIndex + 1; i < endWordIndex; i++) {
+				modified |= words[i] != ALL_ONES_WORD;
+				words[i] = ALL_ONES_WORD;
+			}
+
+			// Handle last word (restores invariants)
+			before = words[endWordIndex];
+			words[endWordIndex] |= lastWordMask;
+			modified = words[endWordIndex] != before;
+		}
+		if (modified)
+			size = -1;
 	}
 	
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public void clear(Integer from, Integer to) {
-		bits.clear(from, to + 1);
-		size = bits.cardinality();
+	public void clear(Integer fromIndex, Integer toIndex) {
+		if (fromIndex > toIndex)
+			throw new IndexOutOfBoundsException("fromIndex: " + fromIndex
+					+ " > toIndex: " + toIndex);
+
+		int startWordIndex = wordIndex(fromIndex);
+		if (startWordIndex >= wordsInUse)
+			return;
+
+		int endWordIndex = wordIndex(toIndex);
+		if (endWordIndex >= wordsInUse) {
+			toIndex = last() + 1;
+			endWordIndex = wordsInUse - 1;
+		}
+
+		boolean modified = false;
+		int firstWordMask = ALL_ONES_WORD << fromIndex;
+		int lastWordMask = ALL_ONES_WORD >>> -(toIndex + 1);
+		if (startWordIndex == endWordIndex) {
+			// Case 1: One word
+			int before = words[startWordIndex];
+			words[startWordIndex] &= ~(firstWordMask & lastWordMask);
+			modified = words[startWordIndex] != before;
+		} else {
+			// Case 2: Multiple words
+			// Handle first word
+			int before = words[startWordIndex];
+			words[startWordIndex] &= ~firstWordMask;
+			modified = words[startWordIndex] != before;
+
+			// Handle intermediate words, if any
+			for (int i = startWordIndex + 1; i < endWordIndex; i++) {
+				modified |= words[i] != 0;
+				words[i] = 0;
+			}
+
+			// Handle last word
+			before = words[endWordIndex];
+			words[endWordIndex] &= ~lastWordMask;
+			modified = words[endWordIndex] != before;
+		}
+		if (modified) {
+			fixWordsInUse();
+			size = -1;
+		}
 	}
 	
 	/**
@@ -676,19 +925,104 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public void flip(Integer e) {
-		bits.flip(e);
-		if (bits.get(e))
-			size++;
-		else
-			size--;
+		int wordIndex = wordIndex(e);
+		expandTo(wordIndex);
+		words[wordIndex] ^= (1 << e);
+		fixWordsInUse();
+		if (size >= 0) {
+			if ((words[wordIndex] & (1 << e)) == 0) 
+				size--;
+			else
+				size++;
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int compareTo(ExtendedSet<Integer> o) {
+		if (o instanceof FastSet) {
+			final FastSet other = (FastSet) o;
+			if (wordsInUse > other.wordsInUse)
+				return 1;
+			if (wordsInUse < other.wordsInUse)
+				return -1;
+			for (int i = wordsInUse - 1; i >= 0; i--) {
+				long w1 = words[i] & 0xFFFFFFFFL;
+				long w2 = other.words[i] & 0xFFFFFFFFL;
+				int res = w1 < w2 ? -1 : (w1 > w2 ? 1 : 0);
+				if (res != 0)
+					return res;
+			}
+			return 0;
+		}
+		return super.compareTo(o);
 	}
 	
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
+	public Integer get(int i) {
+		int count = 0;
+		for (int j = 0; j < wordsInUse; j++) {
+			int w = words[j];
+			int c = Integer.bitCount(w);
+			if (i < count + c) {
+				int p = -1;
+				for (int skip = i - count; skip >= 0; skip--)
+					p = Integer.numberOfTrailingZeros(w & (ALL_ONES_WORD << (p + 1)));
+				return BITS_PER_WORD * j + p;
+			}
+			count += c;
+		}
+		throw new NoSuchElementException();
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int indexOf(Integer e) {
+		int index = wordIndex(e);
+		int count = 0;
+		for (int j = 0; j < index; j++)
+			count += Integer.bitCount(words[j]);
+		count += Integer.bitCount(words[index] & ~(ALL_ONES_WORD << e));
+		return count;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public ExtendedSet<Integer> subSet(Integer fromElement, Integer toElement) {
+		if (fromElement.compareTo(0) < 0)
+			throw new IllegalArgumentException(fromElement.toString());
+		return super.subSet(fromElement, toElement);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public ExtendedSet<Integer> tailSet(Integer fromElement) {
+		if (fromElement.compareTo(0) < 0)
+			throw new IllegalArgumentException(fromElement.toString());
+		return super.tailSet(fromElement);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
 	public String debugInfo() {
-		return String.format("elements = %s\nsize = %d\nbitmap compression: %.2f%%\ncollection compression: %.2f%%\n", 
-				bits.toString(), size, 100D * bitmapCompressionRatio(), 100D * collectionCompressionRatio());
+		return String.format(
+				"elements = %s\nsize = %s\nbitmap compression: %.2f%%\ncollection compression: %.2f%%\n", 
+				toString(), 
+				(size < 0 ? "[" + size + "]" : String.valueOf(size)), 
+				100D * bitmapCompressionRatio(), 
+				100D * collectionCompressionRatio());
 	}
 }

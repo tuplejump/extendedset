@@ -604,6 +604,17 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> implements Cloneable 
 	}
 	
 	/**
+	 * {@inheritDoc}
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public boolean retainAll(Collection<?> c) {
+		if (hasSameIndices(c))
+			return indices.retainAll(((PairSet) c).indices);
+		return super.retainAll(c);
+	}
+	
+	/**
 	 * Removes the pairs obtained from the Cartesian product of transactions and
 	 * items
 	 * 

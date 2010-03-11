@@ -30,6 +30,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Random;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -740,15 +741,16 @@ public class Debug {
 		Random rnd = new MersenneTwister();
 
 		// random operation loop
+		final int m = 10000;
 		for (int i = 0; i < 1000000; i++) {
 			System.out.print("Test " + i + ": ");
 			
 			// new set
 			itemsRight.clear();
 			bitsRight.clear();
-			final int size = 1 + rnd.nextInt(10000);
-			final int min = 1 + rnd.nextInt(10000 - 1);
-			final int max = min + rnd.nextInt(10000 - min + 1);
+			final int size = 1 + rnd.nextInt(m);
+			final int min = 1 + rnd.nextInt(m - 1);
+			final int max = min + rnd.nextInt(m - min + 1);
 			for (int j = 0; j < size; j++) {
 				if (rnd.nextDouble() < 0.1D) {
 					// sequence
@@ -867,7 +869,7 @@ public class Debug {
 			if (itemsLeft.size() != operationSize) {
 				System.out.println("SIZE ERROR");
 				System.out.println("Wrong size: " + operationSize);
-				System.out.println("Correct size: " + itemsRight.size());
+				System.out.println("Correct size: " + itemsLeft.size());
 				System.out.println(bitsLeft.debugInfo());
 				return;
 			}
@@ -1346,8 +1348,19 @@ public class Debug {
 				int maxLength = Math.max(correctLeft.bitLength(), correctRight.bitLength());
 				System.out.format("correctLeft.toString(2):  %" + maxLength + "s\n", correctLeft.toString(2));
 				System.out.format("correctRight.toString(2): %" + maxLength + "s\n", correctRight.toString(2));
-				System.out.println("bitsLeft.compareTo(bitsRight):  " + bitsLeft.compareTo(bitsRight));
 				System.out.println("correctLeft.compareTo(correctRight): " + correctLeft.compareTo(correctRight));
+				System.out.println("bitsLeft.compareTo(bitsRight):  " + bitsLeft.compareTo(bitsRight));
+				
+				Iterator<Integer> itrLeft = bitsLeft.descendingIterator();
+				Iterator<Integer> itrRight = bitsRight.descendingIterator();
+				while (itrLeft.hasNext() && itrRight.hasNext()) {
+					int l = itrLeft.next();
+					int r = itrRight.next();
+					if (l != r) {
+						System.out.println("l != r --> " + l + ", " + r);
+						break;
+					}
+				}
 				return;
 			}
 		}
@@ -1396,9 +1409,17 @@ public class Debug {
 	
 	/**
 	 * Stress test for {@link ConciseSet#get(int)}
+	 * 
+	 * @param c class to test
 	 */
-	private static void testForPosition() {
-		ConciseSet bits = new ConciseSet();
+	@SuppressWarnings("unchecked")
+	private static void testForPosition(Class<? extends ExtendedSet> c) {
+		ExtendedSet<Integer> bits;
+		try {
+			bits = c.newInstance();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
 		Random rnd = new MersenneTwister(31);
 		for (int i = 0; i < 1000; i++) {
 			// new set
@@ -1570,6 +1591,7 @@ public class Debug {
 		DESCENDING_ITERATOR_CONCISESET,
 		DESCENDING_ITERATOR_FASTSET,
 		POSITION_CONCISESET,
+		POSITION_FASTSET,
 		EQUALS_CONCISESET,
 		EQUALS_FASTSET,
 		SKIP_CONCISESET,
@@ -1583,7 +1605,7 @@ public class Debug {
 	 * @param args ID of the test to execute
 	 */
 	public static void main(String[] args) {
-		TestCase testCase = TestCase.DESCENDING_ITERATOR_CONCISESET;
+		TestCase testCase = TestCase.COMPARATOR_COMPLEX_FASTSET;
 		
 		if (args != null && args.length > 0) {
 			try {
@@ -1682,7 +1704,10 @@ public class Debug {
 			testForDescendingIterator(FastSet.class);
 			break;
 		case POSITION_CONCISESET:
-			testForPosition();
+			testForPosition(ConciseSet.class);
+			break;
+		case POSITION_FASTSET:
+			testForPosition(FastSet.class);
 			break;
 		case EQUALS_CONCISESET:
 			testForEquals(ConciseSet.class);

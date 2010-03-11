@@ -394,7 +394,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 * {@inheritDoc}
 	 */
 	@Override
-	public GenericExtendedSet<T> convert(Object... e) {
+	public GenericExtendedSet<T> convert(T... e) {
 		return (GenericExtendedSet<T>) super.convert(e);
 	}
 	

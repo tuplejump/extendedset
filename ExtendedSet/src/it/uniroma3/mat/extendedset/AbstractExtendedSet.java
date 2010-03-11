@@ -91,8 +91,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		Statistics.increaseSymmetricDifferenceCount();
 		if (other == null)
 			return clone();
-		ExtendedSet<T> res = this.union(other);
-		res.removeAll(this.intersection(other));
+		ExtendedSet<T> res = union(other);
+		res.removeAll(intersection(other));
 		return res;
 	}
 
@@ -126,7 +126,11 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 */
 	public int intersectionSize(Collection<? extends T> other) {
 		Statistics.increaseIntersectionCount();
-		return other == null ? 0 : this.intersection(other).size();
+		if (other == null || other.isEmpty())
+			return 0;
+		ExtendedSet<T> clone = clone();
+		clone.retainAll(other);
+		return clone.size();
 	}
 
 	/**
@@ -637,7 +641,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ExtendedSet<T> convert(Object... e) {
+	public ExtendedSet<T> convert(T... e) {
 		if (e == null)
 			return empty();
 		return convert(Arrays.asList(e));
@@ -650,7 +654,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	@Override
 	public ExtendedSet<T> convert(Collection<?> c) {
 		ExtendedSet<T> res = empty();
-		res.addAll((Collection<T>) c);
+		res.addAll((Collection<? extends T>) c);
 		return res;
 	}
 
@@ -675,14 +679,13 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		 * Converter methods that allows for good performances with collection
 		 * operations by directly working on internal representation
 		 */
-		@SuppressWarnings("unchecked")
 		@Override public ExtendedSet<T> convert(Collection<?> c) {
-			if (c instanceof AbstractExtendedSet.FilteredSet)
-				AbstractExtendedSet.this.convert(((AbstractExtendedSet.FilteredSet) c).filtered());
+			if (c instanceof AbstractExtendedSet<?>.FilteredSet)
+				AbstractExtendedSet.this.convert(((AbstractExtendedSet<? extends T>.FilteredSet) c).filtered());
 			return AbstractExtendedSet.this.convert(c);
 		}
 
-		@Override public ExtendedSet<T> convert(Object... e) {
+		@Override public ExtendedSet<T> convert(T... e) {
 			return AbstractExtendedSet.this.convert(e);
 		}
 
