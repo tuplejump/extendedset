@@ -2096,7 +2096,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		if (c instanceof ConciseSet)
 			return (ConciseSet) c;
 		if (c instanceof AbstractExtendedSet<?>.FilteredSet) 
-			return asConciseSet(((AbstractExtendedSet<?>.FilteredSet) c).filtered());
+			return asConciseSet(((FilteredSet) c).filtered());
 		
 		// try to convert the collection
 		ConciseSet res = new ConciseSet();

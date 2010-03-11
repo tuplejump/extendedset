@@ -681,7 +681,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		 */
 		@Override public ExtendedSet<T> convert(Collection<?> c) {
 			if (c instanceof AbstractExtendedSet<?>.FilteredSet)
-				AbstractExtendedSet.this.convert(((AbstractExtendedSet<? extends T>.FilteredSet) c).filtered());
+				AbstractExtendedSet.this.convert(((FilteredSet) c).filtered());
 			return AbstractExtendedSet.this.convert(c);
 		}
 

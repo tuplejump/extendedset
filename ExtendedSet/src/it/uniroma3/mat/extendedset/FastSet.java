@@ -766,7 +766,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 		if (c instanceof FastSet)
 			return (FastSet) c;
 		if (c instanceof AbstractExtendedSet<?>.FilteredSet) 
-			return asFastSet(((AbstractExtendedSet<?>.FilteredSet) c).filtered());
+			return asFastSet(((FilteredSet) c).filtered());
 
 		// try to convert the collection
 		return new FastSet((Collection<? extends Integer>) c);
