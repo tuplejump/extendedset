@@ -40,6 +40,7 @@ import java.util.concurrent.TimeUnit;
  * </ul>
  * 
  * @author Alessandro Colantonio
+ * @version $Id$
  */
 //TODO: differenziare rispetto alla versione di algorithms
 public class ResourceMonitor {

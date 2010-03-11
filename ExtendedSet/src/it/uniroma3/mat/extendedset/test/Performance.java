@@ -18,9 +18,10 @@ import java.util.TreeSet;
 import java.util.Map.Entry;
 
 /**
+ * Class for performance evaluation
  * 
  * @author Alessandro Colantonio
- *
+ * @version $Id$
  */
 public class Performance {
 	// number of times to repeat each test
