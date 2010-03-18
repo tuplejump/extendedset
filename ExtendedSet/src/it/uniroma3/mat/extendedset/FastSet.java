@@ -367,6 +367,8 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public boolean containsAll(Collection<?> c) {
+		Statistics.sizeCheckCount++;
+		
 		if (c == null || c.isEmpty() || c == this)
 			return true;
 		if (isEmpty())
@@ -394,6 +396,8 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public boolean containsAtLeast(Collection<? extends Integer> c, int minElements) {
+		Statistics.sizeCheckCount++;
+
 		if (minElements < 1)
 			throw new IllegalArgumentException();
 		if (c == null || c.isEmpty() || c == this)
@@ -421,6 +425,8 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public boolean containsAny(Collection<? extends Integer> c) {
+		Statistics.sizeCheckCount++;
+
 		if (c == null || c.isEmpty() || isEmpty())
 			return false;
 		
