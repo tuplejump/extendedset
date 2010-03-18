@@ -52,10 +52,12 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 * {@inheritDoc}
 	 */
 	public ExtendedSet<T> intersection(Collection<? extends T> other) {
-		Statistics.increaseIntersectionCount();
-		if (other == null)
+		if (other == null) {
+			Statistics.intersectionCount++;
 			return empty();
+		}
 		ExtendedSet<T> clone = clone();
+		// NOTE: it also performs Statistics.intersectionCount++;
 		clone.retainAll(other);
 		return clone;
 	}
@@ -64,10 +66,12 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 * {@inheritDoc}
 	 */
 	public ExtendedSet<T> union(Collection<? extends T> other) {
-		Statistics.increaseUnionCount();
-		if (other == null)
+		if (other == null) {
+			Statistics.unionCount++;
 			return clone();
+		}
 		ExtendedSet<T> clone = clone();
+		// NOTE: it also performs Statistics.unionCount++;
 		clone.addAll(other);
 		return clone;
 	}
@@ -76,10 +80,12 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 * {@inheritDoc}
 	 */
 	public ExtendedSet<T> difference(Collection<? extends T> other) {
-		Statistics.increaseDifferenceCount();
-		if (other == null)
+		if (other == null) {
+			Statistics.differenceCount++;
 			return clone();
+		}
 		ExtendedSet<T> clone = clone();
+		// NOTE: it also performs Statistics.differenceCount++;
 		clone.removeAll(other);
 		return clone;
 	}
@@ -88,12 +94,43 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 * {@inheritDoc}
 	 */
 	public ExtendedSet<T> symmetricDifference(Collection<? extends T> other) {
-		Statistics.increaseSymmetricDifferenceCount();
+		Statistics.symmetricDifferenceCount++;
 		if (other == null)
 			return clone();
 		ExtendedSet<T> res = union(other);
 		res.removeAll(intersection(other));
+		// undo the increments of union(), removeAll(), and intersection()
+		Statistics.intersectionCount--;
+		Statistics.unionCount--;
+		Statistics.differenceCount--;
 		return res;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean addAll(Collection<? extends T> c) {
+		Statistics.unionCount++;
+		return super.addAll(c);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean removeAll(Collection<?> c) {
+		Statistics.differenceCount++;
+		return super.removeAll(c);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean retainAll(Collection<?> c) {
+		Statistics.intersectionCount++;
+		return super.retainAll(c);
 	}
 
 	/**
@@ -104,7 +141,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		clone.complement();
 		return clone;
 	}
-
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -125,11 +162,13 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 * {@inheritDoc}
 	 */
 	public int intersectionSize(Collection<? extends T> other) {
-		Statistics.increaseIntersectionCount();
+		Statistics.sizeCheckCount++;
 		if (other == null || other.isEmpty())
 			return 0;
 		ExtendedSet<T> clone = clone();
 		clone.retainAll(other);
+		// undo increment
+		Statistics.unionCount--;
 		return clone.size();
 	}
 
@@ -160,7 +199,16 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	public int complementSize() {
 		return complemented().size();
 	}
-
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean equals(Object o) {
+		Statistics.equalsCount++;
+		return super.equals(o);
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -465,6 +513,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	@SuppressWarnings("unchecked")
 	@Override
 	public int compareTo(ExtendedSet<T> o) {
+		Statistics.equalsCount++;
 		Iterator<T> thisIterator = this.descendingIterator();
 		Iterator<T> otherIterator = o.descendingIterator();
 		while (thisIterator.hasNext() && otherIterator.hasNext()) {
@@ -491,6 +540,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		toRemove.complement();
 		
 		toAdd.removeAll(toRemove);
+		// undo increment
+		Statistics.differenceCount--;
 		
 		this.addAll(toAdd);
 	}
@@ -502,6 +553,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		ExtendedSet<T> toRemove = empty();
 		toRemove.fill(from, to);
 		this.removeAll(toRemove);
+		// undo increment
+		Statistics.differenceCount--;
 	}
 	
 	/**
@@ -641,7 +694,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ExtendedSet<T> convert(T... e) {
+	public ExtendedSet<T> convert(Object... e) {
 		if (e == null)
 			return empty();
 		return convert(Arrays.asList(e));
@@ -673,7 +726,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		/**
 		 * @return the container instance, namely the "internal" representation
 		 */
-		protected abstract ExtendedSet<T> filtered();
+		protected abstract ExtendedSet<T> raw();
 
 		/*
 		 * Converter methods that allows for good performances with collection
@@ -681,12 +734,12 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		 */
 		@Override public ExtendedSet<T> convert(Collection<?> c) {
 			if (c instanceof AbstractExtendedSet<?>.FilteredSet)
-				AbstractExtendedSet.this.convert(((FilteredSet) c).filtered());
-			return AbstractExtendedSet.this.convert(c);
+				convert(((FilteredSet) c).raw());
+			return raw().convert(c);
 		}
 
-		@Override public ExtendedSet<T> convert(T... e) {
-			return AbstractExtendedSet.this.convert(e);
+		@Override public ExtendedSet<T> convert(Object... e) {
+			return raw().convert(e);
 		}
 
 		/*
@@ -699,51 +752,51 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		/*
 		 * Read-only methods
 		 */
-		@Override public ExtendedSet<T> unmodifiable() {return filtered().unmodifiable();}
-		@Override public ExtendedIterator<T> iterator() {return filtered().iterator();}
-		@Override public ExtendedIterator<T> descendingIterator() {return filtered().descendingIterator();}
-		@Override public boolean isEmpty() {return filtered().isEmpty();}
-		@Override public boolean equals(Object o) {return filtered().equals(o);}
-		@Override public int hashCode() {return filtered().hashCode();}
-		@Override public int compareTo(ExtendedSet<T> o) {return filtered().compareTo(o);}
-		@Override public T first() {return filtered().first();}
-		@Override public T last() {return filtered().last();}
-		@Override public double bitmapCompressionRatio() {return filtered().bitmapCompressionRatio();}
-		@Override public double collectionCompressionRatio() {return filtered().collectionCompressionRatio();}
-		@Override public List<? extends ExtendedSet<T>> powerSet() {return filtered().powerSet();}
-		@Override public List<? extends ExtendedSet<T>> powerSet(int mins, int maxs) {return filtered().powerSet(mins, maxs);}
-		@Override public int powerSetSize() {return filtered().powerSetSize();}
-		@Override public int powerSetSize(int mins, int maxs) {return filtered().powerSetSize(mins, maxs);}
-		@Override public Object[] toArray() {return filtered().toArray();}
-		@Override public <X> X[] toArray(X[] a) {return filtered().toArray(a);}
-		@Override public String toString() {return filtered().toString();}
-		@Override public ExtendedSet<T> complemented() {return filtered().complemented();}
-		@Override public int complementSize() {return filtered().complementSize();}
-		@Override public int size() {return filtered().size();}
-		@Override public boolean contains(Object o) {return filtered().contains(o);}
-		@Override public Iterable<T> descending() {return filtered().descending();}
-		@Override public String debugInfo() {return filtered().debugInfo();}
-		@Override public T get(int i) {return filtered().get(i);}
-		@Override public int indexOf(T e) {return filtered().indexOf(e);}
+		@Override public ExtendedSet<T> unmodifiable() {return raw().unmodifiable();}
+		@Override public ExtendedIterator<T> iterator() {return raw().iterator();}
+		@Override public ExtendedIterator<T> descendingIterator() {return raw().descendingIterator();}
+		@Override public boolean isEmpty() {return raw().isEmpty();}
+		@Override public boolean equals(Object o) {return raw().equals(o);}
+		@Override public int hashCode() {return raw().hashCode();}
+		@Override public int compareTo(ExtendedSet<T> o) {return raw().compareTo(o);}
+		@Override public T first() {return raw().first();}
+		@Override public T last() {return raw().last();}
+		@Override public double bitmapCompressionRatio() {return raw().bitmapCompressionRatio();}
+		@Override public double collectionCompressionRatio() {return raw().collectionCompressionRatio();}
+		@Override public List<? extends ExtendedSet<T>> powerSet() {return raw().powerSet();}
+		@Override public List<? extends ExtendedSet<T>> powerSet(int mins, int maxs) {return raw().powerSet(mins, maxs);}
+		@Override public int powerSetSize() {return raw().powerSetSize();}
+		@Override public int powerSetSize(int mins, int maxs) {return raw().powerSetSize(mins, maxs);}
+		@Override public Object[] toArray() {return raw().toArray();}
+		@Override public <X> X[] toArray(X[] a) {return raw().toArray(a);}
+		@Override public String toString() {return raw().toString();}
+		@Override public ExtendedSet<T> complemented() {return raw().complemented();}
+		@Override public int complementSize() {return raw().complementSize();}
+		@Override public int size() {return raw().size();}
+		@Override public boolean contains(Object o) {return raw().contains(o);}
+		@Override public Iterable<T> descending() {return raw().descending();}
+		@Override public String debugInfo() {return raw().debugInfo();}
+		@Override public T get(int i) {return raw().get(i);}
+		@Override public int indexOf(T e) {return raw().indexOf(e);}
 
 		/*
 		 * Methods that requires a call to convert() to assure good performances
 		 */
-		@Override public double jaccardDistance(ExtendedSet<T> other) {return filtered().jaccardDistance(convert(other));}
-		@Override public double jaccardSimilarity(ExtendedSet<T> other) {return filtered().jaccardSimilarity(convert(other));}
-		@Override public double weightedJaccardDistance(ExtendedSet<T> other) {return filtered().weightedJaccardDistance(convert(other));}
-		@Override public double weightedJaccardSimilarity(ExtendedSet<T> other) {return filtered().weightedJaccardSimilarity(convert(other));}
-		@Override public ExtendedSet<T> difference(Collection<? extends T> other) {return filtered().difference(convert(other));}
-		@Override public ExtendedSet<T> symmetricDifference(Collection<? extends T> other) {return filtered().symmetricDifference(convert(other));}
-		@Override public ExtendedSet<T> intersection(Collection<? extends T> other) {return filtered().intersection(convert(other));}
-		@Override public ExtendedSet<T> union(Collection<? extends T> other) {return filtered().union(convert(other));}
-		@Override public int intersectionSize(Collection<? extends T> other) {return filtered().intersectionSize(convert(other));}
-		@Override public int differenceSize(Collection<? extends T> other) {return filtered().differenceSize(convert(other));}
-		@Override public int unionSize(Collection<? extends T> other) {return filtered().unionSize(convert(other));}
-		@Override public int symmetricDifferenceSize(Collection<? extends T> other) {return filtered().symmetricDifferenceSize(convert(other));}
-		@Override public boolean containsAll(Collection<?> c) {return filtered().containsAll(convert(c));}
-		@Override public boolean containsAny(Collection<? extends T> other) {return filtered().containsAny(convert(other));}
-		@Override public boolean containsAtLeast(Collection<? extends T> other, int minElements) {return filtered().containsAtLeast(convert(other), minElements);}
+		@Override public double jaccardDistance(ExtendedSet<T> other) {return raw().jaccardDistance(convert(other));}
+		@Override public double jaccardSimilarity(ExtendedSet<T> other) {return raw().jaccardSimilarity(convert(other));}
+		@Override public double weightedJaccardDistance(ExtendedSet<T> other) {return raw().weightedJaccardDistance(convert(other));}
+		@Override public double weightedJaccardSimilarity(ExtendedSet<T> other) {return raw().weightedJaccardSimilarity(convert(other));}
+		@Override public ExtendedSet<T> difference(Collection<? extends T> other) {return raw().difference(convert(other));}
+		@Override public ExtendedSet<T> symmetricDifference(Collection<? extends T> other) {return raw().symmetricDifference(convert(other));}
+		@Override public ExtendedSet<T> intersection(Collection<? extends T> other) {return raw().intersection(convert(other));}
+		@Override public ExtendedSet<T> union(Collection<? extends T> other) {return raw().union(convert(other));}
+		@Override public int intersectionSize(Collection<? extends T> other) {return raw().intersectionSize(convert(other));}
+		@Override public int differenceSize(Collection<? extends T> other) {return raw().differenceSize(convert(other));}
+		@Override public int unionSize(Collection<? extends T> other) {return raw().unionSize(convert(other));}
+		@Override public int symmetricDifferenceSize(Collection<? extends T> other) {return raw().symmetricDifferenceSize(convert(other));}
+		@Override public boolean containsAll(Collection<?> c) {return raw().containsAll(convert(c));}
+		@Override public boolean containsAny(Collection<? extends T> other) {return raw().containsAny(convert(other));}
+		@Override public boolean containsAtLeast(Collection<? extends T> other, int minElements) {return raw().containsAtLeast(convert(other), minElements);}
 	}
 	
 	/**
@@ -800,6 +853,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		}
 		
 		/** Returns a read-only subset */
+		//TODO: in questa maniera, però, se faccio una modifica al set originario non vedo le modifiche...
 		private ExtendedSet<T> unmodifiableSubSet(T min, T max) {
 			ExtendedSet<T> res;
 			ExtendedSet<T> range = AbstractExtendedSet.this.empty();
@@ -829,7 +883,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 			return this;
 		}
 
-		@Override protected ExtendedSet<T> filtered() {
+		@Override protected ExtendedSet<T> raw() {
 			return AbstractExtendedSet.this;
 		}
 	}
@@ -960,7 +1014,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		}
 
 		
-		@Override protected ExtendedSet<T> filtered() {
+		@Override protected ExtendedSet<T> raw() {
 			return filter(AbstractExtendedSet.this);
 		}
 
@@ -1066,7 +1120,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		}
 
 		@Override public ExtendedSet<T> complemented() {
-			return filter(filtered().complemented());
+			return filter(raw().complemented());
 		}
 
 		@Override public String debugInfo() {
@@ -1150,7 +1204,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 
 		@Override 
 		public ExtendedSet<T> clone() {
-			return filtered(); 
+			return raw(); 
 		}
 	}
 }

@@ -4,7 +4,9 @@ import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.Formatter;
 import java.util.List;
+import java.util.Locale;
 import java.util.NoSuchElementException;
 
 /**
@@ -53,7 +55,20 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	public FastSet(Collection<? extends Integer> c) {
 		this();
+		if (c == null || c.isEmpty())
+			return;
 		addAll(c);
+	}
+
+	/**
+	 * Creates a bit-string from an existing array
+	 * 
+	 * @param a
+	 *            array of {@link Integer} instances
+	 */
+	@SuppressWarnings("unchecked")
+	public FastSet(Object... a) {
+		this(a == null ? (Collection) null : Arrays.asList(a));
 	}
 
 	/**
@@ -85,9 +100,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	private void ensureCapacity(int wordsRequired) {
 		if (words.length >= wordsRequired) 
 			return;
-		int newLength = words.length;
-        while (newLength <= wordsRequired)
-        	newLength <<= 1;
+		int newLength = Math.max(words.length << 1, wordsRequired);
 		words = Arrays.copyOf(words, newLength);
 	}
 
@@ -120,13 +133,9 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public int hashCode() {
-		if (isEmpty())
-			return 0;
-
 		int h = 1;
 		for (int i = 0; i < wordsInUse; i++)
 			h = (h << 5) - h + words[i];
-
 		return h;
 	}
 
@@ -135,13 +144,13 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		Statistics.increaseEqualsCount();
+		Statistics.equalsCount++;
+		
 		if (this == obj)
 			return true;
 		if (obj == null)
 			return false;
-		if (!(obj instanceof Collection<?>))
-			return false;
+		
 		FastSet other = convert((Collection<?>) obj);
 		if (wordsInUse != other.wordsInUse)
 			return false;
@@ -220,7 +229,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public boolean addAll(Collection<? extends Integer> c) {
-		Statistics.increaseUnionCount();
+		Statistics.unionCount++;
 		if (c == null || c.isEmpty() || this == c)
 			return false;
 
@@ -240,7 +249,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 			for (int i = 0; i < wordsInCommon; i++) {
 				int before = words[i];
 				words[i] |= other.words[i];
-				modified |= before != words[i];
+				modified = modified || before != words[i];
 			}
 
 			// Copy any remaining words
@@ -263,7 +272,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public boolean removeAll(Collection<?> c) {
-		Statistics.increaseDifferenceCount();
+		Statistics.differenceCount++;
 		if (c == null || c.isEmpty() || isEmpty())
 			return false;
 		if (c == this) {
@@ -279,7 +288,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 			for (int i = Math.min(wordsInUse, other.wordsInUse) - 1; i >= 0; i--) {
 				int before = words[i];
 				words[i] &= ~other.words[i];
-				modified |= before != words[i];
+				modified = modified || before != words[i];
 			}
 			if (modified) {
 				fixWordsInUse();
@@ -296,7 +305,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public boolean retainAll(Collection<?> c) {
-		Statistics.increaseIntersectionCount();
+		Statistics.intersectionCount++;
 		if (isEmpty() || c == this)
 			return false;
 		if (c == null || c.isEmpty()) {
@@ -318,7 +327,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 			for (int i = 0; i < wordsInUse; i++) {
 				int before = words[i];
 				words[i] &= other.words[i];
-				modified |= before != words[i];
+				modified = modified || before != words[i];
 			}
 			if (modified) {
 				fixWordsInUse();
@@ -335,7 +344,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public void clear() {
-		words = new int[8];
+		words = new int[1];
 		wordsInUse = 0;
 		size = 0;
 	}
@@ -369,7 +378,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 			if (other.wordsInUse > wordsInUse)
 				return false;
 
-			for (int i = 0; i < wordsInUse; i++) {
+			for (int i = 0; i < other.wordsInUse; i++) {
 				int o = other.words[i];
 				if ((words[i] & o) != o)
 					return false;
@@ -432,6 +441,8 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public int intersectionSize(Collection<? extends Integer> c) {
+		Statistics.sizeCheckCount++;
+
 		if (c == null || c.isEmpty())
 			return 0;
 		if (c == this)
@@ -447,6 +458,9 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 				count += Integer.bitCount(words[i] & other.words[i]);
 			return count;
 		} 
+		
+		// undo increment
+		Statistics.sizeCheckCount--;
 		
 		return super.intersectionSize(c);
 	}
@@ -694,7 +708,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public FastSet symmetricDifference(Collection<? extends Integer> c) {
-		Statistics.increaseSymmetricDifferenceCount();
+		Statistics.symmetricDifferenceCount++;
 		if (c == null || c.isEmpty())
 			return clone();
 		if (c == this)
@@ -724,6 +738,9 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 			return cloned;
 		} 
 		
+		// undo increment
+		Statistics.symmetricDifferenceCount--;
+		
 		return (FastSet) super.symmetricDifference(c);
 	}
 	
@@ -751,60 +768,24 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	}
 
 	/**
-	 * Similar to {@link #convert(Collection)}, but static
-	 * 
-	 * @param c
-	 *            collection to convert
-	 * @return the generated {@link FastSet} instance
+	 * {@inheritDoc}
 	 */
 	@SuppressWarnings("unchecked")
-	public static FastSet asFastSet(Collection<?> c) {
+	@Override
+	public FastSet convert(Collection<?> c) {
 		if (c == null || c.isEmpty())
 			return new FastSet();
-		
-		// useless to convert...
 		if (c instanceof FastSet)
 			return (FastSet) c;
-		if (c instanceof AbstractExtendedSet<?>.FilteredSet) 
-			return asFastSet(((FilteredSet) c).filtered());
-
-		// try to convert the collection
 		return new FastSet((Collection<? extends Integer>) c);
 	}
 
 	/**
-	 * Similar to {@link #convert(Integer...)}, but static
-	 * 
-	 * @param e
-	 *            array to convert
-	 * @return the generated {@link FastSet} instance
-	 */
-	public static FastSet asFastSet(Integer... e) {
-		if (e == null)
-			return new FastSet();
-		if (e.length == 1) {
-			FastSet res = new FastSet();
-			res.add(e[0]);
-			return res;
-		} 
-		
-		return asFastSet(Arrays.asList(e));
-	}
-	
-	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public FastSet convert(Collection<?> c) {
-		return asFastSet(c);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public FastSet convert(Integer... e) {
-		return asFastSet(e);
+	public FastSet convert(Object... e) {
+		return new FastSet(e);
 	}
 	
 	/**
@@ -833,6 +814,10 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 		if (fromIndex > toIndex)
 			throw new IndexOutOfBoundsException("fromIndex: " + fromIndex
 					+ " > toIndex: " + toIndex);
+		if (fromIndex == toIndex) {
+			add(fromIndex);
+			return;
+		}
 
 		// Increase capacity if necessary
 		int startWordIndex = wordIndex(fromIndex);
@@ -856,14 +841,14 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 
 			// Handle intermediate words, if any
 			for (int i = startWordIndex + 1; i < endWordIndex; i++) {
-				modified |= words[i] != ALL_ONES_WORD;
+				modified = modified || words[i] != ALL_ONES_WORD;
 				words[i] = ALL_ONES_WORD;
 			}
 
-			// Handle last word (restores invariants)
+			// Handle last word
 			before = words[endWordIndex];
 			words[endWordIndex] |= lastWordMask;
-			modified = words[endWordIndex] != before;
+			modified = modified || words[endWordIndex] != before;
 		}
 		if (modified)
 			size = -1;
@@ -877,6 +862,10 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 		if (fromIndex > toIndex)
 			throw new IndexOutOfBoundsException("fromIndex: " + fromIndex
 					+ " > toIndex: " + toIndex);
+		if (fromIndex == toIndex) {
+			remove(fromIndex);
+			return;
+		}
 
 		int startWordIndex = wordIndex(fromIndex);
 		if (startWordIndex >= wordsInUse)
@@ -884,7 +873,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 
 		int endWordIndex = wordIndex(toIndex);
 		if (endWordIndex >= wordsInUse) {
-			toIndex = last() + 1;
+			toIndex = last();
 			endWordIndex = wordsInUse - 1;
 		}
 
@@ -905,14 +894,14 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 
 			// Handle intermediate words, if any
 			for (int i = startWordIndex + 1; i < endWordIndex; i++) {
-				modified |= words[i] != 0;
+				modified = modified || words[i] != 0;
 				words[i] = 0;
 			}
 
 			// Handle last word
 			before = words[endWordIndex];
 			words[endWordIndex] &= ~lastWordMask;
-			modified = words[endWordIndex] != before;
+			modified = modified || words[endWordIndex] != before;
 		}
 		if (modified) {
 			fixWordsInUse();
@@ -927,10 +916,11 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	public void flip(Integer e) {
 		int wordIndex = wordIndex(e);
 		expandTo(wordIndex);
-		words[wordIndex] ^= (1 << e);
+		int mask = (1 << e);
+		words[wordIndex] ^= mask;
 		fixWordsInUse();
 		if (size >= 0) {
-			if ((words[wordIndex] & (1 << e)) == 0) 
+			if ((words[wordIndex] & mask) == 0) 
 				size--;
 			else
 				size++;
@@ -943,6 +933,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	@Override
 	public int compareTo(ExtendedSet<Integer> o) {
 		if (o instanceof FastSet) {
+			Statistics.equalsCount++;
 			final FastSet other = (FastSet) o;
 			if (wordsInUse > other.wordsInUse)
 				return 1;
@@ -964,18 +955,18 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Integer get(int i) {
+	public Integer get(int index) {
 		int count = 0;
 		for (int j = 0; j < wordsInUse; j++) {
 			int w = words[j];
-			int c = Integer.bitCount(w);
-			if (i < count + c) {
-				int p = -1;
-				for (int skip = i - count; skip >= 0; skip--)
-					p = Integer.numberOfTrailingZeros(w & (ALL_ONES_WORD << (p + 1)));
-				return BITS_PER_WORD * j + p;
+			int current = Integer.bitCount(w);
+			if (index < count + current) {
+				int bit = -1;
+				for (int skip = index - count; skip >= 0; skip--)
+					bit = Integer.numberOfTrailingZeros(w & (ALL_ONES_WORD << (bit + 1)));
+				return BITS_PER_WORD * j + bit;
 			}
-			count += c;
+			count += current;
 		}
 		throw new NoSuchElementException();
 	}
@@ -1014,15 +1005,48 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	}
 
 	/**
+	 * Generates the 32-bit binary representation of a given word (debug only)
+	 * 
+	 * @param word
+	 *            word to represent
+	 * @return 32-character string that represents the given word
+	 */
+	private static String toBinaryString(int word) {
+		String lsb = Integer.toBinaryString(word);
+		StringBuilder pad = new StringBuilder();
+		for (int i = lsb.length(); i < 32; i++) 
+			pad.append('0');
+		return pad.append(lsb).toString();
+	}
+
+	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public String debugInfo() {
-		return String.format(
-				"elements = %s\nsize = %s\nbitmap compression: %.2f%%\ncollection compression: %.2f%%\n", 
-				toString(), 
-				(size < 0 ? "[" + size + "]" : String.valueOf(size)), 
-				100D * bitmapCompressionRatio(), 
-				100D * collectionCompressionRatio());
+		final StringBuilder s = new StringBuilder("INTERNAL REPRESENTATION:\n");
+		final Formatter f = new Formatter(s, Locale.ENGLISH);
+
+		if (isEmpty())
+			return s.append("null\n").toString();
+		
+		// elements
+		f.format("Elements: %s\n", toString());
+		
+		// raw representation of words
+		for (int i = 0; i < wordsInUse; i++)
+			f.format("words[%d] = %s (from %d to %d)\n", 
+					i, toBinaryString(words[i]), i * BITS_PER_WORD, (i + 1) * BITS_PER_WORD - 1);
+		
+		// object attributes
+		f.format("wordsInUse: %d\n", wordsInUse);
+		f.format("size: %s\n", (size == -1 ? "invalid" : String.valueOf(size)));
+		f.format("words.length: %d\n", words.length);
+
+		// compression
+		f.format("bitmap compression: %.2f%%\n", 100D * bitmapCompressionRatio());
+		f.format("collection compression: %.2f%%\n", 100D * collectionCompressionRatio());
+
+		return s.toString();
 	}
 }

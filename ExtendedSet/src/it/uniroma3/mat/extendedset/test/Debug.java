@@ -43,6 +43,9 @@ import java.util.TreeSet;
  * @version $Id$
  */
 public class Debug {
+	private static int DEFAULT_SET_SIZE = 1000;
+	private static Random RANDOM = new MersenneTwister(31);
+	
 	/**
 	 * Checks if a {@link ExtendedSet} instance and a {@link TreeSet} instance
 	 * contains the same elements. {@link TreeSet} is used because it is the
@@ -148,20 +151,38 @@ public class Debug {
 	}
 	
 	/**
+	 * Populate a set with random values, from 0 to the specified greatest element
+	 * 
+	 * @param set
+	 *            the set to populate
+	 */            
+	@SuppressWarnings("unused")
+	private static void populate(ExtendedSet<Integer> set) {
+		populate(set, RANDOM, DEFAULT_SET_SIZE);
+	}
+	
+	/**
+	 * Generates an empty set of the specified class
+	 * @param c
+	 * @return the empty set
+	 */
+	private static <X extends Collection<Integer>> X empty(Class<X> c) {
+		try {
+			return c.newInstance();
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+	
+	/**
 	 * Simple append test 
 	 * <p>
 	 * It appends sequential numbers, thus generating 2 blocks of 1's
 	 * 
 	 * @param c class to test
 	 */
-	@SuppressWarnings("unchecked")
-	private static void testForAppendSimple(Class<? extends ExtendedSet> c) {
-		ExtendedSet<Integer> bits;
-		try {
-			bits = c.newInstance();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+	private static void testForAppendSimple(Class<? extends ExtendedSet<Integer>> c) {
+		ExtendedSet<Integer> bits = empty(c);
 		for (int i = 0; i < 62; i++) {
 			System.out.format("Appending %d...\n", i);
 			bits.add(i);
@@ -177,14 +198,8 @@ public class Debug {
 	 * 
 	 * @param c class to test
 	 */
-	@SuppressWarnings("unchecked")
-	private static void testForAppendComplex(Class<? extends ExtendedSet> c) {
-		ExtendedSet<Integer> bits;
-		try {
-			bits = c.newInstance();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+	private static void testForAppendComplex(Class<? extends ExtendedSet<Integer>> c) {
+		ExtendedSet<Integer> bits = empty(c);
 		TreeSet<Integer> items = new TreeSet<Integer>();
 
 		// elements to append
@@ -214,11 +229,9 @@ public class Debug {
 		}
 		
 		// check the result
-		if (checkContent(bits, items)) {
-			System.out.println("OK!");
-		} else {
+		if (!checkContent(bits, items)) 
 			System.out.println("ERRORS!");
-		}
+		System.out.println("Done!");
 	}
 	
 	/**
@@ -278,17 +291,10 @@ public class Debug {
 	 * 
 	 * @param c class to test
 	 */
-	@SuppressWarnings("unchecked")
-	private static void testForIntersectionSimple(Class<? extends ExtendedSet> c) {
+	private static void testForIntersectionSimple(Class<? extends ExtendedSet<Integer>> c) {
 		System.out.println("FIRST SET");
-		ExtendedSet<Integer> bitsLeft;
-		ExtendedSet<Integer> bitsRight;
-		try {
-			bitsLeft = c.newInstance();
-			bitsRight = c.newInstance();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+		ExtendedSet<Integer> bitsLeft = empty(c);
+		ExtendedSet<Integer> bitsRight = empty(c);
 		TreeSet<Integer> itemsLeft = new TreeSet<Integer>();
 		TreeSet<Integer> itemsRight = new TreeSet<Integer>();
 		itemsLeft.add(1);
@@ -327,19 +333,12 @@ public class Debug {
 	 * 
 	 * @param c class to test
 	 */
-	@SuppressWarnings("unchecked")
-	private static void testForIntersectionComplex(Class<? extends ExtendedSet> c) {
+	private static void testForIntersectionComplex(Class<? extends ExtendedSet<Integer>> c) {
 		// generate items to intersect completely at random
 		Random rnd = new MersenneTwister(31);
 
-		ExtendedSet<Integer> bitsLeft;
-		ExtendedSet<Integer> bitsRight;
-		try {
-			bitsLeft = c.newInstance();
-			bitsRight = c.newInstance();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+		ExtendedSet<Integer> bitsLeft = empty(c);
+		ExtendedSet<Integer> bitsRight = empty (c);
 		TreeSet<Integer> itemsLeft = new TreeSet<Integer>();
 		TreeSet<Integer> itemsRight = new TreeSet<Integer>();
 
@@ -380,16 +379,9 @@ public class Debug {
 	 * 
 	 * @param c class to test
 	 */
-	@SuppressWarnings("unchecked")
-	private static void testForUnionSimple(Class<? extends ExtendedSet> c) {
-		ExtendedSet<Integer> bitsLeft;
-		ExtendedSet<Integer> bitsRight;
-		try {
-			bitsLeft = c.newInstance();
-			bitsRight = c.newInstance();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+	private static void testForUnionSimple(Class<? extends ExtendedSet<Integer>> c) {
+		ExtendedSet<Integer> bitsLeft = empty(c);
+		ExtendedSet<Integer> bitsRight = empty(c);
 		TreeSet<Integer> itemsLeft = new TreeSet<Integer>();
 		TreeSet<Integer> itemsRight = new TreeSet<Integer>();
 
@@ -432,14 +424,8 @@ public class Debug {
 	 * 
 	 * @param c class to test
 	 */
-	@SuppressWarnings("unchecked")
-	private static void testForComplement(Class<? extends ExtendedSet> c) {
-		ExtendedSet<Integer> bits;
-		try {
-			bits = c.newInstance();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+	private static void testForComplement(Class<? extends ExtendedSet<Integer>> c) {
+		ExtendedSet<Integer> bits = empty(c);
 		
 		System.out.println("Original");
 		bits.add(1);
@@ -482,16 +468,9 @@ public class Debug {
 	 * 
 	 * @param c class to test
 	 */
-	@SuppressWarnings("unchecked")
-	private static void testForMixedStuff(Class<? extends ExtendedSet> c) {
-		ExtendedSet<Integer> bitsLeft;
-		ExtendedSet<Integer> bitsRight;
-		try {
-			bitsLeft = c.newInstance();
-			bitsRight = c.newInstance();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+	private static void testForMixedStuff(Class<? extends ExtendedSet<Integer>> c) {
+		ExtendedSet<Integer> bitsLeft = empty(c);
+		ExtendedSet<Integer> bitsRight = empty(c);
 
 		bitsLeft.add(1);
 		bitsLeft.add(100);
@@ -542,9 +521,9 @@ public class Debug {
 	 * word per item, then words become literals, and finally they 
 	 * become 1's sequences and drastically reduce in number)
 	 */
-	private static void testForAdditionStress() {
-		ConciseSet previousBits = new ConciseSet();
-		ConciseSet currentBits = new ConciseSet();
+	private static void testForAdditionStress(Class<? extends ExtendedSet<Integer>> c) {
+		ExtendedSet<Integer> previousBits = empty(c);
+		ExtendedSet<Integer> currentBits = empty(c);
 		TreeSet<Integer> currentItems = new TreeSet<Integer>();
 
 		Random rnd = new MersenneTwister();
@@ -590,7 +569,7 @@ public class Debug {
 			}
 			
 			// check the representation
-			ConciseSet otherBits = ConciseSet.asConciseSet(currentItems);
+			ExtendedSet<Integer> otherBits = previousBits.convert(currentItems);
 			if (otherBits.hashCode() != currentBits.hashCode()) {
 				System.out.println("Representation error");
 				System.out.println(currentBits.debugInfo());
@@ -600,7 +579,7 @@ public class Debug {
 			}
 
 			// check the union size
-			ConciseSet singleBitSet = new ConciseSet();
+			ExtendedSet<Integer> singleBitSet = empty(c);
 			singleBitSet.add(item);
 			if (currentItems.size() != currentBits.unionSize(singleBitSet)) {
 				System.out.println("Size error");
@@ -685,7 +664,7 @@ public class Debug {
 			}
 			
 			// check the representation
-			ConciseSet otherBits = ConciseSet.asConciseSet(currentItems);
+			ConciseSet otherBits = new ConciseSet(currentItems);
 			if (otherBits.hashCode() != currentBits.hashCode()) {
 				System.out.println("Representation error");
 				System.out.println(currentBits.debugInfo());
@@ -725,20 +704,13 @@ public class Debug {
 	 * 
 	 * @param c class to test
 	 */
-	@SuppressWarnings("unchecked")
-	private static void testForRandomOperationsStress(Class<? extends ExtendedSet> c) {
-		ExtendedSet<Integer> bitsLeft;
-		ExtendedSet<Integer> bitsRight;
-		try {
-			bitsLeft = c.newInstance();
-			bitsRight = c.newInstance();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+	private static void testForRandomOperationsStress(Class<? extends ExtendedSet<Integer>> c) {
+		ExtendedSet<Integer> bitsLeft = empty(c);
+		ExtendedSet<Integer> bitsRight = empty(c);
 		TreeSet<Integer> itemsLeft = new TreeSet<Integer>();
 		TreeSet<Integer> itemsRight = new TreeSet<Integer>();
 
-		Random rnd = new MersenneTwister();
+		Random rnd = new MersenneTwister(31);
 
 		// random operation loop
 		final int m = 10000;
@@ -794,6 +766,14 @@ public class Debug {
 				System.out.println(bitsRight.last().equals(itemsRight.last()));
 				
 				return;
+			}
+			
+			// perform some read-only operations
+			boolean bitsRes = bitsLeft.containsAll(bitsRight);
+			boolean itemsRes = itemsLeft.containsAll(itemsRight);
+			if (bitsRes != itemsRes) {
+				System.out.println("bitsLeft.containsAll(bitsRight): " + bitsRes);
+				System.out.println("itemsLeft.containsAll(itemsRight): " + itemsRes);
 			}
 			
 			// perform the random operation with the previous set
@@ -861,7 +841,7 @@ public class Debug {
 			if (x.hashCode() != bitsLeft.hashCode()) {
 				System.out.println("REPRESENTATION ERROR!");
 				System.out.println(bitsLeft.debugInfo());
-				System.out.println(ConciseSet.asConciseSet(itemsLeft).debugInfo());
+				System.out.println(new ConciseSet(itemsLeft).debugInfo());
 				return;
 			}
 
@@ -920,7 +900,7 @@ public class Debug {
 			}
 			
 			// check the representation
-			ConciseSet otherBits = ConciseSet.asConciseSet(currentItems);
+			ConciseSet otherBits = new ConciseSet(currentItems);
 			if (otherBits.hashCode() != currentBits.hashCode()) {
 				System.out.println("Representation not correct!");
 				System.out.println(currentBits.debugInfo());
@@ -985,7 +965,7 @@ public class Debug {
 			}
 			
 			// check the representation
-			ConciseSet otherBits = ConciseSet.asConciseSet(currentItems);
+			ConciseSet otherBits = new ConciseSet(currentItems);
 			if (otherBits.hashCode() != currentBits.hashCode()) {
 				System.out.println("Representation not correct!");
 				System.out.println(currentBits.debugInfo());
@@ -1175,7 +1155,7 @@ public class Debug {
 			}
 			
 			// check the representation
-			ConciseSet otherBits = ConciseSet.asConciseSet(items);
+			ConciseSet otherBits = new ConciseSet(items);
 			if (otherBits.hashCode() != bits.hashCode()) {
 				System.out.println("Representation not correct!");
 				System.out.format("min: %d, max: %d, minSub: %d, maxSub: %d\n", min, max, minSub, maxSub);
@@ -1250,16 +1230,9 @@ public class Debug {
 	 * 
 	 * @param c class to test
 	 */
-	@SuppressWarnings("unchecked")
-	private static void testForComparatorSimple(Class<? extends ExtendedSet> c) {
-		ExtendedSet<Integer> bitsLeft;
-		ExtendedSet<Integer> bitsRight;
-		try {
-			bitsLeft = c.newInstance();
-			bitsRight = c.newInstance();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+	private static void testForComparatorSimple(Class<? extends ExtendedSet<Integer>> c) {
+		ExtendedSet<Integer> bitsLeft = empty(c);
+		ExtendedSet<Integer> bitsRight = empty(c);
 
 		bitsLeft.add(1);
 		bitsLeft.add(2);
@@ -1305,16 +1278,9 @@ public class Debug {
 	 * 
 	 * @param c class to test
 	 */
-	@SuppressWarnings("unchecked")
-	private static void testForComparatorComplex(Class<? extends ExtendedSet> c) {
-		ExtendedSet<Integer> bitsLeft;
-		ExtendedSet<Integer> bitsRight;
-		try {
-			bitsLeft = c.newInstance();
-			bitsRight = c.newInstance();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+	private static void testForComparatorComplex(Class<? extends ExtendedSet<Integer>> c) {
+		ExtendedSet<Integer> bitsLeft = empty(c);
+		ExtendedSet<Integer> bitsRight = empty(c);
 
 		Random rnd = new MersenneTwister(31);
 		for (int i = 0; i < 10000; i++) {
@@ -1372,14 +1338,8 @@ public class Debug {
 	 * 
 	 * @param c class to test
 	 */
-	@SuppressWarnings("unchecked")
-	private static void testForDescendingIterator(Class<? extends ExtendedSet> c) {
-		ExtendedSet<Integer> bits;
-		try {
-			bits = c.newInstance();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+	private static void testForDescendingIterator(Class<? extends ExtendedSet<Integer>> c) {
+		ExtendedSet<Integer> bits = empty(c);
 		
 		Random rnd = new MersenneTwister(31);
 		for (int i = 0; i < 100000; i++) {
@@ -1412,14 +1372,9 @@ public class Debug {
 	 * 
 	 * @param c class to test
 	 */
-	@SuppressWarnings("unchecked")
-	private static void testForPosition(Class<? extends ExtendedSet> c) {
-		ExtendedSet<Integer> bits;
-		try {
-			bits = c.newInstance();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+	private static void testForPosition(Class<? extends ExtendedSet<Integer>> c) {
+		ExtendedSet<Integer> bits = empty(c);
+
 		Random rnd = new MersenneTwister(31);
 		for (int i = 0; i < 1000; i++) {
 			// new set
@@ -1471,16 +1426,8 @@ public class Debug {
 	 *
 	 * @param c class to test
 	 */
-	@SuppressWarnings("unchecked")
-		private static void testForEquals(Class<? extends ExtendedSet> c) {
-		ExtendedSet<Integer> b1, b2, b3;
-		try {
-			b1 = c.newInstance();
-			b2 = c.newInstance();
-			b3 = c.newInstance();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+	private static void testForEquals(Class<? extends ExtendedSet<Integer>> c) {
+		ExtendedSet<Integer> b1 = empty(c), b2 = empty(c), b3 = empty(c);
 		b1.fill(10, 20);
 		b2.fill(1, 50);
 		b2 = b2.subSet(10, 21);
@@ -1510,14 +1457,8 @@ public class Debug {
 	 * 
 	 * @param c class to test
 	 */
-	@SuppressWarnings("unchecked")
-	private static void testForSkip(Class<? extends ExtendedSet> c) {
-		ExtendedSet<Integer> bits;
-		try {
-			bits = c.newInstance();
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+	private static void testForSkip(Class<? extends ExtendedSet<Integer>> c) {
+		ExtendedSet<Integer> bits = empty(c);
 
 		Random rnd = new MersenneTwister(31);
 		for (int i = 0; i < 10000; i++) {
@@ -1578,6 +1519,7 @@ public class Debug {
 		MIXED_STUFF_CONCISESET,
 		MIXED_STUFF_FASTSET,
 		ADDITION_STRESS_CONCISESET,
+		ADDITION_STRESS_FASTSET,
 		REMOVAL_STRESS_CONCISESET,
 		RANDOM_OPERATION_STRESS_CONCISESET,
 		RANDOM_OPERATION_STRESS_FASTSET,
@@ -1605,7 +1547,7 @@ public class Debug {
 	 * @param args ID of the test to execute
 	 */
 	public static void main(String[] args) {
-		TestCase testCase = TestCase.COMPARATOR_COMPLEX_FASTSET;
+		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS_CONCISESET;
 		
 		if (args != null && args.length > 0) {
 			try {
@@ -1665,7 +1607,10 @@ public class Debug {
 			testForMixedStuff(FastSet.class);
 			break;
 		case ADDITION_STRESS_CONCISESET:
-			testForAdditionStress();
+			testForAdditionStress(ConciseSet.class);
+			break;
+		case ADDITION_STRESS_FASTSET:
+			testForAdditionStress(FastSet.class);
 			break;
 		case REMOVAL_STRESS_CONCISESET:
 			testForRemovalStress();

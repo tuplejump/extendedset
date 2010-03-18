@@ -73,12 +73,12 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * {@link AbstractExtendedSet#complementSize()} since they are very fast.
 	 */
 	public static class Statistics {
-		private static long intersectionCount = 0;
-		private static long unionCount = 0;
-		private static long symmetricDifferenceCount = 0;
-		private static long differenceCount = 0;
-		private static long sizeCheckCount = 0;
-		private static long equalsCount = 0;
+		/*private*/ static long intersectionCount = 0;
+		/*private*/ static long unionCount = 0;
+		/*private*/ static long symmetricDifferenceCount = 0;
+		/*private*/ static long differenceCount = 0;
+		/*private*/ static long sizeCheckCount = 0;
+		/*private*/ static long equalsCount = 0;
 
 		/**
 		 * Resets all counters
@@ -108,33 +108,33 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 		/** Resets the counter of performed differences */
 		public static void resetDifferenceCount() {differenceCount = 0;}
 
-		/** Resets the counter of performed size checks */
+		/** Resets the counter of performed size checks (<code>complementSize()</code> excluded) */
 		public static void resetSizeCheckCount() {sizeCheckCount = 0;}
 
 		/** Resets the counter of performed equals */
 		public static void resetEqualsCount() {equalsCount = 0;}
 
-		/*
-		 * Increments
-		 */
-		
-		/** Increases the counter of performed intersections */
-		public static void increaseIntersectionCount() {intersectionCount++;}
-
-		/** Increases the counter of performed unions */
-		public static void increaseUnionCount() {unionCount++;}
-
-		/** Increases the counter of performed symmetric differences */
-		public static void increaseSymmetricDifferenceCount() {symmetricDifferenceCount++;}
-
-		/** Increases the counter of performed differences */
-		public static void increaseDifferenceCount() {differenceCount++;}
-
-		/** Increases the counter of performed size checks */
-		public static void increaseSizeCheckCount() {sizeCheckCount++;}
-
-		/** Increases the counter of performed equals */
-		public static void increaseEqualsCount() {equalsCount++;}
+//		/*
+//		 * Increments
+//		 */
+//		
+//		/** Increases the counter of performed intersections */
+//		public static void increaseIntersectionCount() {intersectionCount++;}
+//
+//		/** Increases the counter of performed unions */
+//		public static void increaseUnionCount() {unionCount++;}
+//
+//		/** Increases the counter of performed symmetric differences */
+//		public static void increaseSymmetricDifferenceCount() {symmetricDifferenceCount++;}
+//
+//		/** Increases the counter of performed differences */
+//		public static void increaseDifferenceCount() {differenceCount++;}
+//
+//		/** Increases the counter of performed size checks */
+//		public static void increaseSizeCheckCount() {sizeCheckCount++;}
+//
+//		/** Increases the counter of performed equals */
+//		public static void increaseEqualsCount() {equalsCount++;}
 
 		/*
 		 * Getters
@@ -152,7 +152,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 		/** @return the counter of performed differences */
 		public static long getDifferenceCount() {return differenceCount;}
 
-		/** @return the counter of performed size checks */
+		/** @return the counter of performed size checks (<code>complementSize()</code> excluded) */
 		public static long getSizeCheckCount() {return sizeCheckCount;}
 
 		/** @return the counter of performed equals */
@@ -582,16 +582,15 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 */
 	@Override
 	public ExtendedSet<T> subSet(T fromElement, T toElement);
-	
+
 	/**
 	 * Converts a given {@link Collection} instance into an instance of the
-	 * current class
+	 * current class. <b>NOTE:</b> when the collection is already an instance of
+	 * the current class, the method returns this collection.
 	 * 
 	 * @param c
 	 *            collection to use to generate the new instance
-	 * @return the generated instance. <b>NOTE:</b> if the parameter is already
-	 *         an instance of the current class, the method returns the
-	 *         parameter.
+	 * @return the converted collection
 	 * @see #convert(Object...)
 	 */
 	public ExtendedSet<T> convert(Collection<?> c);
@@ -601,10 +600,10 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * 
 	 * @param e
 	 *            objects to use to generate the new instance
-	 * @return the generated instance. 
+	 * @return the converted collection
 	 * @see #convert(Collection)
 	 */
-	public  ExtendedSet<T> convert(T... e);	
+	public  ExtendedSet<T> convert(Object... e);	
 	
 	/**
 	 * Computes the Jaccard similarity coefficient between this set and the

@@ -733,7 +733,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public IndexedSet<T> convert(T... e) {
+	public IndexedSet<T> convert(Object... e) {
 		return (IndexedSet<T>) super.convert(e);
 	}
 

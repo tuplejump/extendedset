@@ -218,9 +218,41 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * 
 	 * @param c
 	 */
+	@SuppressWarnings("unchecked")
 	public ConciseSet(Collection<? extends Integer> c) {
 		this();
-		addAll(c);
+
+		// try to convert the collection
+		if (c != null && !c.isEmpty()) {
+			// sorted element (in order to use the append() method)
+			Collection<? extends Integer> elements;
+			if ((c instanceof SortedSet<?>) && (((SortedSet<?>) c).comparator() == null)) {
+				// if elements are already ordered according to the natural
+				// order of Integer, simply use them
+				elements = c;
+			} else {
+				// sort elements in ascending order
+				elements = new ArrayList<Integer>(c);
+				Collections.sort((ArrayList<Integer>) elements);
+			}
+
+			// append elements
+			for (Integer i : elements)
+				// check for duplicates
+				if (maxSetBit != i)
+					append(i);
+		}	
+	}
+
+	/**
+	 * Creates an empty {@link ConciseSet} instance and then populates it from
+	 * an existing integer collection
+	 * 
+	 * @param a
+	 */
+	@SuppressWarnings("unchecked")
+	public ConciseSet(Object... a) {
+		this(a == null ? (Collection) null : Arrays.asList(a));
 	}
 
 	/**
@@ -586,25 +618,17 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * {@link #lastWordIndex}.
 	 */
 	private void ensureCapacity() {
-        // find the smallest power of 2 that is greater than "lastWordIndex"
-        int capacity = words == null ? 8 : words.length;
-        while (capacity <= lastWordIndex)
-            capacity <<= 1;
+		int capacity = words == null ? 0 : words.length;
+		if (capacity > lastWordIndex) 
+			return;
+		capacity = Math.max(capacity << 1, lastWordIndex + 1);
 
-		// nothing to copy
 		if (words == null) {
+			// nothing to copy
 			words = new int[capacity];
 			return;
 		}
-		
-		// nothing to change
-		if (words.length >= capacity)
-			return;
-		
-		// create the new words
-		int[] newWords = new int[capacity];
-		System.arraycopy(words, 0, newWords, 0, words.length);
-		words = newWords;
+		words = Arrays.copyOf(words, capacity);
 	}
 
 	/**
@@ -1268,7 +1292,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 */
 	@Override
 	public int intersectionSize(Collection<? extends Integer> other) {
-		Statistics.increaseSizeCheckCount();
+		Statistics.sizeCheckCount++;
 		
 		// empty arguments
 		if (other == null || other.isEmpty() || this.isEmpty())
@@ -1578,7 +1602,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 */
 	@Override
 	public ConciseSet intersection(Collection<? extends Integer> other) {
-		Statistics.increaseIntersectionCount();
+		Statistics.intersectionCount++;
 		if (other == null)
 			return new ConciseSet();
 		if (other.size() != 1) 
@@ -1601,7 +1625,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 */
 	@Override
 	public ConciseSet union(Collection<? extends Integer> other) {
-		Statistics.increaseUnionCount();
+		Statistics.unionCount++;
 		if (other == null)
 			return clone();
 		if (other.size() != 1) 
@@ -1618,7 +1642,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 */
 	@Override
 	public ConciseSet difference(Collection<? extends Integer> other) {
-		Statistics.increaseDifferenceCount();
+		Statistics.differenceCount++;
 		if (other == null)
 			return clone();
 		if (other.size() != 1) 
@@ -1635,7 +1659,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 */
 	@Override
 	public ConciseSet symmetricDifference(Collection<? extends Integer> other) {
-		Statistics.increaseSymmetricDifferenceCount();
+		Statistics.symmetricDifferenceCount++;
 		if (other == null)
 			return clone();
 		if (other.size() != 1) 
@@ -2077,85 +2101,24 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	}
 
 	/**
-	 * Converts a given {@link Collection} instance into an instance of the
-	 * current class
-	 * 
-	 * @param c
-	 *            collection to use to generate the new instance
-	 * @return the generated instance. <b>NOTE:</b> if the parameter is already
-	 *         an instance of the current class, the method returns the
-	 *         parameter.
-	 * @see #asConciseSet(Integer...)
+	 * {@inheritDoc}
 	 */
 	@SuppressWarnings("unchecked")
-	public static ConciseSet asConciseSet(Collection<?> c) {
-		if (c == null)
-			return new ConciseSet();
-			
-		// useless to convert...
-		if (c instanceof ConciseSet)
-			return (ConciseSet) c;
-		if (c instanceof AbstractExtendedSet<?>.FilteredSet) 
-			return asConciseSet(((FilteredSet) c).filtered());
-		
-		// try to convert the collection
-		ConciseSet res = new ConciseSet();
-		if (!c.isEmpty()) {
-			// sorted element (in order to use the append() method)
-			Collection<Integer> elements;
-			if ((c instanceof SortedSet<?>) && (((SortedSet<?>) c).comparator() == null)) {
-				// if elements are already ordered according to the natural
-				// order of Integer, simply use them
-				elements = (SortedSet<Integer>) c;
-			} else {
-				// sort elements in ascending order
-				elements = new ArrayList<Integer>((Collection<? extends Integer>) c);
-				Collections.sort((ArrayList<Integer>) elements);
-			}
-
-			// append elements
-			for (Integer i : elements)
-				// check for duplicates
-				if (res.maxSetBit != i)
-					res.append(i);
-		}
-		return res;
-	}
-	
-	/**
-	 * Converts a given integer array into an instance of the current class
-	 * 
-	 * @param e
-	 *            objects to use to generate the new instance
-	 * @return the generated instance. 
-	 * @see #asConciseSet(Collection)
-	 */
-	public static ConciseSet asConciseSet(Integer... e) {
-		if (e == null)
-			return new ConciseSet();
-		if (e.length == 1) {
-			ConciseSet res = new ConciseSet();
-			res.append(e[0]);
-			return res;
-		} 
-		
-		return asConciseSet(Arrays.asList(e));
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public ConciseSet convert(Collection<?> c) {
-		return asConciseSet(c);
+		if (c == null)
+			return new ConciseSet();
+		if (c instanceof ConciseSet)
+			return (ConciseSet) c;
+		return new ConciseSet((Collection<? extends Integer>) c);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ConciseSet convert(Integer... e) {
-		return asConciseSet(e);
+	public ConciseSet convert(Object... e) {
+		return new ConciseSet(e);
 	}
 
 	/**
@@ -2254,7 +2217,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		// the bit is in the middle of a sequence or it may cause a literal to
 		// become a sequence, thus the "easiest" way to add it is by ORing
 		int sizeBefore = size;
-		Statistics.increaseUnionCount();
+		Statistics.unionCount++;
 		becomeAliasOf(performOperation(convert(b), Operator.OR));
 		return size != sizeBefore;
 	}
@@ -2338,7 +2301,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		// the bit is in the middle of a sequence or it may cause a literal to
 		// become a sequence, thus the "easiest" way to remove it by ANDNOTing
 		int sizeBefore = size;
-		Statistics.increaseDifferenceCount();
+		Statistics.differenceCount++;
 		becomeAliasOf(performOperation(convert(b), Operator.ANDNOT));
 		return size != sizeBefore;
 	}
@@ -2395,7 +2358,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 */
 	@Override
 	public boolean containsAll(Collection<?> c) {
-		Statistics.increaseSizeCheckCount();
+		Statistics.sizeCheckCount++;
 
 		if (c == null || c.isEmpty() || c == this)
 			return true;
@@ -2440,7 +2403,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 */
 	@Override
 	public boolean containsAny(Collection<? extends Integer> other) {
-		Statistics.increaseSizeCheckCount();
+		Statistics.sizeCheckCount++;
 
 		if (other == null || other.isEmpty() || this.isEmpty())
 			return false;
@@ -2496,7 +2459,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		if (minElements < 1)
 			throw new IllegalArgumentException();
 		
-		Statistics.increaseSizeCheckCount();
+		Statistics.sizeCheckCount++;
 
 		// empty arguments
 		if (this.size < minElements || other == null || other.size() < minElements)
@@ -2567,7 +2530,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	@Override
 	public boolean retainAll(Collection<?> c) {
 		modCount++;
-		Statistics.increaseIntersectionCount();
+		Statistics.intersectionCount++;
 
 		if (isEmpty() || c == this)
 			return false;
@@ -2600,7 +2563,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	@Override
 	public boolean addAll(Collection<? extends Integer> c) {
 		modCount++;
-		Statistics.increaseUnionCount();
+		Statistics.unionCount++;
 		if (c == null || c.isEmpty() || c == this)
 			return false;
 
@@ -2618,7 +2581,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	@Override
 	public boolean removeAll(Collection<?> c) {
 		modCount++;
-		Statistics.increaseDifferenceCount();
+		Statistics.differenceCount++;
 
 		if (c == null || c.isEmpty() || isEmpty())
 			return false;
@@ -2654,13 +2617,9 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 */
 	@Override
 	public int hashCode() {
-        if (isEmpty())
-            return 0;
-
         int h = 1;
         for (int i = 0; i <= lastWordIndex; i++) 
             h = (h << 5) - h + words[i];
-
         return h;
 	}
 
@@ -2669,7 +2628,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		Statistics.increaseEqualsCount();
+		Statistics.equalsCount++;
 
 		if (this == obj)
 			return true;
@@ -2694,6 +2653,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		// check if the given object has the same internal representation
 		if (!(o instanceof ConciseSet))
 			return super.compareTo(o);
+
+		Statistics.equalsCount++;
 		final ConciseSet other = (ConciseSet) o;
 		
 		// empty set cases
