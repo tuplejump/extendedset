@@ -740,12 +740,19 @@ public class Debug {
 				} else {
 					// singleton
 					int item = min + rnd.nextInt(max - min + 1);
+					boolean resItems, resBits;
 					if (rnd.nextDouble() < 0.01D) {
-						itemsRight.remove(item);
-						bitsRight.remove(item);
+						resItems = itemsRight.remove(item);
+						resBits = bitsRight.remove(item);
 					} else {
-						itemsRight.add(item);
-						bitsRight.add(item);
+						resItems = itemsRight.add(item);
+						resBits = bitsRight.add(item);
+					}
+					if (resItems != resBits) {
+						System.out.println("BOOLEAN ERROR!");
+						System.out.println("resItems: " + resItems);
+						System.out.println("resBits: " + resBits);
+						return;
 					}
 				}
 			}
@@ -778,26 +785,27 @@ public class Debug {
 			
 			// perform the random operation with the previous set
 			int operationSize = 0;
+			boolean resItems = true, resBits = true;
 			switch (1 + rnd.nextInt(5)) {
 			case 1:
 				System.out.format(" union of %d elements with %d elements... ", itemsLeft.size(), itemsRight.size());
 				operationSize = bitsLeft.unionSize(bitsRight);
-				itemsLeft.addAll(itemsRight);
-				bitsLeft.addAll(bitsRight);
+				resItems = itemsLeft.addAll(itemsRight);
+				resBits = bitsLeft.addAll(bitsRight);
 				break;
 
 			case 2:
 				System.out.format(" difference of %d elements with %d elements... ", itemsLeft.size(), itemsRight.size());
 				operationSize = bitsLeft.differenceSize(bitsRight);
-				itemsLeft.removeAll(itemsRight);
-				bitsLeft.removeAll(bitsRight);
+				resItems = itemsLeft.removeAll(itemsRight);
+				resBits = bitsLeft.removeAll(bitsRight);
 				break;
 
 			case 3:
 				System.out.format(" intersection of %d elements with %d elements... ", itemsLeft.size(), itemsRight.size());
 				operationSize = bitsLeft.intersectionSize(bitsRight);
-				itemsLeft.retainAll(itemsRight);
-				bitsLeft.retainAll(bitsRight);
+				resItems = itemsLeft.retainAll(itemsRight);
+				resBits = bitsLeft.retainAll(bitsRight);
 				break;
 
 			case 4:
@@ -854,6 +862,13 @@ public class Debug {
 				return;
 			}
 			
+			if (resItems != resBits) {
+				System.out.println("BOOLEAN ERROR!");
+				System.out.println("resItems: " + resItems);
+				System.out.println("resBits: " + resBits);
+				return;
+			}
+
 			System.out.println("done.");
 		}
 	}

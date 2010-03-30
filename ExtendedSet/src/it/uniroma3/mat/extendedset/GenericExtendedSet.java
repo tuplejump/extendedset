@@ -180,7 +180,8 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	@SuppressWarnings("unchecked")
 	@Override
 	public GenericExtendedSet<T> clone() {
-		GenericExtendedSet<T> c = (GenericExtendedSet<T>) super.clone();
+		// NOTE: do not use super.clone() since it is 10 times slower!
+		GenericExtendedSet<T> c = empty();
 		try {
 			if (elements instanceof Cloneable) {
 				c.elements = (Set<T>) elements.getClass().getMethod("clone").invoke(elements);

@@ -260,6 +260,9 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 
 	/**
 	 * {@inheritDoc}
+	 * <p>
+	 * <b>NOTE:</b> <code>Object.clone()</code> is much slower then performing
+	 * <code>new</code> and "manually" copying data!
 	 */
 	@SuppressWarnings("unchecked")
 	@Override

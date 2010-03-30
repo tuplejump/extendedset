@@ -2,6 +2,7 @@ package it.uniroma3.mat.extendedset.test;
 
 import it.uniroma3.mat.extendedset.ConciseSet;
 import it.uniroma3.mat.extendedset.FastSet;
+import it.uniroma3.mat.extendedset.utilities.MersenneTwister;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -13,6 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Map.Entry;
@@ -24,11 +26,17 @@ import java.util.Map.Entry;
  * @version $Id$
  */
 public class Performance {
+	private static class WAHSet extends ConciseSet {
+		@SuppressWarnings("unused")
+		public WAHSet() {super(true);}
+		public WAHSet(Collection<? extends Integer> c) {super(true, c);}
+	}
+
+
 	// number of times to repeat each test
-	private final static int REPETITIONS = 2;
+	private final static int REPETITIONS = 5;
 
 	// time and memory measurements
-	//TODO personalizzabile secondo le esigenze della classe!
 	private final static ResourceMonitor rm = new ResourceMonitor();
 	
 	// test results
@@ -70,13 +78,6 @@ public class Performance {
 	}
 
 	/**
-	 * Set initial values
-	 */
-	private static void startTimer() {
-		rm.startTimer();
-	}
-
-	/**
 	 * Compute final values
 	 * 
 	 * @param c
@@ -87,9 +88,7 @@ public class Performance {
 	 *            division factor (elapsed time and allocated memory will be
 	 *            divided by this number)
 	 */
-	private static void endTimer(Class<?> c, String name, long div) {
-		long[] timeAndMemory = rm.endTimer();
-		
+	private static void endTimer(long[] timeAndMemory, Class<?> c, String name, long div) {
 		// final time
 		double t = ((double) timeAndMemory[0]) / div;
 		Map<Class<?>, Double> measure = timeValues.get(name);
@@ -109,10 +108,10 @@ public class Performance {
 		measure.put(c, m);	
 		
 		// results
-		System.out.print(name + "... ");
-		for (int i = 0; i < 30 - name.length(); i++) 
-			System.out.print(" ");
-		System.out.println(format(t, m));
+//		System.out.print(name + "... ");
+//		for (int i = 0; i < 30 - name.length(); i++) 
+//			System.out.print(" ");
+//		System.out.println(format(t, m));
 	}
 
 	/**
@@ -121,48 +120,45 @@ public class Performance {
 	 * @param classToTest
 	 *            class of the {@link Collection} instance to test
 	 */
-	@SuppressWarnings("unchecked")
-	private static void testMemory(Class<?> classToTest, Collection<Integer> numbers) {
+	@SuppressWarnings({ "unchecked", "unused" })
+	private static void testMemory(Class<?> classToTest, Collection<Integer> integers) {
 		// print the class being tested
-		System.out.println(classToTest.getSimpleName());
+		System.out.println("class: " + classToTest.getSimpleName());
 
 		try {
-			Collection<Integer> c;
-
-			// new instance
-			startTimer();
-			c = (Collection)classToTest.newInstance();
-			endTimer(classToTest, "a) creating empty instance", 1);
+			// load classes
+			Collection<Integer> c = (Collection) classToTest.newInstance();
 			rm.useObject(c);
-
-			// elements
-			startTimer();
-			c.addAll(numbers);
-			endTimer(classToTest, "b) adding " + numbers.size() + " elements", numbers.size());
-			rm.useObject(c);
-
-			/*
-			 * NOTE: by repeating the same things we take into account caching...
-			 */ 
 			
-			startTimer();
-			c = (Collection)classToTest.newInstance();
-			endTimer(classToTest, "c) creating empty instance", 1);
+			// new instance
+			rm.startTimer();
+			c = (Collection) classToTest.newInstance();
+			endTimer(rm.endTimer(), classToTest, "a) creating empty instance", 1);
+			rm.useObject(c);
+			System.gc();
+			System.runFinalization();
+			System.gc();
+			System.runFinalization();
+
+			// add integers
+			rm.startTimer();
+			c.addAll(integers);
+			endTimer(rm.endTimer(), classToTest, "b) adding " + integers.size() + " elements", integers.size());
+			rm.useObject(c);
+			// new instance
+
+			//TWICE
+			
+			// new instance
+			rm.startTimer();
+			c = (Collection) classToTest.newInstance();
+			endTimer(rm.endTimer(), classToTest, "a) creating empty instance", 1);
 			rm.useObject(c);
 
-			startTimer();
-			c.addAll(numbers);
-			endTimer(classToTest, "d) adding " + numbers.size() + " elements", numbers.size());
-			rm.useObject(c);
-
-			startTimer();
-			c = (Collection)classToTest.newInstance();
-			endTimer(classToTest, "e) creating empty instance", 1);
-			rm.useObject(c);
-
-			startTimer();
-			c.addAll(numbers);
-			endTimer(classToTest, "f) adding " + numbers.size() + " elements", numbers.size());
+			// add integers
+			rm.startTimer();
+			c.addAll(integers);
+			endTimer(rm.endTimer(), classToTest, "b) adding " + integers.size() + " elements", integers.size());
 			rm.useObject(c);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
@@ -184,8 +180,8 @@ public class Performance {
 	@SuppressWarnings("unchecked")
 	private static void testTime(
 			Class<?> classToTest, 
-			List<Integer> numbersLeftOperand, 
-			List<Integer> numbersRightOperand) {
+			Collection<Integer> numbersLeftOperand, 
+			Collection<Integer> numbersRightOperand) {
 		// collections used for the test cases
 		Collection<Integer>[] cAddAndRemove = new Collection[REPETITIONS];
 		Collection<Integer>[] cAddAll = new Collection[REPETITIONS];
@@ -194,124 +190,135 @@ public class Performance {
 		Collection<Integer>[] cRighOperand = new Collection[REPETITIONS];
 
 		// class name
-		System.out.println();
-		System.out.println("----------");
-		System.out.println(classToTest.getSimpleName());
-		System.out.println("----------");
+//		System.out.println();
+//		System.out.println("----------");
+//		System.out.println(classToTest.getSimpleName());
+//		System.out.println("----------");
 
 		int i;
-		int j;
 		
 		// CREATION
-		startTimer();
+//		rm.fastStartTimer(null);
 		for (i = 0; i < REPETITIONS; i++) {
 			try {
-				cAddAndRemove[i] = (Collection)classToTest.newInstance();
-				cAddAll[i] = (Collection)classToTest.newInstance();
-				cRemoveAll[i] = (Collection)classToTest.newInstance();
-				cRetainAll[i] = (Collection)classToTest.newInstance();
-				cRighOperand[i] = (Collection)classToTest.newInstance(); 
+				cAddAndRemove[i] = (Collection) classToTest.newInstance();
+				cAddAll[i] = (Collection) classToTest.newInstance();
+				cRemoveAll[i] = (Collection) classToTest.newInstance();
+				cRetainAll[i] = (Collection) classToTest.newInstance();
+				cRighOperand[i] = (Collection) classToTest.newInstance(); 
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			} 
 		}
-		endTimer(classToTest, "0) newInstance()", REPETITIONS * 5);
-		for (i = 0; i < REPETITIONS; i++) {
-			rm.useObject(cAddAndRemove[i]);
-			rm.useObject(cAddAll[i]);
-			rm.useObject(cRemoveAll[i]);
-			rm.useObject(cRetainAll[i]);
-			rm.useObject(cRighOperand[i]); 
-		}
+//		endTimer(rm.fastEndTimer("Done"), classToTest, "0) newInstance()", REPETITIONS * 5);
+//		for (i = 0; i < REPETITIONS; i++) {
+//			rm.useObject(cAddAndRemove[i]);
+//			rm.useObject(cAddAll[i]);
+//			rm.useObject(cRemoveAll[i]);
+//			rm.useObject(cRetainAll[i]);
+//			rm.useObject(cRighOperand[i]); 
+//		}
 		
 		// ADDITION
-		startTimer();
+		rm.fastStartTimer(null);
 		for (i = 0; i < REPETITIONS; i++) {
-			for (j = 0; j < numbersLeftOperand.size(); j++)
-				cAddAndRemove[i].add(numbersLeftOperand.get(j));
-			for (j = 0; j < numbersRightOperand.size(); j++)
-				cRighOperand[i].add(numbersRightOperand.get(j));
-			for (j = 0; j < numbersLeftOperand.size(); j++)
-				cAddAll[i].add(numbersLeftOperand.get(j));
-			for (j = 0; j < numbersLeftOperand.size(); j++)
-				cRetainAll[i].add(numbersLeftOperand.get(j));
-			for (j = 0; j < numbersLeftOperand.size(); j++)
-				cRemoveAll[i].add(numbersLeftOperand.get(j));
+			for (Integer x : numbersLeftOperand)
+				cAddAndRemove[i].add(x);
+			for (Integer x : numbersRightOperand)
+				cRighOperand[i].add(x);
+			for (Integer x : numbersLeftOperand)
+				cAddAll[i].add(x);
+			for (Integer x : numbersLeftOperand)
+				cRetainAll[i].add(x);
+			for (Integer x : numbersLeftOperand)
+				cRemoveAll[i].add(x);
 		}
-		endTimer(classToTest, "1) add()", REPETITIONS * 5);
-		System.out.println("Left operand elements: " + cAddAndRemove[0].size());
-		System.out.println("Right operand elements: " + cRighOperand[0].size());
-		for (i = 0; i < REPETITIONS; i++) {
-			rm.useObject(cAddAndRemove[i]);
-			rm.useObject(cRighOperand[i]);
-			rm.useObject(cAddAll[i]);
-			rm.useObject(cRetainAll[i]);
-			rm.useObject(cRemoveAll[i]);
-		}
+		endTimer(rm.fastEndTimer("Done"), classToTest, "1) add()", REPETITIONS * (4 * numbersLeftOperand.size() + numbersRightOperand.size()));
+//		System.out.println("Left operand elements: " + cAddAndRemove[0].size());
+//		System.out.println("Right operand elements: " + cRighOperand[0].size());
+//		for (i = 0; i < REPETITIONS; i++) {
+//			rm.useObject(cAddAndRemove[i]);
+//			rm.useObject(cRighOperand[i]);
+//			rm.useObject(cAddAll[i]);
+//			rm.useObject(cRetainAll[i]);
+//			rm.useObject(cRemoveAll[i]);
+//		}
 		
 		// REMOVAL
-		startTimer();
+		rm.fastStartTimer(null);
 		for (i = 0; i < REPETITIONS; i++) {
-			for (j = 0; j < numbersRightOperand.size(); j++)
-				cAddAndRemove[i].remove(numbersRightOperand.get(j));
+			for (Integer x : numbersRightOperand)
+				cAddAndRemove[i].remove(x);
 		}
-		endTimer(classToTest, "2) remove()", numbersRightOperand.size() * REPETITIONS);
-		System.out.println("Left operand elements: " + cAddAndRemove[0].size());
-		for (i = 0; i < REPETITIONS; i++) {
-			rm.useObject(cAddAndRemove[i]);
-		}
+		endTimer(rm.fastEndTimer("Done"), classToTest, "2) remove()", numbersRightOperand.size() * REPETITIONS);
+//		System.out.println("Left operand elements: " + cAddAndRemove[0].size());
+//		for (i = 0; i < REPETITIONS; i++) {
+//			rm.useObject(cAddAndRemove[i]);
+//		}
 		
 		// CONTAINS
-		startTimer();
+		rm.fastStartTimer(null);
 		for (i = 0; i < REPETITIONS; i++) {
-			for (j = 0; j < numbersRightOperand.size(); j++)
-				cAddAll[i].contains(numbersRightOperand.get(j));
+			for (Integer x : numbersRightOperand)
+				cAddAll[i].contains(x);
 		}
-		endTimer(classToTest, "3) contains()", numbersRightOperand.size() * REPETITIONS);
+		endTimer(rm.fastEndTimer("Done"), classToTest, "3) contains()", numbersRightOperand.size() * REPETITIONS);
+		
+		// CONTAINS x LISTS
+		if (classToTest.getSimpleName().endsWith("List")) {
+			rm.fastStartTimer(null);
+			for (i = 0; i < REPETITIONS; i++) {
+				for (Integer x : numbersRightOperand)
+					Collections.binarySearch((List) (cAddAll[i]), x);
+			}
+			endTimer(rm.fastEndTimer("Done"), classToTest, "3) contains() - bin", numbersRightOperand.size() * REPETITIONS);
+		}
 		
 		// AND SIZE
-		startTimer();
+		rm.fastStartTimer(null);
 		for (i = 0; i < REPETITIONS; i++) {
 			cAddAll[i].containsAll(cRighOperand[i]);
 		}
-		endTimer(classToTest, "4) containsAll()", REPETITIONS);
+		endTimer(rm.fastEndTimer("Done"), classToTest, "4) containsAll()", REPETITIONS);
 		
 		// UNION
-		startTimer();
+		rm.fastStartTimer(null);
 		for (i = 0; i < REPETITIONS; i++) {
 			cAddAll[i].addAll(cRighOperand[i]);
 		}
-		endTimer(classToTest, "5) addAll()", REPETITIONS);
-		System.out.println("Left operand elements: " + cAddAll[0].size());
-		for (i = 0; i < REPETITIONS; i++) {
-			rm.useObject(cAddAll[i]);
-		}
+		endTimer(rm.fastEndTimer("Done"), classToTest, "5) addAll()", REPETITIONS);
+//		System.out.println("Left operand elements: " + cAddAll[0].size());
+//		for (i = 0; i < REPETITIONS; i++) {
+//			rm.useObject(cAddAll[i]);
+//		}
 		
 		// DIFFERENCE
-		startTimer();
+		rm.fastStartTimer(null);
 		for (i = 0; i < REPETITIONS; i++) {
-			cRemoveAll[i].retainAll(cRighOperand[i]);
+			cRemoveAll[i].removeAll(cRighOperand[i]);
 		}
-		endTimer(classToTest, "6) removeAll()", REPETITIONS);
-		System.out.println("Left operand elements: " + cRemoveAll[0].size());
-		for (i = 0; i < REPETITIONS; i++) {
-			rm.useObject(cRemoveAll[i]);
-		}
+		endTimer(rm.fastEndTimer("Done"), classToTest, "6) removeAll()", REPETITIONS);
+//		System.out.println("Left operand elements: " + cRemoveAll[0].size());
+//		for (i = 0; i < REPETITIONS; i++) {
+//			rm.useObject(cRemoveAll[i]);
+//		}
 		
 		// INTERSECTION
-		startTimer();
+		rm.fastStartTimer(null);
 		for (i = 0; i < REPETITIONS; i++) {
 			cRetainAll[i].retainAll(cRighOperand[i]);
 		}
-		endTimer(classToTest, "7) retainAll()", REPETITIONS);
-		System.out.println("Left operand elements: " + cRetainAll[0].size());
-		for (i = 0; i < REPETITIONS; i++) {
-			rm.useObject(cRetainAll[i]);
-		}
+		endTimer(rm.fastEndTimer("Done"), classToTest, "7) retainAll()", REPETITIONS);
+//		System.out.println("Left operand elements: " + cRetainAll[0].size());
+//		for (i = 0; i < REPETITIONS; i++) {
+//			rm.useObject(cRetainAll[i]);
+//		}
 	}
+	
 	/**
 	 * Summary information
 	 */
+	@SuppressWarnings("unused")
 	private static void printSummary() {
 		System.out.println("\n\n----------\nSUMMARY:\n----------\n");
 		for (Entry<String, Map<Class<?>, Double>> e : timeValues.entrySet()) {
@@ -334,104 +341,219 @@ public class Performance {
 	}
 	
 	/**
+	 * Summary information
+	 */
+	private static void printSummary2(int cardinality, double density) {
+		for (Entry<String, Map<Class<?>, Double>> e : timeValues.entrySet()) {
+			// method name
+			System.out.print(cardinality + "\t" + density + "\t");
+			System.out.print(e.getKey());
+			for (Entry<Class<?>, Double> m : e.getValue().entrySet()) {
+				// class name
+				System.out.print("\t" + m.getKey().getSimpleName() + "\t");
+				
+				// test values
+				System.out.print(m.getValue().intValue());
+			}
+			System.out.println();
+		}
+	}
+
+	private static Collection<Integer> uniform(Random rnd, int cardinality, double density) {
+		// parameter check
+		if (cardinality < 0)
+			throw new IllegalArgumentException("cardinality < 0: " + cardinality);
+		if (density < 0D)
+			throw new IllegalArgumentException("density < 0: " + density);
+		if (density > 1D)
+			throw new IllegalArgumentException("density > 1: " + density);
+		
+		// maximum element
+		int max = (int) (cardinality / density) + 1;
+		
+		// final set of random integers
+		Set<Integer> integers = new HashSet<Integer>(Math.max(16, (int) (cardinality / .75f) + 1));
+		while (integers.size() < cardinality)
+			integers.add(rnd.nextInt(max));
+		
+		// sort integers
+		List<Integer> res = new ArrayList<Integer>(integers);
+		Collections.sort(res);
+		
+		return res;
+	}
+	
+	private static Collection<Integer> markovian(Random rnd, int cardinality, double switchProb) {
+		// parameter check
+		if (cardinality < 0)
+			throw new IllegalArgumentException("cardinality < 0: " + cardinality);
+		if (switchProb < 0D)
+			throw new IllegalArgumentException("switchProb < 0: " + switchProb);
+		if (switchProb > 1D)
+			throw new IllegalArgumentException("switchProb > 1: " + switchProb);
+		
+		// final set of random integers
+		List<Integer> res = new ArrayList<Integer>(cardinality);
+		int i = 0;
+		boolean add = true;
+		while(res.size() < cardinality) {
+			if (add)
+				res.add(i);
+			add ^= rnd.nextDouble() < switchProb;
+			i++;
+		}
+		
+		return res;
+	}
+
+	private static Collection<Integer> powerLaw(Random rnd, int cardinality, int max) {
+		int k = 4;
+		
+		// parameter check
+		if (cardinality < 0)
+			throw new IllegalArgumentException("cardinality < 0: " + cardinality);
+		if (max <= cardinality)
+			throw new IllegalArgumentException("max <= cardinality: " + max + " <= " + cardinality);
+		
+		// final set of random integers
+		Set<Integer> integers = new HashSet<Integer>(Math.max(16, (int) (cardinality / .75f) + 1));
+		while (integers.size() < cardinality)
+			integers.add((int) (max * Math.pow(rnd.nextDouble(), k)));
+		
+		// sort integers
+		List<Integer> res = new ArrayList<Integer>(integers);
+		Collections.sort(res);
+		
+		return res;
+	}
+	
+	/**
 	 * TEST
 	 * 
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		/*
-		 * TODO usare il seguente approccio per generare lunghe sequenze di bit
-		 * tutti a 1 o a 0:
-		 * 
-		 * int size = 1 + rnd.nextInt(10000); int n = size; for (int j = 0; j <
-		 * size; j++) { n = Math.abs(rnd.nextDouble() > 0.001D ? (n - 1) :
-		 * rnd.nextInt(size)); collection.add(n); }
-		 * 
-		 * oppure, ancora meglio, usare il nuovo metodo ExtendedSet<T>.fill(T, T), 
-		 * magari generando patterns secondo powerlaw, omogeneo, gaussiana, ecc.
-		 */
+		Random rnd = new MersenneTwister(31);
 		
-		Random rnd = new Random();
+		boolean calcUniform = false;
+		boolean calcMarkovian = false;
+		boolean calcPowerLaw = false;
+		
+		if (calcUniform) {
+			for (int cardinality : new int[] {10, 10, 10, 100, 1000, 10000, 100000, 1000000}) {
+				for (double density = .01; density < 1D; density += .01) {
+					System.out.format("UNIFORM --> cardinality: %7d, density: %.2f, words: ", cardinality, density);
+					
+					Collection<Integer> integers = uniform(rnd, cardinality, density);
+					
+					FastSet s0 = new FastSet(integers);
+					System.out.format("FastSet=%7d", (int) (s0.collectionCompressionRatio() * cardinality));
+					
+					ConciseSet s1 = new ConciseSet(integers);
+					System.out.format(", ConciseSet=%7d", (int) (s1.collectionCompressionRatio() * cardinality));
+					
+					WAHSet s2 = new WAHSet(integers);
+					System.out.format(", WAHSet2=%7d\n", (int) (s2.collectionCompressionRatio() * cardinality));
+				}
+			}
+		}
 
-		// random number range (from 0 to X)
-		int[] maxRandomNumber = {
-				10, 100, 1000, 10000, 100000, 1000000,
-				1000, 1000, 1000, 1000, 1000, 
-				10, 100, 10000, 100000, 1000000};
-		
-		// set size (number of random trials)
-		int[] setSize = {
-				10, 100, 1000, 10000, 100000, 1000000,
-				10, 100, 10000, 100000, 1000000, 
-				1000, 1000, 1000, 1000, 1000};
+		if (calcMarkovian) {
+			for (int cardinality : new int[] {10, 10, 10, 100, 1000, 10000, 100000, 1000000}) {
+				double delta = .00001;
+				for (double density = delta; density < 1D; density += delta, delta *= 1.1) {
+					System.out.format("MARKOVIAN --> cardinality: %7d, density: %.5f, words: ", cardinality, density);
+					
+					Collection<Integer> integers = markovian(rnd, cardinality, density);
+					
+					FastSet s0 = new FastSet(integers);
+					System.out.format("FastSet=%7d", (int) (s0.collectionCompressionRatio() * cardinality));
+					
+					ConciseSet s1 = new ConciseSet(integers);
+					System.out.format(", ConciseSet=%7d", (int) (s1.collectionCompressionRatio() * cardinality));
+					
+					WAHSet s2 = new WAHSet(integers);
+					System.out.format(", WAHSet2=%7d\n", (int) (s2.collectionCompressionRatio() * cardinality));
+				}
+			}
+		}
 
-		/*
-		 * Memory test
-		 */ 
-		final int NUM_COUNT = 100000;
-		HashSet<Integer> numbers = new HashSet<Integer>();
-		while (numbers.size() < NUM_COUNT) 
-			numbers.add(new Integer(rnd.nextInt(NUM_COUNT * 1000 + 1)));
-		rm.useObject(numbers);
-		
-		testMemory(ArrayList.class, numbers);
-		testMemory(LinkedList.class, numbers);
-		testMemory(TreeSet.class, numbers);
-		testMemory(HashSet.class, numbers);
-		testMemory(FastSet.class, numbers);
-		testMemory(WAHSet.class, numbers);
-		testMemory(ConciseSet.class, numbers);
+		if (calcPowerLaw) {
+			for (int cardinality : new int[] {10, 10, 10, 100, 1000, 10000, 100000, 1000000}) {
+				for (int max = (int) (cardinality * 1.2); max < (cardinality << 17); max *= 1.2) {
+					System.out.format("POWERLAW --> cardinality: %7d, max: %10d, words: ", cardinality, max);
+					
+					Collection<Integer> integers = powerLaw(rnd, cardinality, max);
+					
+					FastSet s0 = new FastSet(integers);
+					System.out.format("FastSet=%10d", (int) (s0.collectionCompressionRatio() * cardinality));
+					
+					ConciseSet s1 = new ConciseSet(integers);
+					System.out.format(", ConciseSet=%10d", (int) (s1.collectionCompressionRatio() * cardinality));
+					
+					WAHSet s2 = new WAHSet(integers);
+					System.out.format(", WAHSet2=%10d\n", (int) (s2.collectionCompressionRatio() * cardinality));
+				}
+			}
+		}
 
-		printSummary();
-
-		
-		/* 
-		 * Timing test
-		 */
-		for (int x = 0; x < maxRandomNumber.length; x++) {
-			System.out.println("\n\n**********");
-			System.out.println("maxRandomNumber: " + maxRandomNumber[x]);
-			System.out.println("approxSetSize: " + setSize[x]);
-			System.out.println("**********\n");
-		
-			// generate random numbers
-			// NOTE: we used Integer in order to avoid "new Integer()" at each
-			// Collection.add() call
-			ArrayList<Integer> randomNumbers1 = new ArrayList<Integer>(setSize[x]);
-			ArrayList<Integer> randomNumbers2 = new ArrayList<Integer>(setSize[x]);
-			for (int i = 0; i < setSize[x]; i++) 
-				randomNumbers1.add(new Integer(rnd.nextInt(maxRandomNumber[x])));
-			for (int i = 0; i < setSize[x]; i++) 
-				randomNumbers2.add(new Integer(rnd.nextInt(maxRandomNumber[x])));
-			rm.useObject(randomNumbers1);
-			rm.useObject(randomNumbers2);
-			
-			// test all collections
-			testTime(ArrayList.class, randomNumbers1, randomNumbers2);
-			testTime(LinkedList.class, randomNumbers1, randomNumbers2);
-			testTime(TreeSet.class, randomNumbers1, randomNumbers2);
-			testTime(HashSet.class, randomNumbers1, randomNumbers2);
-			testTime(FastSet.class, randomNumbers1, randomNumbers2);
-			testTime(WAHSet.class, randomNumbers1, randomNumbers2);
-			testTime(ConciseSet.class, randomNumbers1, randomNumbers2);
+		if (calcUniform) {
+			for (int cardinality : new int[] {1000, 10000, 100000, 1000000, 10000000}) {
+				for (double density : new double[] {.00625, .00625, .0125, .025, .05, .1, .2, .4, .8, .999}) {
+					Collection<Integer> integers = uniform(rnd, cardinality, density);
+					Collection<Integer> integers2 = uniform(rnd, cardinality, density);
+					
+					testTime(ArrayList.class, integers, integers2);
+					testTime(LinkedList.class, integers, integers2);
+					testTime(TreeSet.class, integers, integers2);
+					testTime(HashSet.class, integers, integers2);
+					testTime(FastSet.class, integers, integers2);
+					testTime(ConciseSet.class, integers, integers2);
+					testTime(WAHSet.class, integers, integers2);
 	
-			printSummary();
-			
-			System.out.println("\n\n\n----------\nSORTED:\n----------\n\n");
-			
-			// test when numbers are sorted
-			Collections.sort(randomNumbers1);
-			Collections.sort(randomNumbers2);
-			
-			testTime(ArrayList.class, randomNumbers1, randomNumbers2);
-			testTime(LinkedList.class, randomNumbers1, randomNumbers2);
-			testTime(TreeSet.class, randomNumbers1, randomNumbers2);
-			testTime(HashSet.class, randomNumbers1, randomNumbers2);
-			testTime(FastSet.class, randomNumbers1, randomNumbers2);
-			testTime(WAHSet.class, randomNumbers1, randomNumbers2);
-			testTime(ConciseSet.class, randomNumbers1, randomNumbers2);
+					printSummary2(cardinality, density);
+				}
+			}
+		}
 
-			printSummary();
+		if (calcMarkovian) {
+			for (int cardinality : new int[] {1000, 10000, 100000, 1000000, 10000000}) {
+				for (double switchProb : new double[] {.00625, .00625, .0125, .025, .05, .1, .2, .4, .8, .999}) {
+					Collection<Integer> integers = markovian(rnd, cardinality, switchProb);
+					Collection<Integer> integers2 = markovian(rnd, cardinality, switchProb);
+					
+					testTime(ArrayList.class, integers, integers2);
+					testTime(LinkedList.class, integers, integers2);
+					testTime(TreeSet.class, integers, integers2);
+					testTime(HashSet.class, integers, integers2);
+					testTime(FastSet.class, integers, integers2);
+					testTime(ConciseSet.class, integers, integers2);
+					testTime(WAHSet.class, integers, integers2);
+	
+					printSummary2(cardinality, switchProb);
+				}
+			}
+		}
+
+		calcPowerLaw = true;
+		if (calcPowerLaw) {
+//			for (int cardinality : new int[] {1000, 10000, 100000, 1000000, 10000000}) {
+			for (int cardinality : new int[] {1000}) {
+				for (double max : new double[] {1.2, 1.2, 10, 100, 1000, 10000, 100000}) {
+					Collection<Integer> integers = powerLaw(rnd, cardinality, (int) (cardinality * max));
+					Collection<Integer> integers2 = powerLaw(rnd, cardinality, (int) (cardinality * max));
+					
+//					testTime(ArrayList.class, integers, integers2);
+//					testTime(LinkedList.class, integers, integers2);
+//					testTime(TreeSet.class, integers, integers2);
+//					testTime(HashSet.class, integers, integers2);
+					testTime(FastSet.class, integers, integers2);
+//					testTime(ConciseSet.class, integers, integers2);
+//					testTime(WAHSet.class, integers, integers2);
+
+					printSummary2(cardinality, max);
+				}
+			}
 		}
 	}
 }

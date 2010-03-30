@@ -123,9 +123,12 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public FastSet clone() {
-		FastSet result = (FastSet) super.clone();
-		result.words = Arrays.copyOf(words, wordsInUse);
-		return result;
+		// NOTE: do not use super.clone() since it is 10 times slower!
+		FastSet res = new FastSet();
+		res.wordsInUse = wordsInUse;
+		res.size = size;
+		res.words = Arrays.copyOf(words, wordsInUse);
+		return res;
 	}
 	
 	/**
@@ -191,8 +194,9 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 		expandTo(wordIndex);
 		int before = words[wordIndex];
 		words[wordIndex] |= (1 << bitIndex);
-		if (size >= 0 && before != words[wordIndex]) {
-			size++;
+		if (before != words[wordIndex]) {
+			if (size >= 0)
+				size++;
 			return true;
 		} 
 		return false;
@@ -767,10 +771,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	public double collectionCompressionRatio() {
 		if (isEmpty())
 			return 0D;
-		int s = last() + 1;
-		if ((s & 0x0000001F) == 0)
-			return (double) s / (size() << 5);
-		return (double) ((s | 0x0000001F) + 1) / (size() << 5);
+		return (double) wordsInUse / size();
 	}
 
 	/**
@@ -1046,7 +1047,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 		
 		// object attributes
 		f.format("wordsInUse: %d\n", wordsInUse);
-		f.format("size: %s\n", (size == -1 ? "invalid" : String.valueOf(size)));
+		f.format("size: %s\n", (size == -1 ? "invalid" : Integer.toString(size)));
 		f.format("words.length: %d\n", words.length);
 
 		// compression

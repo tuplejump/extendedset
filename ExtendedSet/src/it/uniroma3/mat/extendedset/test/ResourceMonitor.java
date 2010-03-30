@@ -44,6 +44,8 @@ import java.util.concurrent.TimeUnit;
  */
 //TODO: differenziare rispetto alla versione di algorithms
 public class ResourceMonitor {
+	private final static int GARBAGE_COLLECTOR_CALLS = 2;
+	
 	/*
 	 * This method offers the tantalizing possibility of measuring not the
 	 * elapsed ("wall clock") time, but the actual CPU time used by the current
@@ -95,7 +97,7 @@ public class ResourceMonitor {
 	 */
 	public void collectGarbage() {
 		try {
-			for (int i = 0; i < 2; i++) {
+			for (int i = 0; i < GARBAGE_COLLECTOR_CALLS; i++) {
 				System.gc();
 				TimeUnit.MILLISECONDS.sleep(50);
 				System.runFinalization();
@@ -133,6 +135,20 @@ public class ResourceMonitor {
 	}
 
 	/**
+	 * Start memory and time measurement
+	 * 
+	 * @param msg
+	 *            message to print
+	 */
+	public void fastStartTimer(String msg) {
+		lastMemSize = 0;
+		printMessages = msg != null;
+		if (printMessages) 
+			System.out.format("*** Timer started!  %s...\n", msg);
+		lastExecTime = mx == null ? System.nanoTime() : mx.getCurrentThreadCpuTime();
+	}
+
+	/**
 	 * Stop memory and time measurement
 	 * 
 	 * @param msg
@@ -158,6 +174,26 @@ public class ResourceMonitor {
 		return new long[] { t, m };
 	}
 
+
+	/**
+	 * Stop memory and time measurement
+	 * 
+	 * @param msg
+	 *            message to print (i.e., results)
+	 * @return an array of two doubles, where the first value is the time
+	 *         measurement (nanoseconds) while the second value is the memory
+	 *         (bytes) measurement
+	 */
+	public long[] fastEndTimer(String msg) {
+		final long t = (mx == null ? System.nanoTime() : mx.getCurrentThreadCpuTime()) - lastExecTime;
+		if (printMessages) {
+			System.out.print("*** Timer stopped!  ");
+			System.out.println(msg);
+			System.out.format("*** Time:   %d s and %d ns\n", t / 1000000000L, t % 1000000000L);
+		}
+		return new long[] { t, 0L };
+	}
+	
 	/**
 	 * Stop memory and time measurement, with default message
 	 * @return memory and time measurement

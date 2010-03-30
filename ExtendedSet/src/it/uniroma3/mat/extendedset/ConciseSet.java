@@ -82,55 +82,34 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * most one <i>un</i>set bit in the first 31 bits, and followed by blocks of
 	 * 31 1's. (see the <tt>00*</tt> case above).
 	 * </ul>
-	 */
-	// TODO: since literal words 0xFFFFFFFF and 0x80000000 are allowed, then
-	// zero-length sequences (i.e., such that getSequenceCount() == 0) cannot
-	// exists. A possible improvement, that increases MAX_ALLOWED_INTEGER by
-	// 31, is that sequence words represents at least 2 blocks, namely
-	// getSequenceCount() is the number of subsequent blocks - 1.
-	// Alternatively, sequences such that getSequenceCount() == 0) may be used
-	// as "markers" for special purposes, for example by using the 5 bits used
-	// for set bit identification and the sequence type bit.
-	//
-	// TODO: if we allow for using two sequences of the same type in two
-	// consecutively words, it is possible to virtually represent any integer
-	// (such as BigInteger).
-	private int[] words;
-
-	/**
-	 * It represents the position of last set bit in the last append operation
-	 * performed via {@link #append(int)}. It is relative to the last literal
-	 * word, namely it ranges between <tt>0</tt> and
-	 * <tt>MAX_LITERAL_LENGHT</tt>.
 	 * <p>
-	 * Notice that when {@link #append(int)} generates a 1's sequence,
-	 * {@link #lastSetBitOfLastWord} is equal to <tt>MAX_LITERAL_LENGHT - 1</tt>
+	 * Note that literal words 0xFFFFFFFF and 0x80000000 are allowed, thus
+	 * zero-length sequences (i.e., such that getSequenceCount() == 0) cannot
+	 * exists.
 	 */
-	private int lastSetBitOfLastWord;
-
-	/**
-	 * When the last word is a literal, it represents the number of bits equal
-	 * to 1. If the last word is a sequence of 1's, it contains
-	 * <tt>MAX_LITERAL_LENGHT * blocks</tt>. If the last word is a sequence
-	 * of 0's, it contains 0.
-	 */
-	private int numberOfSetBitOfLastWord;
+	private int[] words;
 
 	/**
 	 * Most significant set bit within the uncompressed bit string.
 	 */
-	private int maxSetBit;
+	private int last;
 
 	/**
-	 * Cardinality of the bit-set. Defined for efficient {@link #size()} calls.
+	 * Cached cardinality of the bit-set. Defined for efficient {@link #size()}
+	 * calls. When -1, the cache is invalid.
 	 */ 
 	private int size;
 
 	/**
-	 * Index of the lasw word in {@link #words}
+	 * Index of the last word in {@link #words}
 	 */ 
 	private int lastWordIndex;
 
+	/**
+	 * <code>true</code> if the class must simulate the behavior of WAH
+	 */
+	private final boolean simulateWAH;
+	
 	/**
 	 * User for <i>fail-fast</i> iterator. It counts the number of operations
 	 * that <i>do</i> modify {@link #words}
@@ -196,19 +175,27 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	private void reset() {
 		modCount++;
 		words = null;
-		maxSetBit = -1;
+		last = -1;
 		size = 0;
-		numberOfSetBitOfLastWord = 0;
 		lastWordIndex = -1;
-		
-		// simulate a full literal word for the first append
-		lastSetBitOfLastWord = MAX_LITERAL_LENGHT - 1;
 	}
-	
+
 	/**
 	 * Creates an empty integer set
 	 */
 	public ConciseSet() {
+		this(false);
+	}
+
+	/**
+	 * Creates an empty integer set
+	 * 
+	 * @param simulateWAH
+	 *            <code>true</code> if the class must simulate the behavior of
+	 *            WAH
+	 */
+	public ConciseSet(boolean simulateWAH) {
+		this.simulateWAH = simulateWAH;
 		reset();
 	}
 
@@ -218,9 +205,21 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * 
 	 * @param c
 	 */
-	@SuppressWarnings("unchecked")
 	public ConciseSet(Collection<? extends Integer> c) {
-		this();
+		this(false, c);
+	}
+
+	/**
+	 * Creates an empty {@link ConciseSet} instance and then populates it from
+	 * an existing integer collection
+	 * 
+	 * @param simulateWAH
+	 *            <code>true</code> if the class must simulate the behavior of
+	 *            WAH
+	 * @param c
+	 */
+	public ConciseSet(boolean simulateWAH, Collection<? extends Integer> c) {
+		this(simulateWAH);
 
 		// try to convert the collection
 		if (c != null && !c.isEmpty()) {
@@ -233,14 +232,14 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			} else {
 				// sort elements in ascending order
 				elements = new ArrayList<Integer>(c);
-				Collections.sort((ArrayList<Integer>) elements);
+				Collections.sort((List<?>) elements, null);
 			}
 
 			// append elements
 			for (Integer i : elements)
 				// check for duplicates
-				if (maxSetBit != i)
-					append(i);
+				if (last != i.intValue())
+					append(i.intValue());
 		}	
 	}
 
@@ -250,9 +249,46 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * 
 	 * @param a
 	 */
-	@SuppressWarnings("unchecked")
 	public ConciseSet(Object... a) {
-		this(a == null ? (Collection) null : Arrays.asList(a));
+		this(false, a);
+	}
+
+	/**
+	 * Creates an empty {@link ConciseSet} instance and then populates it from
+	 * an existing integer collection
+	 * 
+	 * @param simulateWAH
+	 *            <code>true</code> if the class must simulate the behavior of
+	 *            WAH
+	 * @param a
+	 */
+	@SuppressWarnings("unchecked")
+	public ConciseSet(boolean simulateWAH, Object... a) {
+		this(simulateWAH, a == null ? (Collection) null : Arrays.asList(a));
+	}
+
+	/**
+	 * Creates an empty {@link ConciseSet} instance and then populates it with
+	 * the given integer
+	 * 
+	 * @param a
+	 */
+	public ConciseSet(int a) {
+		this(false, a);
+	}
+	
+	/**
+	 * Creates an empty {@link ConciseSet} instance and then populates it with
+	 * the given integer
+	 * 
+	 * @param simulateWAH
+	 *            <code>true</code> if the class must simulate the behavior of
+	 *            WAH
+	 * @param a
+	 */
+	public ConciseSet(boolean simulateWAH, int a) {
+		this(simulateWAH);
+		append(a);
 	}
 
 	/**
@@ -260,12 +296,17 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 */
 	@Override
 	public ConciseSet clone() {
-		ConciseSet cloned = (ConciseSet) super.clone();
-		if (!isEmpty()) {
-			cloned.words = new int[lastWordIndex + 1];
-			System.arraycopy(words, 0, cloned.words, 0, lastWordIndex + 1);
-		}
-		return cloned;
+		if (isEmpty())
+			return empty();
+
+		// NOTE: do not use super.clone() since it is 10 times slower!
+		ConciseSet res = new ConciseSet(simulateWAH);
+		res.last = last;
+		res.lastWordIndex = lastWordIndex;
+		res.modCount = 0;
+		res.size = size;
+		res.words = Arrays.copyOf(words, lastWordIndex + 1);
+		return res;
 	}
 
 	/**
@@ -364,7 +405,10 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 
 	/**
 	 * Checks whether a word contains a sequence of 0's with no set bit, or 1's
-	 * with no unset bit
+	 * with no unset bit.
+	 * <p>
+	 * <b>NOTE:</b> when {@link #simulateWAH} is <code>true</code>, it is
+	 * equivalent to (and as fast as) <code>!</code>{@link #isLiteral(int)}
 	 * 
 	 * @param word
 	 *            word to check
@@ -414,10 +458,13 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * @return the literal contained within the given word, <i>with the most
 	 *         significant bit set to 1</i>.
 	 */
-	private static int getLiteral(int word) {
+	private /*static*/ int getLiteral(int word) {
 		if (isLiteral(word)) 
 			return word;
 		
+		if (simulateWAH)
+			return isZeroSequence(word) ? ALL_ZEROS_LITERAL  : ALL_ONES_LITERAL;
+
 		// get bits from 30 to 26 and use them to set the corresponding bit
 		// NOTE: "1 << (word >>> 25)" and "1 << ((word >>> 25) & 0x0000001F)" are equivalent
 		// NOTE: ">>> 1" is required since 00000 represents no bits and 00001 the LSB bit set
@@ -461,10 +508,13 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 *            literal of the sequence
 	 * @return the generated sequence word
 	 */
-	private static int makeSequenceWord(
+	private /*static*/ int makeSequenceWord(
 			int bitPosition, 
 			boolean isOneSequence, 
 			int numberOfSubsequentBlocks) {
+		if (simulateWAH)
+			return (isOneSequence ? 0x40000000 : 0x00000000)
+			    | numberOfSubsequentBlocks;
 		return (isOneSequence ? 0x40000000 : 0x00000000)
 		    | numberOfSubsequentBlocks 
 			| (bitPosition << 25);
@@ -492,52 +542,27 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	}
 
 	/**
-	 * @return the content of the last element of {@link #words}
-	 */
-	private int getLastWord() {
-		return words[lastWordIndex];
-	}
-	
-	/**
-	 * Changes the content of the last element of {@link #words}
-	 * 
-	 * @param w
-	 *            the new value
-	 */
-	private void setLastWord(int w) {
-		words[lastWordIndex] = w;
-	}
-
-	/**
-	 * Increases the count of the last element of {@link #words}. Last word is
-	 * supposed to be a sequence.
-	 * 
-	 * @param count
-	 *            the increment
-	 */
-	private void increaseLastWordSequenceCount(int count) {
-		words[lastWordIndex] += count;
-	}
-	
-	/**
 	 * Clears bits from MSB (excluded, since it indicates the word type) to the
 	 * specified bit (excluded). Last word is supposed to be a literal one.
 	 * 
-	 * @param lastSetBit leftmost bit to preserve
+	 * @param lastSetBit
+	 *            leftmost bit to preserve
 	 */
 	private void clearBitsAfterInLastWord(int lastSetBit) {
 		words[lastWordIndex] &= ALL_ZEROS_LITERAL | (0xFFFFFFFF >>> (31 - lastSetBit));
 	}
-	
+
 	/**
-	 * Sets the bit at the specified position of last element of {@link #words}.
-	 * Last word is supposed to be a literal one.
+	 * Returns <code>true</code> when the given 31-bit literal string (namely,
+	 * with MSB set) contains only one set bit
 	 * 
-	 * @param bit
-	 *            position of the bit to set
+	 * @param literal
+	 *            literal word (namely, with MSB unset)
+	 * @return <code>true</code> when the given literal contains only one set
+	 *         bit
 	 */
-	private void setBitInLastWord(int bit) {
-		words[lastWordIndex] |= 1 << bit;
+	private static boolean containsOnlyOneBit(int literal) {
+		return (literal & (literal - 1)) == 0;
 	}
 	
 	/**
@@ -560,57 +585,72 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * <li> a sequence of zeros.
 	 * </ul>
 	 * 
-	 * @param newSetBit
+	 * @param i
 	 *            the absolute position of the bit to set (i.e., the integer to add) 
 	 */
-	private void append(int newSetBit) {
+	private void append(int i) {
+		// special case of empty set
+		if (isEmpty()) {
+			int zeroBlocks = maxLiteralLengthDivision(i);
+			if (zeroBlocks == 0) {
+				words = new int[1];
+				lastWordIndex = 0;
+			} else if (!simulateWAH && zeroBlocks == 1) {
+				words = new int[2];
+				lastWordIndex = 1;
+				words[0] = ALL_ZEROS_LITERAL;
+			} else {
+				words = new int[2];
+				lastWordIndex = 1;
+				words[0] = zeroBlocks - 1;
+			}
+			last = i;
+			size = 1;
+			words[lastWordIndex] = ALL_ZEROS_LITERAL | (1 << maxLiteralLengthModulus(i));
+			return;
+		}
+		
 		// position of the next bit to set within the current literal
-		lastSetBitOfLastWord += newSetBit - maxSetBit;
+		int bit = maxLiteralLengthModulus(last) + i - last;
 
 		// if we are outside the current literal, add zeros in
 		// between the current word and the new 1-bit literal word
-		if (lastSetBitOfLastWord >= MAX_LITERAL_LENGHT) {
-			int zeroBlocks = maxLiteralLengthDivision(lastSetBitOfLastWord) - 1;
+		if (bit >= MAX_LITERAL_LENGHT) {
+			int zeroBlocks = maxLiteralLengthDivision(bit) - 1;
 			if (zeroBlocks == 0) {
 				// just add a new literal word to set the new bit
 				lastWordIndex++;
 				ensureCapacity();
 			} else {
 				// add a 0's sequence before the new literal
-				if (isEmpty() || numberOfSetBitOfLastWord > 1) {
+				int w = words[lastWordIndex];
+				if (!simulateWAH && containsOnlyOneBit(getLiteralBits(w))) {
+					// the zero blocks can be merged with the previous literal that contains only one set bit
+					words[lastWordIndex] = makeSequenceWord(1 + Integer.numberOfTrailingZeros(w), false, zeroBlocks);
+					lastWordIndex++;
+					ensureCapacity();
+				} else {
 					// the new zero block cannot be merged with the previous literal
 					lastWordIndex += 2;
 					ensureCapacity();
 					if (zeroBlocks == 1) 
 						words[lastWordIndex - 1] = ALL_ZEROS_LITERAL;
 					else 
-						words[lastWordIndex - 1] = makeSequenceWord(0, false, zeroBlocks - 1);
-				} else {
-					// the zero blocks can be merged with the previous
-					// literal that contains only one set bit
-					setLastWord(makeSequenceWord(
-							1 + Integer.numberOfTrailingZeros(getLastWord()), false, zeroBlocks));
-					lastWordIndex++;
-					ensureCapacity();
+						words[lastWordIndex - 1] = zeroBlocks - 1;
 				}
 			}
 
 			// prepare the new literal word
-			lastSetBitOfLastWord = maxLiteralLengthModulus(lastSetBitOfLastWord);
-			setLastWord(ALL_ZEROS_LITERAL);
-			numberOfSetBitOfLastWord = 0;
+			bit = maxLiteralLengthModulus(bit);
+			words[lastWordIndex] = ALL_ZEROS_LITERAL;
 		}
 
 		// set the new bit
-		setBitInLastWord(lastSetBitOfLastWord);
-		maxSetBit = newSetBit;
-		size++;
-		numberOfSetBitOfLastWord++;
-
-		// if we have appended the 31st bit within the literal, it is possible that
-		// we generated a sequence of 1's --> try to generate the sequence
-		if (numberOfSetBitOfLastWord == MAX_LITERAL_LENGHT && compress())
-			numberOfSetBitOfLastWord = maxLiteralLengthMultiplication(getSequenceCount(getLastWord()) + 1);
+		words[lastWordIndex] |= 1 << bit;
+		last = i;
+		if (size >= 0)
+			size++;
+		compress();
 	}
 
 	/**
@@ -635,11 +675,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * Removes unused allocated words at the end of {@link #words}
 	 */
 	private void compact() {
-		if (words != null && lastWordIndex < words.length - 1) {
-			int[] newWords = new int[lastWordIndex + 1];
-			System.arraycopy(words, 0, newWords, 0, lastWordIndex + 1);
-			words = newWords;
-		}
+		if (words != null && lastWordIndex < words.length - 1)
+			words = Arrays.copyOf(words, lastWordIndex + 1);
 	}
 
 	/**
@@ -739,7 +776,9 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				remainingWords--;
 			} else {
 				// decrease the counter and avoid to generate again the 1-bit literal
-				currentWordCopy = getSequenceWithNoBits(currentWordCopy) - 1;
+				if (!simulateWAH)
+					currentWordCopy = getSequenceWithNoBits(currentWordCopy);
+				currentWordCopy--;
 			}
 			currentLiteral = getLiteral(currentWordCopy);
 		}
@@ -775,7 +814,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		 *         most significant bit set to 1.
 		 */
 		private int getReverseLiteral(int word) {
-			if (isLiteral(word) || isSequenceWithNoBits(word) || getSequenceCount(word) == 0)
+			if (simulateWAH || isLiteral(word) || isSequenceWithNoBits(word) || getSequenceCount(word) == 0)
 				return getLiteral(word);
 			return isZeroSequence(word) ? ALL_ZEROS_LITERAL : ALL_ONES_LITERAL;
 		}
@@ -831,7 +870,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				return true;
 
 			// now currentWordCopy is a zero sequence
-			if (isSequenceWithNoBits(currentWordCopy))
+			if (simulateWAH || isSequenceWithNoBits(currentWordCopy))
 				return false;
 			
 			// zero sequence with a set bit at the beginning
@@ -924,12 +963,17 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * The same as {@link #skipSequence(WordIterator, WordIterator)}, but for
 	 * {@link ReverseWordIterator} instances
 	 */
-	private static int skipSequence(ReverseWordIterator itr1, ReverseWordIterator itr2) {
+	private /*static*/ int skipSequence(ReverseWordIterator itr1, ReverseWordIterator itr2) {
 		int count = 0;
 		if (!isLiteral(itr1.currentWordCopy) && !isLiteral(itr2.currentWordCopy)) {
-			count = Math.min(
-					getSequenceCount(itr1.currentWordCopy) - (isSequenceWithNoBits(itr1.currentWordCopy) ? 0 : 1),
-					getSequenceCount(itr2.currentWordCopy) - (isSequenceWithNoBits(itr2.currentWordCopy) ? 0 : 1));
+			if (simulateWAH)
+				count = Math.min(
+						getSequenceCount(itr1.currentWordCopy),
+						getSequenceCount(itr2.currentWordCopy));
+			else
+				count = Math.min(
+						getSequenceCount(itr1.currentWordCopy) - (isSequenceWithNoBits(itr1.currentWordCopy) ? 0 : 1),
+						getSequenceCount(itr2.currentWordCopy) - (isSequenceWithNoBits(itr2.currentWordCopy) ? 0 : 1));
 			if (count > 0) {
 				// increase sequence counter
 				itr1.currentWordCopy -= count;
@@ -947,22 +991,21 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 *            start from the current index of the iterator.
 	 */
 	private void appendRemainingWords(WordIterator itr) {
-		if (itr.endOfWords())
-			return;
-
-		// TODO: it is possible to perform a faster copy by avoiding the
-		// compress() call when not strictly required
-		
-		// iterate over the remaining words
 		while (!itr.endOfWords()) {
 			// copy the word
 			lastWordIndex++;
-			setLastWord(itr.currentLiteral);
+			last += MAX_LITERAL_LENGHT;
+			words[lastWordIndex] = itr.currentLiteral;
 			compress(); 
 			
 			// avoid to loop if the current word is a sequence 
-			if (!isLiteral(getLastWord()))
-				increaseLastWordSequenceCount(skipSequence(itr));
+			if (!isLiteral(words[lastWordIndex])) {
+				int s = skipSequence(itr);
+				if (s > 0) {
+					words[lastWordIndex] += s;
+					last += maxLiteralLengthMultiplication(s);
+				}
+			}
 
 			// next literal
 			itr.prepareNextLiteral();
@@ -984,7 +1027,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 
 			@Override 
 			public ConciseSet combineEmptySets(ConciseSet op1, ConciseSet op2) {
-				return new ConciseSet();
+				return new ConciseSet(op1.simulateWAH);
 			}
 
 			/** Used to implement {@link #combineDisjointSets(ConciseSet, ConciseSet)} */
@@ -992,10 +1035,10 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				// check whether the first operator starts with a sequence that
 				// completely "covers" the second operator
 				if (isSequenceWithNoBits(op1.words[0]) 
-						&& maxLiteralLengthMultiplication(getSequenceCount(op1.words[0]) + 1) > op2.maxSetBit) {
+						&& maxLiteralLengthMultiplication(getSequenceCount(op1.words[0]) + 1) > op2.last) {
 					// op2 is completely hidden by op1
 					if (isZeroSequence(op1.words[0]))
-						return new ConciseSet();
+						return new ConciseSet(op1.simulateWAH);
 					// op2 is left unchanged, but the rest of op1 is hidden
 					return op2.clone();
 				}
@@ -1026,7 +1069,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 					return op1.clone();
 				if (!op2.isEmpty())
 					return op2.clone();
-				return new ConciseSet();
+				return new ConciseSet(op1.simulateWAH);
 			}
 			
 			/** Used to implement {@link #combineDisjointSets(ConciseSet, ConciseSet)} */
@@ -1034,14 +1077,14 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				// check whether the first operator starts with a sequence that
 				// completely "covers" the second operator
 				if (isSequenceWithNoBits(op1.words[0]) 
-						&& maxLiteralLengthMultiplication(getSequenceCount(op1.words[0]) + 1) > op2.maxSetBit) {
+						&& maxLiteralLengthMultiplication(getSequenceCount(op1.words[0]) + 1) > op2.last) {
 					// op2 is completely hidden by op1
 					if (isOneSequence(op1.words[0]))
 						return op1.clone();
 					// op2 is left unchanged, but the rest of op1 must be appended...
 					
 					// ... first, allocate sufficient space for the result
-					ConciseSet res = new ConciseSet();
+					ConciseSet res = new ConciseSet(op1.simulateWAH);
 					res.words = new int[op1.lastWordIndex + op2.lastWordIndex + 3];
 					res.lastWordIndex = op2.lastWordIndex;
 					
@@ -1050,25 +1093,18 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 					
 					// ... in turn, decrease the sequence of op1 by the blocks covered by op2
 					WordIterator op1Itr = op1.new WordIterator();
-					op1Itr.currentWordCopy -= maxLiteralLengthDivision(op2.maxSetBit) + 1;
+					op1Itr.currentWordCopy -= maxLiteralLengthDivision(op2.last) + 1;
 					if (op1Itr.currentWordCopy < 0)
 						op1Itr.prepareNextLiteral();
 					
 					// ... finally, append op1
 					res.appendRemainingWords(op1Itr);
-					res.size = op1.size + op2.size;
-					res.maxSetBit = op1.maxSetBit;
+					if (op1.size < 0 || op2.size < 0)
+						res.size = -1;
+					else
+						res.size = op1.size + op2.size;
+					res.last = op1.last;
 					res.compact();
-
-					// update last word info
-					int w = res.getLastWord();
-					if (isLiteral(w)) {
-						res.numberOfSetBitOfLastWord = getLiteralBitCount(w);
-						res.lastSetBitOfLastWord = MAX_LITERAL_LENGHT - Integer.numberOfLeadingZeros(getLiteralBits(w));
-					} else {
-						res.numberOfSetBitOfLastWord = maxLiteralLengthMultiplication(getSequenceCount(w) + 1);
-						res.lastSetBitOfLastWord = MAX_LITERAL_LENGHT - 1;
-					}
 					return res;				
 				}
 				return null;
@@ -1098,7 +1134,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 					return op1.clone();
 				if (!op2.isEmpty())
 					return op2.clone();
-				return new ConciseSet();
+				return new ConciseSet(op1.simulateWAH);
 			}
 			
 			/** Used to implement {@link #combineDisjointSets(ConciseSet, ConciseSet)} */
@@ -1106,7 +1142,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				// check whether the first operator starts with a sequence that
 				// completely "covers" the second operator
 				if (isSequenceWithNoBits(op1.words[0]) 
-						&& maxLiteralLengthMultiplication(getSequenceCount(op1.words[0]) + 1) > op2.maxSetBit) {
+						&& maxLiteralLengthMultiplication(getSequenceCount(op1.words[0]) + 1) > op2.last) {
 					// op2 is left unchanged by op1
 					if (isZeroSequence(op1.words[0]))
 						return OR.combineDisjointSets(op1, op2);
@@ -1139,7 +1175,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			public ConciseSet combineEmptySets(ConciseSet op1, ConciseSet op2) {
 				if (!op1.isEmpty())
 					return op1.clone();
-				return new ConciseSet();
+				return new ConciseSet(op1.simulateWAH);
 			}
 			
 			@Override
@@ -1147,7 +1183,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				// check whether the first operator starts with a sequence that
 				// completely "covers" the second operator
 				if (isSequenceWithNoBits(op1.words[0]) 
-						&& maxLiteralLengthMultiplication(getSequenceCount(op1.words[0]) + 1) > op2.maxSetBit) {
+						&& maxLiteralLengthMultiplication(getSequenceCount(op1.words[0]) + 1) > op2.last) {
 					// op1 is left unchanged by op2
 					if (isZeroSequence(op1.words[0]))
 						return op1.clone();
@@ -1158,12 +1194,12 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				// check whether the second operator starts with a sequence that
 				// completely "covers" the first operator
 				if (isSequenceWithNoBits(op2.words[0]) 
-						&& maxLiteralLengthMultiplication(getSequenceCount(op2.words[0]) + 1) > op1.maxSetBit) {
+						&& maxLiteralLengthMultiplication(getSequenceCount(op2.words[0]) + 1) > op1.last) {
 					// op1 is left unchanged by op2
 					if (isZeroSequence(op2.words[0]))
 						return op1.clone();
 					// op1 is cleared by op2
-					return new ConciseSet();
+					return new ConciseSet(op1.simulateWAH);
 				}
 				return null;
 			}
@@ -1232,24 +1268,38 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		if (res != null)
 			return res;
 		
-		// allocate a sufficient number of words to contain all possible results
-		// NOTE: "+1" is required to allows for the addition of the last word before compacting
-		res = new ConciseSet();
-		res.words = new int[this.lastWordIndex + otherSet.lastWordIndex + 3];
+		// Allocate a sufficient number of words to contain all possible results.
+		// NOTE: "+3" means:
+		// - since lastWordIndex is the index of the last used word in "words",
+		//   we require "+2" to have the actual maximum required space
+		// - "+1" is required to allows for the addition of the last word before compacting
+		// In any case, we do not allocate more than the maximum space required
+		// for the uncompressed representation
+		res = new ConciseSet(simulateWAH);
+		res.words = new int[Math.min(
+				this.lastWordIndex + otherSet.lastWordIndex + 3, 
+				maxLiteralLengthDivision(Math.max(this.last, otherSet.last)) + 1)];
 
 		// scan "this" and "other"
 		WordIterator thisItr = this.new WordIterator();
 		WordIterator otherItr = otherSet.new WordIterator();
+		res.last = 0;
 		while (!thisItr.endOfWords() && !otherItr.endOfWords()) {
 			// perform the operation
 			res.lastWordIndex++;
-			res.setLastWord(operator.combineLiterals(thisItr.currentLiteral, otherItr.currentLiteral));
+			res.words[res.lastWordIndex] = operator.combineLiterals(thisItr.currentLiteral, otherItr.currentLiteral);
 			res.compress(); 
 			
 			// avoid loops when both are sequences and the result is a sequence
-			if (!isLiteral(res.getLastWord())) 
-				res.increaseLastWordSequenceCount(skipSequence(thisItr, otherItr));
-
+			res.last += MAX_LITERAL_LENGHT;
+			if (!isLiteral(res.words[res.lastWordIndex])) {
+				int s = skipSequence(thisItr, otherItr);
+				if (s > 0) {
+					res.words[res.lastWordIndex] += s;
+					res.last += maxLiteralLengthMultiplication(s);
+				}
+			}
+			
 			// next literal
 			thisItr.prepareNextLiteral();
 			otherItr.prepareNextLiteral();
@@ -1278,11 +1328,14 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 
 		// compact the memory
 		res.compact();
-
+		
 		// update size and maximal element
-		res.updateSizeAndMaxSetBit();
-
-		// return the set
+		res.size = -1;
+		int w = res.words[res.lastWordIndex];
+		if (isLiteral(w)) 
+			res.last -= Integer.numberOfLeadingZeros(getLiteralBits(w));
+		else 
+			res.last--;
 		return res;
 	}
 
@@ -1299,23 +1352,23 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			return 0;
 
 		// single-element intersection
-		if (other.size() == 1) 
-			return contains(getSingleElement(other)) ? 1 : 0;
 		if (size == 1)
-			return other.contains(maxSetBit) ? 1 : 0;
+			return other.contains(last()) ? 1 : 0;
 		
 		// convert the other set in order to perform a more complex intersection
 		ConciseSet otherSet = convert(other);
+		if (otherSet.size == 1) 
+			return contains(otherSet.last()) ? 1 : 0;
 		
 		// disjoint sets
 		if (isSequenceWithNoBits(this.words[0]) 
-				&& maxLiteralLengthMultiplication(getSequenceCount(this.words[0]) + 1) > otherSet.maxSetBit) {
+				&& maxLiteralLengthMultiplication(getSequenceCount(this.words[0]) + 1) > otherSet.last) {
 			if (isZeroSequence(this.words[0]))
 				return 0;
 			return otherSet.size();
 		}
 		if (isSequenceWithNoBits(otherSet.words[0]) 
-				&& maxLiteralLengthMultiplication(getSequenceCount(otherSet.words[0]) + 1) > this.maxSetBit) {
+				&& maxLiteralLengthMultiplication(getSequenceCount(otherSet.words[0]) + 1) > this.last) {
 			if (isZeroSequence(otherSet.words[0]))
 				return 0;
 			return this.size();
@@ -1352,58 +1405,15 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	public int complementSize() {
 		if (isEmpty())
 			return 0;
-		return maxSetBit - size + 1;
+		return last - size() + 1;
 	}
 
-	/**
-	 * Updates {@link #maxSetBit} and {@link #size} according to the content of
-	 * {@link #words}
-	 */
-	private void updateSizeAndMaxSetBit() {
-		// empty element
-		if (isEmpty())
-			return;
-
-		// initialize data
-		maxSetBit = -1;
-		size = 0;
-		lastSetBitOfLastWord = MAX_LITERAL_LENGHT - 1;
-
-		// calculate the maximal element and the resulting size
-		numberOfSetBitOfLastWord = 0;
-		for (int i = 0; i <= lastWordIndex; i++) {
-			int w = words[i];
-			if (isLiteral(w)) {
-				numberOfSetBitOfLastWord = getLiteralBitCount(w);
-				maxSetBit += MAX_LITERAL_LENGHT;
-			} else {
-				numberOfSetBitOfLastWord = maxLiteralLengthMultiplication(getSequenceCount(w) + 1);
-				maxSetBit += numberOfSetBitOfLastWord;
-				if (isZeroSequence(w)) {
-					if (isSequenceWithNoBits(w))
-						numberOfSetBitOfLastWord = 0;
-					else
-						numberOfSetBitOfLastWord = 1;
-				} else {
-					if (!isSequenceWithNoBits(w))
-						numberOfSetBitOfLastWord--;
-				}
-			}
-			size += numberOfSetBitOfLastWord;
-		}
-		if (isLiteral(getLastWord())) {
-			int gap = Integer.numberOfLeadingZeros(getLiteralBits(getLastWord())) - 1;
-			maxSetBit -= gap;
-			lastSetBitOfLastWord -= gap;
-		}
-	}
-	
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public Integer get(int i) {
-		if (i < 0 || i >= size)
+		if (i < 0)
 			throw new IndexOutOfBoundsException();
 
 		// initialize data
@@ -1421,7 +1431,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 					int currSetBitInWord = -1;
 					for (; position >= 0; position--)
 						currSetBitInWord = Integer.numberOfTrailingZeros(w & (0xFFFFFFFF << (currSetBitInWord + 1)));
-					return firstSetBitInWord + currSetBitInWord;
+					return new Integer(firstSetBitInWord + currSetBitInWord);
 				}
 				
 				// skip the 31-bit block
@@ -1432,24 +1442,24 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				
 				// check the sequence type
 				if (isOneSequence(w)) {
-					if (isSequenceWithNoBits(w)) {
+					if (simulateWAH || isSequenceWithNoBits(w)) {
 						setBitsInCurrentWord = sequenceLength;
 						if (position < setBitsInCurrentWord)
-							return firstSetBitInWord + position;
+							return new Integer(firstSetBitInWord + position);
 					} else {
 						setBitsInCurrentWord = sequenceLength - 1;
 						if (position < setBitsInCurrentWord)
 							// check whether the desired set bit is after the
 							// flipped bit (or after the first block)
-							return firstSetBitInWord + position + (position < getFlippedBit(w) ? 0 : 1);
+							return new Integer(firstSetBitInWord + position + (position < getFlippedBit(w) ? 0 : 1));
 					}
 				} else {
-					if (isSequenceWithNoBits(w)) {
+					if (simulateWAH ||isSequenceWithNoBits(w)) {
 						setBitsInCurrentWord = 0;
 					} else {
 						setBitsInCurrentWord = 1;
 						if (position == 0)
-							return firstSetBitInWord + getFlippedBit(w);
+							return new Integer(firstSetBitInWord + getFlippedBit(w));
 					}
 				}
 
@@ -1461,7 +1471,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			position -= setBitsInCurrentWord;
 		}
 		
-		throw new RuntimeException("position not found");
+		throw new IndexOutOfBoundsException(Integer.toString(i));
 	}
 	
 	/**
@@ -1490,30 +1500,35 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				blockIndex--;
 				index += getLiteralBitCount(w);
 			} else {
-				// if we are at the beginning of a sequence, and it is
-				// a set bit, the bit already exists
-				if (blockIndex == 0) {
-					int l = getLiteral(w);
-					if ((l & (1 << bitPosition)) == 0)
-						return -1;
-					return index + Integer.bitCount(l & ~(0xFFFFFFFF << bitPosition));
+				if (simulateWAH) {
+					if (isOneSequence(w) && blockIndex <= getSequenceCount(w))
+						return index + maxLiteralLengthMultiplication(blockIndex) + bitPosition;
+				} else {
+					// if we are at the beginning of a sequence, and it is
+					// a set bit, the bit already exists
+					if (blockIndex == 0) {
+						int l = getLiteral(w);
+						if ((l & (1 << bitPosition)) == 0)
+							return -1;
+						return index + Integer.bitCount(l & ~(0xFFFFFFFF << bitPosition));
+					}
+					
+					// if we are in the middle of a sequence of 1's, the bit already exist
+					if (blockIndex > 0 
+							&& blockIndex <= getSequenceCount(w) 
+							&& isOneSequence(w))
+						return index + maxLiteralLengthMultiplication(blockIndex) + bitPosition - (isSequenceWithNoBits(w) ? 0 : 1);
 				}
 				
-				// if we are in the middle of a sequence of 1's, the bit already exist
-				if (blockIndex > 0 
-						&& blockIndex <= getSequenceCount(w) 
-						&& isOneSequence(w))
-					return index + maxLiteralLengthMultiplication(blockIndex) + bitPosition - (isSequenceWithNoBits(w) ? 0 : 1);
-
 				// next word
 				int blocks = getSequenceCount(w) + 1;
 				blockIndex -= blocks;
 				if (isZeroSequence(w)) {
-					if (!isSequenceWithNoBits(w))
+					if (!simulateWAH && !isSequenceWithNoBits(w))
 						index++;
 				} else {
 					index += maxLiteralLengthMultiplication(blocks);
-					if (!isSequenceWithNoBits(w))
+					if (!simulateWAH && !isSequenceWithNoBits(w))
 						index--;
 				}
 			}
@@ -1538,8 +1553,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			return false;
 		
 		// current word type
-		final boolean isCurrentWordAllZeros = getLastWord() == ALL_ZEROS_LITERAL;
-		final boolean isCurrentWordAllOnes = getLastWord() == ALL_ONES_LITERAL;
+		final boolean isCurrentWordAllZeros = words[lastWordIndex] == ALL_ZEROS_LITERAL;
+		final boolean isCurrentWordAllOnes = words[lastWordIndex] == ALL_ONES_LITERAL;
 
 		// nothing to merge
 		if (!isCurrentWordAllZeros && !isCurrentWordAllOnes)
@@ -1552,7 +1567,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		if ((isCurrentWordAllOnes && isOneSequence(previousWord)) 
 				|| (isCurrentWordAllZeros && isZeroSequence(previousWord))) {
 			lastWordIndex--;
-			increaseLastWordSequenceCount(1);
+			words[lastWordIndex]++;
 			return true;
 		}
 
@@ -1567,16 +1582,16 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			// convert set bits to unset bits 
 			previousWord = ALL_ZEROS_LITERAL | ~previousWord;
 		}
-		int previousWordBitCount = getLiteralBitCount(previousWord);
+		int previousWordBitCount = simulateWAH ? getLiteralBits(previousWord) : getLiteralBitCount(previousWord);
 		if (previousWordBitCount == 0) {
 			lastWordIndex--;
-			setLastWord(makeSequenceWord(0, isCurrentWordAllOnes, 1));
+			words[lastWordIndex] = makeSequenceWord(0, isCurrentWordAllOnes, 1);
 			return true;
 		}
-		if (previousWordBitCount == 1) {
+		if (!simulateWAH && previousWordBitCount == 1) {
 			int setBit = 1 + Integer.numberOfTrailingZeros(previousWord);
 			lastWordIndex--;
-			setLastWord(makeSequenceWord(setBit, isCurrentWordAllOnes, 1));
+			words[lastWordIndex] = makeSequenceWord(setBit, isCurrentWordAllOnes, 1);
 			return true;
 		}
 
@@ -1585,39 +1600,12 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	}
 
 	/**
-	 * Get the single element of a collection, supposing that it is a singleton!
-	 * 
-	 * @param other collection
-	 * @return single element
-	 */
-	@SuppressWarnings("unchecked")
-	private Integer getSingleElement(Collection<?> other) {
-		return (other instanceof SortedSet) 
-				? ((SortedSet<Integer>) other).last() 
-				: (Integer) other.iterator().next();
-	}
-	
-	/**
 	 * {@inheritDoc}
 	 */
 	@Override
 	public ConciseSet intersection(Collection<? extends Integer> other) {
 		Statistics.intersectionCount++;
-		if (other == null)
-			return new ConciseSet();
-		if (other.size() != 1) 
-			return performOperation(other, Operator.AND);
-		
-		// the result definitely contains at most one set bit, thus it is
-		// faster to directly set such a bit
-		Integer item = getSingleElement(other);
-		if (contains(item)) {
-			// if the cloned element already contains the item, return itself
-			ConciseSet res = new ConciseSet();
-			res.append(item);
-			return res;
-		} 
-		return new ConciseSet();
+		return performOperation(other, Operator.AND);
 	}
 
 	/**
@@ -1626,15 +1614,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	@Override
 	public ConciseSet union(Collection<? extends Integer> other) {
 		Statistics.unionCount++;
-		if (other == null)
-			return clone();
-		if (other.size() != 1) 
-			return performOperation(other, Operator.OR);
-
-		// it is faster to directly set the only set bit
-		ConciseSet cloned = clone();
-		cloned.add(getSingleElement(other));
-		return cloned;
+		return performOperation(other, Operator.OR);
 	}
 
 	/**
@@ -1643,15 +1623,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	@Override
 	public ConciseSet difference(Collection<? extends Integer> other) {
 		Statistics.differenceCount++;
-		if (other == null)
-			return clone();
-		if (other.size() != 1) 
-			return performOperation(other, Operator.ANDNOT);
-
-		// it is faster to directly remove the only set bit
-		ConciseSet cloned = clone();
-		cloned.remove(getSingleElement(other));
-		return cloned;
+		return performOperation(other, Operator.ANDNOT);
 	}
 
 	/**
@@ -1660,15 +1632,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	@Override
 	public ConciseSet symmetricDifference(Collection<? extends Integer> other) {
 		Statistics.symmetricDifferenceCount++;
-		if (other == null)
-			return clone();
-		if (other.size() != 1) 
-			return performOperation(other, Operator.XOR);
-		
-		// it is faster to directly flip the only set bit
-		ConciseSet cloned = clone();
-		cloned.flip(getSingleElement(other));
-		return cloned;
+		return performOperation(other, Operator.XOR);
 	}
 
 	/**
@@ -1691,11 +1655,15 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		if (isEmpty())
 			return;
 		
-		if (maxSetBit == MIN_ALLOWED_SET_BIT) {
+		if (last == MIN_ALLOWED_SET_BIT) {
 			clear();
 			return;
 		}
 		
+		// update size
+		if (size >= 0)
+			size = last - size + 1;
+
 		// complement each word
 		for (int i = 0; i <= lastWordIndex; i++) {
 			int w = words[i];
@@ -1708,41 +1676,31 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			}
 		}
 
-		// do not complement after the last element (maxSetBit)
-		if (isLiteral(getLastWord()))
-			clearBitsAfterInLastWord(lastSetBitOfLastWord);
+		// do not complement after the last element
+		if (isLiteral(words[lastWordIndex]))
+			clearBitsAfterInLastWord(maxLiteralLengthModulus(last));
 
 		// remove trailing zeros
 		trimZeros();
 		if (isEmpty())
 			return;
 
-		// update the size 
-		size = maxSetBit - size + 1;
-		
-		// update the maximal element
-		maxSetBit = -1;
+		// calculate the maximal element
+		last = 0;
+		int w = 0;
 		for (int i = 0; i <= lastWordIndex; i++) {
-			int w = words[i];
+			w = words[i];
 			if (isLiteral(w)) 
-				maxSetBit += MAX_LITERAL_LENGHT;
+				last += MAX_LITERAL_LENGHT;
 			else 
-				maxSetBit += maxLiteralLengthMultiplication(getSequenceCount(w) + 1);
+				last += maxLiteralLengthMultiplication(getSequenceCount(w) + 1);
 		}
-		
-		// update last word info
-		int w = getLastWord();
-		lastSetBitOfLastWord = MAX_LITERAL_LENGHT - 1;
-		if (isLiteral(w)) {
-			numberOfSetBitOfLastWord = getLiteralBitCount(w);
-			int gap = Integer.numberOfLeadingZeros(getLiteralBits(w)) - 1;
-			maxSetBit -= gap;
-			lastSetBitOfLastWord -= gap;
-		} else {
-			numberOfSetBitOfLastWord = maxLiteralLengthMultiplication(getSequenceCount(w) + 1);
-			if (!isSequenceWithNoBits(w))
-				numberOfSetBitOfLastWord--;
-		}
+
+		// manage the last word (that must be a literal or a sequence of 1's)
+		if (isLiteral(w)) 
+			last -= Integer.numberOfLeadingZeros(getLiteralBits(w));
+		else 
+			last--;
 	}
 
 	/**
@@ -1752,22 +1710,25 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		// loop over ALL_ZEROS_LITERAL words
 		int w;
 		do {
-			w = getLastWord();
+			w = words[lastWordIndex];
 			if (w == ALL_ZEROS_LITERAL) {
 				lastWordIndex--;
+				last -= MAX_LITERAL_LENGHT;
 			} else if (isZeroSequence(w)) {
 				if (isSequenceWithNoBits(w)) {
+					last -= maxLiteralLengthMultiplication(getSequenceCount(w + 1));
 					lastWordIndex--;
 				} else {
 					// convert the sequence in a 1-bit literal word
-					setLastWord(getLiteral(w));
+					last -= maxLiteralLengthMultiplication(getSequenceCount(w));
+					words[lastWordIndex] = getLiteral(w);
 				}
 			} else {
 				// one sequence or literal
 				return;
 			}
 			if (lastWordIndex < 0) {
-				clear();
+				reset();
 				return;
 			}
 		} while (true);
@@ -1833,7 +1794,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				}
 			}
 
-			return rightmostBitOfCurrentWord + nextSetBit;
+			return new Integer(rightmostBitOfCurrentWord + nextSetBit);
 		}
 
 		/**
@@ -1841,15 +1802,15 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		 */
 		@Override
 		public void skipAllBefore(Integer element) {
-			if (element > MAX_ALLOWED_INTEGER)
+			if (element.intValue() > MAX_ALLOWED_INTEGER)
 				throw new IndexOutOfBoundsException(element.toString());
 
 			// the element is before the next one
-			if (element <= rightmostBitOfCurrentWord + nextBitToCheck)
+			if (element.intValue() <= rightmostBitOfCurrentWord + nextBitToCheck)
 				return;
 			
 			// the element is after the last one
-			if (element > maxSetBit){
+			if (element.intValue() > last){
 				// makes hasNext() return "false"
 				wordItr.remainingWords = 0;
 				wordItr.currentWordCopy = ALL_ZEROS_LITERAL;
@@ -1857,7 +1818,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			}
 			
 			// next element
-			nextBitToCheck = element - rightmostBitOfCurrentWord;
+			nextBitToCheck = element.intValue() - rightmostBitOfCurrentWord;
 			
 			// the element is in the current word
 			if (nextBitToCheck < MAX_LITERAL_LENGHT)
@@ -1916,8 +1877,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 */
 	private class ReverseBitIterator implements ExtendedIterator<Integer> {
 		private ReverseWordIterator wordItr = new ReverseWordIterator();
-		private int rightmostBitOfCurrentWord = maxLiteralLengthMultiplication(maxLiteralLengthDivision(maxSetBit));
-		private int nextBitToCheck = lastSetBitOfLastWord;
+		private int rightmostBitOfCurrentWord = maxLiteralLengthMultiplication(maxLiteralLengthDivision(last));
+		private int nextBitToCheck = maxLiteralLengthModulus(last);
 		private int initialModCount = modCount;
 
 		/**
@@ -1976,7 +1937,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				}
 			}
 
-			return rightmostBitOfCurrentWord + nextSetBit;
+			return new Integer(rightmostBitOfCurrentWord + nextSetBit);
 		}
 		
 		/**
@@ -1984,15 +1945,15 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		 */
 		@Override
 		public void skipAllBefore(Integer element) {
-			if (element < 0)
+			if (element.intValue() < 0)
 				throw new IndexOutOfBoundsException(element.toString());
 			
 			// the element is before the next one
-			if (element >= rightmostBitOfCurrentWord + nextBitToCheck)
+			if (element.intValue() >= rightmostBitOfCurrentWord + nextBitToCheck)
 				return;
 			
 			// next element
-			nextBitToCheck = element - rightmostBitOfCurrentWord;
+			nextBitToCheck = element.intValue() - rightmostBitOfCurrentWord;
 			
 			// the element is in the current word
 			if (nextBitToCheck > 0)
@@ -2097,7 +2058,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	public Integer last() {
 		if (isEmpty()) 
 			throw new NoSuchElementException();
-		return maxSetBit;
+		return new Integer(last);
 	}
 
 	/**
@@ -2107,10 +2068,10 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	@Override
 	public ConciseSet convert(Collection<?> c) {
 		if (c == null)
-			return new ConciseSet();
+			return new ConciseSet(simulateWAH);
 		if (c instanceof ConciseSet)
 			return (ConciseSet) c;
-		return new ConciseSet((Collection<? extends Integer>) c);
+		return new ConciseSet(simulateWAH, (Collection<? extends Integer>) c);
 	}
 
 	/**
@@ -2118,24 +2079,46 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 */
 	@Override
 	public ConciseSet convert(Object... e) {
-		return new ConciseSet(e);
+		return new ConciseSet(simulateWAH, e);
 	}
 
+	/**
+	 * Converts a given integer into an instance of the current class
+	 * 
+	 * @param e integer to convert
+	 * @return the converted collection
+	 */
+	public ConciseSet convert(int e) {
+		return new ConciseSet(simulateWAH, e);
+	}
+	
 	/**
 	 * Replace the current instance with another {@link ConciseSet} instance
 	 * 
 	 * @param other {@link ConciseSet} instance to use to replace the current one
+	 * @return <code>true</code> if the given set is different from the current set
 	 */
-	private void becomeAliasOf(ConciseSet other) {
+	private boolean becomeAliasOf(ConciseSet other) {
 		if (this == other)
-			return;
+			return false;
+		
+		boolean isSimilar = (this.lastWordIndex == other.lastWordIndex)
+			&& (this.last == other.last);
+		for (int i = 0; isSimilar && (i <= lastWordIndex); i++)
+			isSimilar &= this.words[i] == other.words[i]; 
+
+		if (isSimilar) {
+			if (other.size >= 0)
+				this.size = other.size;
+			return false;
+		}
+		
 		this.words = other.words;
 		this.size = other.size;
-		this.lastSetBitOfLastWord = other.lastSetBitOfLastWord;
-		this.maxSetBit = other.maxSetBit;
-		this.modCount = other.modCount;
-		this.numberOfSetBitOfLastWord = other.numberOfSetBitOfLastWord;
+		this.last = other.last;
 		this.lastWordIndex = other.lastWordIndex;
+		this.modCount++;
+		return true;
 	}
 
 	/**
@@ -2152,23 +2135,24 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			throw new IndexOutOfBoundsException(Integer.toString(b));
 
 		// the element can be simply appended
-		if (isEmpty() || b > maxSetBit) {
+		if (b > last) {
 			append(b);
 			return true;
 		}
 
-		if (b == maxSetBit)
+		if (b == last)
 			return false;
 
 		// check if the element can be put in a literal word
 		int blockIndex = maxLiteralLengthDivision(b);
 		int bitPosition = maxLiteralLengthModulus(b);
 		for (int i = 0; i <= lastWordIndex && blockIndex >= 0; i++) {
-			if (isLiteral(words[i])) {
+			int w = words[i];
+			if (isLiteral(w)) {
 				// check if the current literal word is the "right" one
 				if (blockIndex == 0) {
 					// bit already set
-					if ((words[i] & (1 << bitPosition)) != 0)
+					if ((w & (1 << bitPosition)) != 0)
 						return false;
 					
 					// By adding the bit we potentially create a sequence:
@@ -2181,45 +2165,50 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 					// -- If there are MAX_LITERAL_LENGHT - 1 set bits, by adding 
 					//    the new one we potentially allow for a 1's sequence 
 					//    together with the successive and/or the preceding words
-					int bitCount = getLiteralBitCount(words[i]);
-					if (bitCount >= MAX_LITERAL_LENGHT - 2)
-						break;
+					if (!simulateWAH) {
+						int bitCount = getLiteralBitCount(w);
+						if (bitCount >= MAX_LITERAL_LENGHT - 2)
+							break;
+					} else {
+						if (containsOnlyOneBit(~w))
+							break;
+					}
 						
 					// set the bit
-					// NOTE: it is always lesser than the maximal element, thus
-					// updating maxSetBit is not required
 					words[i] |= 1 << bitPosition;
-					size++;
-					if (i == lastWordIndex)
-						numberOfSetBitOfLastWord++;
+					if (size >= 0)
+						size++;
 					return true;
 				} 
 				
 				blockIndex--;
 			} else {
-				// if we are at the beginning of a sequence, and it is
-				// a set bit, the bit already exists
-				if (blockIndex == 0 
-						&& (getLiteral(words[i]) & (1 << bitPosition)) != 0)
-					return false;
-				
-				// if we are in the middle of a sequence of 1's, the bit already exist
-				if (blockIndex > 0 
-						&& blockIndex <= getSequenceCount(words[i]) 
-						&& isOneSequence(words[i]))
-					return false;
+				if (simulateWAH) {
+					if (isOneSequence(w) && blockIndex <= getSequenceCount(w))
+						return false;
+				} else {
+					// if we are at the beginning of a sequence, and it is
+					// a set bit, the bit already exists
+					if (blockIndex == 0 
+							&& (getLiteral(w) & (1 << bitPosition)) != 0)
+						return false;
+					
+					// if we are in the middle of a sequence of 1's, the bit already exist
+					if (blockIndex > 0 
+							&& blockIndex <= getSequenceCount(w) 
+							&& isOneSequence(w))
+						return false;
+				}
 
 				// next word
-				blockIndex -= getSequenceCount(words[i]) + 1;
+				blockIndex -= getSequenceCount(w) + 1;
 			}
 		}
 		
 		// the bit is in the middle of a sequence or it may cause a literal to
 		// become a sequence, thus the "easiest" way to add it is by ORing
-		int sizeBefore = size;
 		Statistics.unionCount++;
-		becomeAliasOf(performOperation(convert(b), Operator.OR));
-		return size != sizeBefore;
+		return becomeAliasOf(performOperation(convert(b), Operator.OR));
 	}
 
 	/**
@@ -2229,24 +2218,25 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	public boolean remove(Object o) {
 		modCount++;
 
-		if (o == null || isEmpty())
+		if (o == null || isEmpty() || !(o instanceof Integer))
 			return false;
 
 		final int b = ((Integer) o).intValue();
 
 		// the element cannot exist
-		if (b > maxSetBit) 
+		if (b > last) 
 			return false;
 
 		// check if the element can be removed from a literal word
 		int blockIndex = maxLiteralLengthDivision(b);
 		int bitPosition = maxLiteralLengthModulus(b);
 		for (int i = 0; i <= lastWordIndex && blockIndex >= 0; i++) {
-			if (isLiteral(words[i])) {
+			int w = words[i];
+			if (isLiteral(w)) {
 				// check if the current literal word is the "right" one
 				if (blockIndex == 0) {
 					// the bit is already unset
-					if ((words[i] & (1 << bitPosition)) == 0)
+					if ((w & (1 << bitPosition)) == 0)
 						return false;
 					
 					// By removing the bit we potentially create a sequence:
@@ -2259,51 +2249,56 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 					// -- If there is 1 set bit, by removing the new one we 
 					//    potentially allow for a 0's sequence 
 					//    together with the successive and/or the preceding words
-					int bitCount = getLiteralBitCount(words[i]);
-					if (bitCount <= 2)
-						break;
+					if (!simulateWAH) {
+						int bitCount = getLiteralBitCount(w);
+						if (bitCount <= 2)
+							break;
+					} else {
+						if (containsOnlyOneBit(getLiteralBits(w)))
+							break;
+					}
 						
 					// unset the bit
 					words[i] &= ~(1 << bitPosition);
-					size--;
-					if (i == lastWordIndex)
-						numberOfSetBitOfLastWord--;
+					if (size >= 0)
+						size--;
 					
 					// if the bit is the maximal element, update it
-					if (b == maxSetBit) {
-						int oldLastSetBitOfLastWord = lastSetBitOfLastWord;
-						lastSetBitOfLastWord = MAX_LITERAL_LENGHT 
-							- Integer.numberOfLeadingZeros(getLiteralBits(getLiteral(words[i])));
-						maxSetBit -= oldLastSetBitOfLastWord - lastSetBitOfLastWord;
+					if (b == last) {
+						last -= maxLiteralLengthModulus(last) - (MAX_LITERAL_LENGHT 
+								- Integer.numberOfLeadingZeros(getLiteralBits(words[i])));
 					}
 					return true;
 				} 
 
 				blockIndex--;
 			} else {
-				// if we are at the beginning of a sequence, and it is
-				// an unset bit, the bit does not exist
-				if (blockIndex == 0 
-						&& (getLiteral(words[i]) & (1 << bitPosition)) == 0)
-					return false;
-				
-				// if we are in the middle of a sequence of 0's, the bit does not exist
-				if (blockIndex > 0 
-						&& blockIndex <= getSequenceCount(words[i]) 
-						&& isZeroSequence(words[i]))
-					return false;
-
-				// next word
-				blockIndex -= getSequenceCount(words[i]) + 1;
+				if (simulateWAH) {
+					if (isZeroSequence(w) && blockIndex <= getSequenceCount(w))
+						return false;
+				} else {
+					// if we are at the beginning of a sequence, and it is
+					// an unset bit, the bit does not exist
+					if (blockIndex == 0 
+							&& (getLiteral(w) & (1 << bitPosition)) == 0)
+						return false;
+					
+					// if we are in the middle of a sequence of 0's, the bit does not exist
+					if (blockIndex > 0 
+							&& blockIndex <= getSequenceCount(w) 
+							&& isZeroSequence(w))
+						return false;
+	
+					// next word
+					blockIndex -= getSequenceCount(w) + 1;
+				}
 			}
 		}
 		
 		// the bit is in the middle of a sequence or it may cause a literal to
 		// become a sequence, thus the "easiest" way to remove it by ANDNOTing
-		int sizeBefore = size;
 		Statistics.differenceCount++;
-		becomeAliasOf(performOperation(convert(b), Operator.ANDNOT));
-		return size != sizeBefore;
+		return becomeAliasOf(performOperation(convert(b), Operator.ANDNOT));
 	}
 
 	/**
@@ -2311,13 +2306,13 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 */
 	@Override
 	public boolean contains(Object o) {
-		if (isEmpty() || o == null)
+		if (o == null || isEmpty() || !(o instanceof Integer))
 			return false;
 
 		final int b = ((Integer)o ).intValue();
 		
 		// the element is greater than the maximal value
-		if (b > maxSetBit) 
+		if (b > last) 
 			return false;
 
 		// check if the element is within a literal word
@@ -2333,18 +2328,23 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				} 
 				blockIndex--;
 			} else {
-				// if we are at the beginning of a sequence, and it is
-				// a set bit, the bit already exists
-				if (blockIndex == 0 
-						&& (getLiteral(w) & (1 << bitPosition)) != 0)
-					return true;
+				if (simulateWAH) {
+					if (isOneSequence(w) && blockIndex <= getSequenceCount(w))
+						return true;
+				} else {
+					// if we are at the beginning of a sequence, and it is
+					// a set bit, the bit already exists
+					if (blockIndex == 0 
+							&& (getLiteral(w) & (1 << bitPosition)) != 0)
+						return true;
+					
+					// if we are in the middle of a sequence of 1's, the bit already exist
+					if (blockIndex > 0 
+							&& blockIndex <= getSequenceCount(w) 
+							&& isOneSequence(w))
+						return true;
+				}
 				
-				// if we are in the middle of a sequence of 1's, the bit already exist
-				if (blockIndex > 0 
-						&& blockIndex <= getSequenceCount(w) 
-						&& isOneSequence(w))
-					return true;
-
 				// next word
 				blockIndex -= getSequenceCount(w) + 1;
 			}
@@ -2364,15 +2364,14 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			return true;
 		if (isEmpty())
 			return false;
-		if (c.size() > size)
-			return false;
-		if (c.size() == 1) 
-			return contains(getSingleElement(c));
 		
 		final ConciseSet otherSet = convert(c);
-		
-		if (otherSet.maxSetBit > maxSetBit)
+		if (otherSet.last > last)
 			return false;
+		if (size >= 0 && otherSet.size > size)
+			return false;
+		if (otherSet.size == 1) 
+			return contains(otherSet.last());
 
 		// scan "this" and "other"
 		WordIterator thisItr = this.new WordIterator();
@@ -2409,20 +2408,20 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			return false;
 		if (other == this)
 			return true;
-		if (other.size() == 1)
-			return contains(getSingleElement(other));
 		
 		final ConciseSet otherSet = convert(other);
-		
+		if (otherSet.size == 1)
+			return contains(otherSet.last);
+
 		// disjoint sets
 		if (isSequenceWithNoBits(this.words[0]) 
-				&& maxLiteralLengthMultiplication(getSequenceCount(this.words[0]) + 1) > otherSet.maxSetBit) {
+				&& maxLiteralLengthMultiplication(getSequenceCount(this.words[0]) + 1) > otherSet.last) {
 			if (isZeroSequence(this.words[0]))
 				return false;
 			return true;
 		}
 		if (isSequenceWithNoBits(otherSet.words[0]) 
-				&& maxLiteralLengthMultiplication(getSequenceCount(otherSet.words[0]) + 1) > this.maxSetBit) {
+				&& maxLiteralLengthMultiplication(getSequenceCount(otherSet.words[0]) + 1) > this.last) {
 			if (isZeroSequence(otherSet.words[0]))
 				return false;
 			return true;
@@ -2462,29 +2461,30 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		Statistics.sizeCheckCount++;
 
 		// empty arguments
-		if (this.size < minElements || other == null || other.size() < minElements)
+		if ((size >= 0 && size < minElements) || other == null || other.isEmpty())
 			return false;
 		if (other == this)
 			return true;
 
-		// single-element intersection
-		if (minElements == 1 && other.size() == 1)
-			return contains(getSingleElement(other));
-		if (minElements == 1 && this.size == 1)
-			return other.contains(maxSetBit);
 		
 		// convert the other set in order to perform a more complex intersection
 		ConciseSet otherSet = convert(other);
+		if (otherSet.size >= 0 && otherSet.size < minElements)
+			return false;
+		if (minElements == 1 && otherSet.size == 1)
+			return contains(otherSet.last());
+		if (minElements == 1 && size == 1)
+			return otherSet.contains(last());
 		
 		// disjoint sets
 		if (isSequenceWithNoBits(this.words[0]) 
-				&& maxLiteralLengthMultiplication(getSequenceCount(this.words[0]) + 1) > otherSet.maxSetBit) {
+				&& maxLiteralLengthMultiplication(getSequenceCount(this.words[0]) + 1) > otherSet.last) {
 			if (isZeroSequence(this.words[0]))
 				return false;
 			return true;
 		}
 		if (isSequenceWithNoBits(otherSet.words[0]) 
-				&& maxLiteralLengthMultiplication(getSequenceCount(otherSet.words[0]) + 1) > this.maxSetBit) {
+				&& maxLiteralLengthMultiplication(getSequenceCount(otherSet.words[0]) + 1) > this.last) {
 			if (isZeroSequence(otherSet.words[0]))
 				return false;
 			return true;
@@ -2539,22 +2539,18 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			return true;
 		}
 		
-		if (c.size() == 1) {
-			Integer item = getSingleElement(c);
-			if (contains(item)) {
+		ConciseSet other = convert(c);
+		if (other.size == 1) {
+			if (contains(other.last())) {
 				if (size == 1) 
 					return false;
-				clear();
-				append(item);
-			} else {
-				clear();
-			}
+				return becomeAliasOf(convert(other.last));
+			} 
+			clear();
 			return true;
 		}
 		
-		int sizeBefore = size;
-		becomeAliasOf(performOperation(convert(c), Operator.AND));
-		return size != sizeBefore;
+		return becomeAliasOf(performOperation(other, Operator.AND));
 	}
 
 	/**
@@ -2567,12 +2563,11 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		if (c == null || c.isEmpty() || c == this)
 			return false;
 
-		if (c.size() == 1) 
-			return add(getSingleElement(c));
+		ConciseSet other = convert(c);
+		if (other.size == 1) 
+			return add(other.last());
 		
-		int sizeBefore = size;
-		becomeAliasOf(performOperation(convert(c), Operator.OR));
-		return size != sizeBefore;
+		return becomeAliasOf(performOperation(convert(c), Operator.OR));
 	}
 
 	/**
@@ -2587,13 +2582,12 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			return false;
 		if (c == this)
 			clear();
+
+		ConciseSet other = convert(c);
+		if (other.size == 1) 
+			return remove(other.last());
 		
-		if (c.size() == 1) 
-			return remove(getSingleElement(c));
-		
-		int sizeBefore = size;
-		becomeAliasOf(performOperation(convert(c), Operator.ANDNOT));
-		return size != sizeBefore;
+		return becomeAliasOf(performOperation(convert(c), Operator.ANDNOT));
 	}
 
 	/**
@@ -2601,6 +2595,24 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 */
 	@Override
 	public int size() {
+		if (size < 0) {
+			size = 0;
+			for (int i = 0; i <= lastWordIndex; i++) {
+				int w = words[i];
+				if (isLiteral(w)) {
+					size += getLiteralBitCount(w);
+				} else {
+					if (isZeroSequence(w)) {
+						if (!isSequenceWithNoBits(w))
+							size++;
+					} else {
+						size += maxLiteralLengthMultiplication(getSequenceCount(w) + 1);
+						if (!isSequenceWithNoBits(w))
+							size--;
+					}
+				}
+			}
+		}
 		return size;
 	}
 
@@ -2609,7 +2621,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 */
 	@Override
 	public ConciseSet empty() {
-		return new ConciseSet();
+		return new ConciseSet(simulateWAH);
 	}
 
 	/**
@@ -2636,9 +2648,9 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			return false;
 		
 		ConciseSet other = convert((Collection<?>) obj);
-		if (size != other.size || maxSetBit != other.maxSetBit)
+		if (last != other.last)
 			return false;
-		if (words != null)
+		if (!isEmpty())
 	        for (int i = 0; i <= lastWordIndex; i++)
 	            if (words[i] != other.words[i])
 	                return false;
@@ -2666,7 +2678,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			return 1;
 		
 		// the word at the end must be the same
-		int res = this.maxSetBit - other.maxSetBit;
+		int res = this.last - other.last;
 		if (res != 0)
 			return res < 0 ? -1 : 1;
 		
@@ -2714,7 +2726,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	public double bitmapCompressionRatio() {
 		if (isEmpty())
 			return 0D;
-		return (lastWordIndex + 1) / Math.ceil((1 + maxSetBit) / 32D);
+		return (lastWordIndex + 1) / Math.ceil((1 + last) / 32D);
 	}
 	
 	/**
@@ -2724,7 +2736,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	public double collectionCompressionRatio() {
 		if (isEmpty())
 			return 0D;
-		return (double) (lastWordIndex + 1) / size;
+		return (double) (lastWordIndex + 1) / size();
 	}
 
 	/**
@@ -2732,7 +2744,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 */
 	@Override
 	public ExtendedSet<Integer> headSet(Integer toElement) {
-		if (toElement.compareTo(MAX_ALLOWED_INTEGER) > 0)
+		if (toElement.intValue() > MAX_ALLOWED_INTEGER)
 			throw new IllegalArgumentException(toElement.toString());
 		return super.headSet(toElement);
 	}
@@ -2742,9 +2754,9 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 */
 	@Override
 	public ExtendedSet<Integer> subSet(Integer fromElement, Integer toElement) {
-		if (toElement.compareTo(MAX_ALLOWED_INTEGER) > 0)
+		if (toElement.intValue() > MAX_ALLOWED_INTEGER)
 			throw new IllegalArgumentException(toElement.toString());
-		if (fromElement.compareTo(0) < 0)
+		if (fromElement.intValue() < 0)
 			throw new IllegalArgumentException(fromElement.toString());
 		return super.subSet(fromElement, toElement);
 	}
@@ -2754,7 +2766,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 */
 	@Override
 	public ExtendedSet<Integer> tailSet(Integer fromElement) {
-		if (fromElement.compareTo(0) < 0)
+		if (fromElement.intValue() < 0)
 			throw new IllegalArgumentException(fromElement.toString());
 		return super.tailSet(fromElement);
 	}
@@ -2804,7 +2816,10 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			} else {
 				s.append(ws.substring(0, 2));
 				s.append('-');
-				s.append(ws.substring(2, 7));
+				if (simulateWAH)
+					s.append("xxxxx");
+				else
+					s.append(ws.substring(2, 7));
 				s.append('-');
 				s.append(ws.substring(7));
 			}
@@ -2826,15 +2841,17 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				}
 				s.append(" block: ");
 				s.append(toBinaryString(getLiteralBits(getLiteral(words[i]))).substring(1));
-				s.append(" (bit=");
-				int bit = (words[i] & 0x3E000000) >>> 25;
-				if (bit == 0) {
-					s.append("none");
-				} else {
-					s.append(String.format("%4d", bit - 1));
+				if (!simulateWAH) {
+					s.append(" (bit=");
+					int bit = (words[i] & 0x3E000000) >>> 25;
+					if (bit == 0) 
+						s.append("none");
+					else 
+						s.append(String.format("%4d", bit - 1));
+					s.append(')');
 				}
 				int count = getSequenceCount(words[i]);
-				f.format(") followed by %d blocks (%d bits)", 
+				f.format(" followed by %d blocks (%d bits)", 
 						getSequenceCount(words[i]),
 						maxLiteralLengthMultiplication(count));
 				f.format(" ---> [from %d to %d] ", firstBitInWord, firstBitInWord + (count + 1) * MAX_LITERAL_LENGHT - 1);
@@ -2844,10 +2861,9 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		}
 		
 		// object attributes
-		f.format("lastSetBitOfLastWord: %d\n", lastSetBitOfLastWord);
-		f.format("numberOfSetBitOfLastWord: %d\n", numberOfSetBitOfLastWord);
-		f.format("maxSetBit: %d\n", maxSetBit);
-		f.format("size: %d\n", size);
+		f.format("simulateWAH: %b\n", simulateWAH);
+		f.format("last: %d\n", last);
+		f.format("size: %s\n", (size == -1 ? "invalid" : Integer.toString(size)));
 		f.format("words.length: %d\n", words.length);
 		f.format("lastWordIndex: %d\n", lastWordIndex);
 
@@ -2856,5 +2872,21 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		f.format("collection compression: %.2f%%\n", 100D * collectionCompressionRatio());
 
 		return s.toString();
+	}
+	
+	/**
+	 * Test method
+	 * 
+	 * @param args
+	 */
+	public static void main(String[] args) {
+		ConciseSet s = new ConciseSet(true, 3, 5);
+		s.fill(31, 93);
+		s.add(1024);
+		s.add(1028);
+		s.add(MAX_ALLOWED_INTEGER);
+		System.out.println(s.debugInfo());
+		
+		System.out.println(new ConciseSet(false, s).debugInfo());
 	}
 }
