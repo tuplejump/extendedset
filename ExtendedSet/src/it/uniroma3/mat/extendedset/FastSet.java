@@ -413,7 +413,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 			final FastSet other = (FastSet) c;
 
 			int count = 0;
-			for (int i = 0; i < wordsInUse; i++) {
+			for (int i = Math.min(wordsInUse, other.wordsInUse) - 1; i >= 0; i--) {
 				count += Integer.bitCount(words[i] & other.words[i]);
 				if (count >= minElements)
 					return true;
@@ -780,7 +780,7 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	@SuppressWarnings("unchecked")
 	@Override
 	public FastSet convert(Collection<?> c) {
-		if (c == null || c.isEmpty())
+		if (c == null)
 			return new FastSet();
 		if (c instanceof FastSet)
 			return (FastSet) c;

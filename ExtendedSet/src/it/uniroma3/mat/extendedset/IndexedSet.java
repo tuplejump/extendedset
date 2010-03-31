@@ -300,12 +300,12 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (obj == null)
+		if (obj == null || !(obj instanceof Collection<?>))
 			return false;
 		IndexedSet<?> other = convert((Collection<?>) obj);
 		return this.indexToItem == other.indexToItem
-				&& this.itemToIndex == other.itemToIndex
-				&& this.indices.equals(other.indices);
+			&& this.itemToIndex == other.itemToIndex
+			&& this.indices.equals(other.indices);
 	}
 
 	/**
@@ -715,7 +715,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@SuppressWarnings("unchecked")
 	@Override
 	public IndexedSet<T> convert(Collection<?> c) {
-		if (c == null || c.isEmpty())
+		if (c == null)
 			return empty();
 
 		// useless to convert...

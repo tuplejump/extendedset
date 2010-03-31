@@ -12,6 +12,13 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedSet;
 
+/*
+ * TODO: cambiare Set in Collection e, nel caso di List, usare Collections.binarySearch per implementare velocemente 
+ * tutte le operazioni di add, remove (tramite iteratore, così in LinkedList sono velocissimo a mantenere la lista ordinata).
+ * Per la retainAll usare due iteratori che scorrono fintanto che uno è minore dell'altro e quando sono uguali tengo il risultato. 
+ * Da usare anche son SortedSet.
+ */
+
 /**
  * {@link ExtendedSet}-based class internally managed by any {@link Set} instance
  * 

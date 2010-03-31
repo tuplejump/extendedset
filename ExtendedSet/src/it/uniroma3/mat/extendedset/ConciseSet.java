@@ -2512,7 +2512,6 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			otherItr.prepareNextLiteral();
 		}
 
-		// return the intersection size
 		return false;
 	}
 	
