@@ -2596,6 +2596,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	public int size() {
 		if (size < 0) {
 			size = 0;
+			int literalLength = 0;
 			for (int i = 0; i <= lastWordIndex; i++) {
 				int w = words[i];
 				if (isLiteral(w)) {
