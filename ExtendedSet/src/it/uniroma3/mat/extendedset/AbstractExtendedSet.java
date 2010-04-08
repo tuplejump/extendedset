@@ -18,6 +18,7 @@
     	
 package it.uniroma3.mat.extendedset;
 
+import java.util.AbstractCollection;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -30,11 +31,12 @@ import java.util.NoSuchElementException;
 import java.util.SortedSet;
 
 /**
- * An implementation of {@link SortedSet} with fast
- * intersection/union/difference and other set operations.
+ * This class provides a skeletal implementation of the <tt>ExtendedSet</tt>
+ * interface to minimize the effort required to implement this interface.
  * <p>
- * It collects all the basic functionalities and the interface of
- * {@link ConciseSet}, {@link FastSet}, and {@link IndexedSet}.
+ * The process of implementing a set by extending this class is very similar,
+ * for example, to that of implementing a {@link Collection} by extending
+ * {@link AbstractCollection}.
  * 
  * @author Alessandro Colantonio
  * @version $Id$
@@ -261,7 +263,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 * <p>
-	 * <b>NOTE:</b> <code>Object.clone()</code> is much slower then performing
+	 * <b>NOTE:</b> When overriding this method, please note that
+	 * <code>Object.clone()</code> is much slower then performing
 	 * <code>new</code> and "manually" copying data!
 	 */
 	@SuppressWarnings("unchecked")
@@ -856,7 +859,9 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		}
 		
 		/** Returns a read-only subset */
-		//TODO: in questa maniera, però, se faccio una modifica al set originario non vedo le modifiche...
+		// TODO: There is a known bug. Indeed, this implementation does not work
+		// since modifications to the read-write set are not reflected to the
+		// read-only set.
 		private ExtendedSet<T> unmodifiableSubSet(T min, T max) {
 			ExtendedSet<T> res;
 			ExtendedSet<T> range = AbstractExtendedSet.this.empty();
@@ -1021,6 +1026,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 			return filter(AbstractExtendedSet.this);
 		}
 
+		
+		
 		/*
 		 * PUBLIC METHODS
 		 */

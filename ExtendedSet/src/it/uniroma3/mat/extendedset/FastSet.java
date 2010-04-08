@@ -1,3 +1,21 @@
+/* (c) 2010 Alessandro Colantonio
+ * <mailto:colanton@mat.uniroma3.it>
+ * <http://ricerca.mat.uniroma3.it/users/colanton>
+ *  
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *  
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+
 package it.uniroma3.mat.extendedset;
 
 import java.util.Arrays;
@@ -11,10 +29,10 @@ import java.util.NoSuchElementException;
 
 /**
  * An {@link ExtendedSet} implementation, representing a set of {@link Integer}
- * instances, based on a bit vector
+ * instances, based on an uncompressed bitmap.
  * <p>
- * Union and intersection operations are mainly derived from bitwise "or" and
- * "and" of {@link BitSet}.
+ * Union and intersection operations are mainly derived from the code of
+ * {@link BitSet} to provide bitwise "or" and "and".
  * 
  * @author Alessandro Colantonio
  * @version $Id$

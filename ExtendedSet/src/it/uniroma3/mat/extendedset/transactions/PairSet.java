@@ -1,3 +1,21 @@
+/* (c) 2010 Alessandro Colantonio
+ * <mailto:colanton@mat.uniroma3.it>
+ * <http://ricerca.mat.uniroma3.it/users/colanton>
+ *  
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *  
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+
 package it.uniroma3.mat.extendedset.transactions;
 
 import it.uniroma3.mat.extendedset.ConciseSet;
@@ -20,15 +38,23 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * This class can be used to represent a set of transactions.
+ * A binary matrix internally represented by a bitmap.
  * <p>
- * It can be seen as a binary matrix, where rows are transactions, columns are
- * the items involved with each transaction.
+ * This class can be used to represent a set of transactions, where each
+ * transaction is a set of items. Rows are transactions, columns are the items
+ * involved with each transaction.
  * <p>
  * The matrix is internally represented by a bitmap defined by putting rows
  * (transactions) in sequence. All the provided constructors allows to specify
  * if the bitmap should be compressed (via {@link ConciseSet}) or plain (via
  * {@link FastSet}).
+ * <p>
+ * <b>NOTE:</b> this class provides two important methods:
+ * {@link #transactionsOf(Object)} to get a column of the matrix, and
+ * {@link #itemsOf(Object)} to get a row of the matrix. Since the matrix is
+ * internally organized as a bitmap where rows (transactions) are put in
+ * sequence, {@link #itemsOf(Object)} is much faster than
+ * {@link #transactionsOf(Object)}.
  * 
  * @author Alessandro Colantonio
  * @version $Id$
@@ -43,9 +69,13 @@ import java.util.Set;
  * @see FastSet
  * 
  */
+
+/*
+ * TODO: this class should extend "ExtendedSet<Pair<T, I>>" and not "AbstractSet<Pair<T, I>>"...
+ */
 public class PairSet<T, I> extends AbstractSet<Pair<T, I>> implements Cloneable {
 	/** transaction-item pair indices */
-	private /*final*/ ExtendedSet<Integer> indices;
+	private final ExtendedSet<Integer> indices;
 	
 	/** all possible transactions */
 	private final IndexedSet<T> allTransactions;
@@ -346,16 +376,12 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> implements Cloneable 
 	/**
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public PairSet<T, I> clone() {
-		try {
-			PairSet<T, I> cloned = (PairSet<T, I>) super.clone();
-			cloned.indices = indices.clone();
-			return cloned;
-		} catch (CloneNotSupportedException e) {
-			throw new InternalError();
-		}
+		// NOTE: do not use super.clone() since it is 10 times slower!
+		return new PairSet<T, I>(
+				allTransactions, allItems, maxTransactionCount, maxItemCount, 
+				indices.clone());
 	}
 
 	/**

@@ -1,3 +1,21 @@
+/* (c) 2010 Alessandro Colantonio
+ * <mailto:colanton@mat.uniroma3.it>
+ * <http://ricerca.mat.uniroma3.it/users/colanton>
+ *  
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by 
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *  
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of 
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ */ 
+
 package it.uniroma3.mat.extendedset;
 
 import java.util.AbstractSet;
@@ -12,15 +30,9 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.SortedSet;
 
-/*
- * TODO: cambiare Set in Collection e, nel caso di List, usare Collections.binarySearch per implementare velocemente 
- * tutte le operazioni di add, remove (tramite iteratore, così in LinkedList sono velocissimo a mantenere la lista ordinata).
- * Per la retainAll usare due iteratori che scorrono fintanto che uno è minore dell'altro e quando sono uguali tengo il risultato. 
- * Da usare anche son SortedSet.
- */
-
 /**
- * {@link ExtendedSet}-based class internally managed by any {@link Set} instance
+ * {@link ExtendedSet}-based class internally managed by an instance of any
+ * class implementing {@link Set}
  * 
  * @author Alessandro Colantonio
  * @version $Id$
@@ -29,17 +41,25 @@ import java.util.SortedSet;
  *            the type of elements maintained by this set
  */
 public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtendedSet<T> {
+	/** elements of the set */
 	private /*final*/ Set<T> elements;
 	
+	/** class implementing {@link Set} that is used to collect elements */
 	@SuppressWarnings("unchecked")
 	private final Class<? extends Set> setClass;
 
+	/**
+	 * collection of all possible elements. If <code>null</code>,
+	 * {@link #fill(Comparable, Comparable)},
+	 * {@link #clear(Comparable, Comparable)}, and {@link #complement()} cannot
+	 * be used!
+	 */
 	private final Collection<T> universe;
 
 	/**
 	 * Set of all integers &gt;= 0.
 	 * <p>
-	 * To be used with
+	 * To be used as a universe with
 	 * {@link GenericExtendedSet#GenericExtendedSet(Class, Collection)} when the
 	 * type <code>T</code> is {@link Integer}
 	 */
@@ -147,6 +167,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 		// prepare the sorted set
 		final Collection<T> sorted;
 		if (elements instanceof SortedSet<?>) {
+			//NOTE: SortedSet.comparator() is null
 			sorted = elements;
 		} else {
 			sorted = new ArrayList<T>(elements);
@@ -426,6 +447,6 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 		
 		t.fill(10, 50);
 		t.clear(20, 30);
-		System.out.println("t + from 10 to 50, 20-30 excuded: " + t);
+		System.out.println("t + from 10 to 50, 20-30 excluded: " + t);
 	}
 }

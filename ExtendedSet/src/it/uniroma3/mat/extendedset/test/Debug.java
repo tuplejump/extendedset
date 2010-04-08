@@ -76,7 +76,7 @@ public class Debug {
 	}
 	
 	/**
-	 * Populate a set with random values
+	 * Populates a set with random values
 	 * 
 	 * @param set
 	 *            the set to populate
@@ -137,7 +137,7 @@ public class Debug {
 	}
 	
 	/**
-	 * Populate a set with random values, from 0 to the specified greatest element
+	 * Populates a set with random values, from 0 to the specified greatest element
 	 * 
 	 * @param set
 	 *            the set to populate
@@ -151,7 +151,7 @@ public class Debug {
 	}
 	
 	/**
-	 * Populate a set with random values, from 0 to the specified greatest element
+	 * Populates a set with random values, from 0 to the specified greatest element
 	 * 
 	 * @param set
 	 *            the set to populate
@@ -1562,6 +1562,9 @@ public class Debug {
 	 * @param args ID of the test to execute
 	 */
 	public static void main(String[] args) {
+		// NOTE: the most complete tests are:
+		// - TestCase.RANDOM_OPERATION_STRESS_CONCISESET
+		// - TestCase.RANDOM_OPERATION_STRESS_FASTSET
 		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS_CONCISESET;
 		
 		if (args != null && args.length > 0) {

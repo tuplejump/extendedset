@@ -80,21 +80,13 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 		/*private*/ static long sizeCheckCount = 0;
 		/*private*/ static long equalsCount = 0;
 
-		/**
-		 * Resets all counters
-		 */
-		public static void resetAll() {
-			intersectionCount = 0;
-			unionCount = 0;
-			symmetricDifferenceCount = 0;
-			differenceCount = 0;
-			sizeCheckCount = 0;
-			equalsCount = 0;
-		}
 
 		/*
-		 * Resets
+		 * Reset
 		 */
+
+		/** Resets all counters */
+		public static void resetAll() {intersectionCount = unionCount = symmetricDifferenceCount = differenceCount = sizeCheckCount = equalsCount = 0;}
 		
 		/** Resets the counter of performed intersections */
 		public static void resetIntersectionCount() {intersectionCount = 0;}
@@ -114,27 +106,6 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 		/** Resets the counter of performed equals */
 		public static void resetEqualsCount() {equalsCount = 0;}
 
-//		/*
-//		 * Increments
-//		 */
-//		
-//		/** Increases the counter of performed intersections */
-//		public static void increaseIntersectionCount() {intersectionCount++;}
-//
-//		/** Increases the counter of performed unions */
-//		public static void increaseUnionCount() {unionCount++;}
-//
-//		/** Increases the counter of performed symmetric differences */
-//		public static void increaseSymmetricDifferenceCount() {symmetricDifferenceCount++;}
-//
-//		/** Increases the counter of performed differences */
-//		public static void increaseDifferenceCount() {differenceCount++;}
-//
-//		/** Increases the counter of performed size checks */
-//		public static void increaseSizeCheckCount() {sizeCheckCount++;}
-//
-//		/** Increases the counter of performed equals */
-//		public static void increaseEqualsCount() {equalsCount++;}
 
 		/*
 		 * Getters
@@ -173,7 +144,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	}
 
 	/**
-	 * Generates the intersection set (bitwise <tt>and</tt>)
+	 * Generates the intersection set
 	 * 
 	 * @param other
 	 *            {@link AbstractExtendedSet} instance that represents the right
@@ -185,7 +156,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	public ExtendedSet<T> intersection(Collection<? extends T> other);
 
 	/**
-	 * Generates the union set (bitwise <tt>or</tt>)
+	 * Generates the union set
 	 * 
 	 * @param other
 	 *            {@link ExtendedSet} instance that represents the right
@@ -197,7 +168,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	public ExtendedSet<T> union(Collection<? extends T> other);
 
 	/**
-	 * Generates the difference set (bitwise <tt>and not</tt>)
+	 * Generates the difference set
 	 * 
 	 * @param other
 	 *            {@link ExtendedSet} instance that represents the right
@@ -209,7 +180,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	public ExtendedSet<T> difference(Collection<? extends T> other);
 
 	/**
-	 * Generates the symmetric difference set (bitwise <tt>xor</tt>)
+	 * Generates the symmetric difference set
 	 * 
 	 * @param other
 	 *            {@link ExtendedSet} instance that represents the right
@@ -220,9 +191,9 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	public ExtendedSet<T> symmetricDifference(Collection<? extends T> other);
 
 	/**
-	 * Generates the complement set (bitwise <tt>not</tt>). The returned
-	 * set is represented by all the elements strictly less than
-	 * {@link #last()} that do not exist in the current set.
+	 * Generates the complement set. The returned set is represented by all the
+	 * elements strictly less than {@link #last()} that do not exist in the
+	 * current set.
 	 * 
 	 * @return the complement set
 	 * 
@@ -231,38 +202,38 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	public ExtendedSet<T> complemented();
 
 	/**
-	 * Complements the current set (bitwise <tt>not</tt>). The modified
-	 * set is represented by all the elements strictly less than
-	 * {@link #last()} that do not exist in the current set.
+	 * Complements the current set. The modified set is represented by all the
+	 * elements strictly less than {@link #last()} that do not exist in the
+	 * current set.
 	 * 
 	 * @see ExtendedSet#complemented()
 	 */
 	public void complement();
 
 	/**
-	 * Returns <code>true</code> if the specified {@link ExtendedSet}
-	 * instance contains any elements that are also contained within this
+	 * Returns <code>true</code> if the specified {@link Collection} instance
+	 * contains any elements that are also contained within this
 	 * {@link ExtendedSet} instance
 	 * 
 	 * @param other
 	 *            {@link ExtendedSet} to intersect with
-	 * @return a boolean indicating whether this {@link ExtendedSet}
-	 *         intersects the specified {@link ExtendedSet}.
+	 * @return a boolean indicating whether this {@link ExtendedSet} intersects
+	 *         the specified {@link ExtendedSet}.
 	 */
 	public boolean containsAny(Collection<? extends T> other);
 
 	/**
-	 * Returns <code>true</code> if the specified {@link ExtendedSet}
-	 * instance contains at least <code>minElements</code> elements that
-	 * are also contained within this {@link ExtendedSet} instance
+	 * Returns <code>true</code> if the specified {@link Collection} instance
+	 * contains at least <code>minElements</code> elements that are also
+	 * contained within this {@link ExtendedSet} instance
 	 * 
 	 * @param other
-	 *            {@link ExtendedSet} to intersect with
+	 *            {@link Collection} instance to intersect with
 	 * @param minElements
 	 *            minimum number of elements to be contained within this
 	 *            {@link ExtendedSet} instance
-	 * @return a boolean indicating whether this {@link ExtendedSet}
-	 *         intersects the specified {@link ExtendedSet}.
+	 * @return a boolean indicating whether this {@link ExtendedSet} intersects
+	 *         the specified {@link Collection}.
 	 * @throws IllegalArgumentException
 	 *             if <code>minElements &lt; 1</code>
 	 */
@@ -275,7 +246,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * then {@link #size()}
 	 * 
 	 * @param other
-	 *            {@link ExtendedSet} instance that represent the right
+	 *            {@link Collection} instance that represents the right
 	 *            operand
 	 * @return the size
 	 */
@@ -288,7 +259,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * {@link #size()}
 	 * 
 	 * @param other
-	 *            {@link ExtendedSet} instance that represent the right
+	 *            {@link Collection} instance that represents the right
 	 *            operand
 	 * @return the size
 	 */
@@ -301,7 +272,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * {@link #symmetricDifference(Collection)} and then {@link #size()}
 	 * 
 	 * @param other
-	 *            {@link ExtendedSet} instance that represent the right
+	 *            {@link Collection} instance that represents the right
 	 *            operand
 	 * @return the size
 	 */
@@ -314,7 +285,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * then {@link #size()}
 	 * 
 	 * @param other
-	 *            {@link ExtendedSet} instance that represent the right
+	 *            {@link Collection} instance that represents the right
 	 *            operand
 	 * @return the size
 	 */
@@ -345,23 +316,26 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	public ExtendedSet<T> clone();
 
 	/**
-	 * Computes the compression factor of the bitmap representation (1 means
-	 * not compressed, namely similar to {@link BitSet})
+	 * Computes the compression factor of the equivalent bitmap representation
+	 * (1 means not compressed, namely a memory footprint similar to
+	 * {@link BitSet}, 2 means twice the size of {@link BitSet}, etc.)
 	 * 
 	 * @return the compression factor
 	 */
 	public double bitmapCompressionRatio();
 
 	/**
-	 * Computes the compression factor of the integer collection (1 means
-	 * not compressed, namely similar to {@link ArrayList})
+	 * Computes the compression factor of the equivalent integer collection (1
+	 * means not compressed, namely a memory footprint similar to
+	 * {@link ArrayList}, 2 means twice the size of {@link ArrayList}, etc.)
 	 * 
 	 * @return the compression factor
 	 */
 	public double collectionCompressionRatio();
 
 	/**
-	 * Extended version of the {@link Iterator} interface
+	 * Extended version of the {@link Iterator} interface that allows to "skip"
+	 * some elements of the set
 	 * 
 	 * @param <X>
 	 *            the type of elements maintained by this set
@@ -407,30 +381,42 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	/**
 	 * Computes the power-set of the current set.
 	 * <p>
-	 * It is a particular implementation of the algorithm <i>Apriori</i>.
-	 * The power-set does <i>not</i> contains the empty set. The list is
-	 * sorted according to the lexicographical order provided by the sorted
-	 * set.
+	 * It is a particular implementation of the algorithm <i>Apriori</i> (see:
+	 * Rakesh Agrawal, Ramakrishnan Srikant, <i>Fast Algorithms for Mining
+	 * Association Rules in Large Databases</i>, in Proceedings of the
+	 * 20<sup>th</sup> International Conference on Very Large Data Bases,
+	 * p.487-499, 1994). The power-set does <i>not</i> contains the empty set.
+	 * <p>
+	 * The subsets composing the powerset are returned in a list that is sorted
+	 * according to the lexicographical order provided by the sorted set.
 	 * 
 	 * @return the power-set
+	 * @see #powerSet(int, int)
+	 * @see #powerSetSize()
 	 */
 	public List<? extends ExtendedSet<T>> powerSet();
 
 	/**
-	 * Computes a subset of the power-set of the current set, composed by
-	 * those subsets that have cardinality between <code>min</code> and
+	 * Computes a subset of the power-set of the current set, composed by those
+	 * subsets that have cardinality between <code>min</code> and
 	 * <code>max</code>.
 	 * <p>
-	 * It is a particular implementation of the algorithm <i>Apriori</i>.
-	 * The power-set does <i>not</i> contains the empty set. The list is
-	 * sorted according to the lexicographical order provided by the sorted
-	 * set.
+	 * It is a particular implementation of the algorithm <i>Apriori</i> (see:
+	 * Rakesh Agrawal, Ramakrishnan Srikant, <i>Fast Algorithms for Mining
+	 * Association Rules in Large Databases</i>, in Proceedings of the
+	 * 20<sup>th</sup> International Conference on Very Large Data Bases,
+	 * p.487-499, 1994). The power-set does <i>not</i> contains the empty set.
+	 * <p>
+	 * The subsets composing the powerset are returned in a list that is sorted
+	 * according to the lexicographical order provided by the sorted set.
 	 * 
 	 * @param min
 	 *            minimum subset size (greater than zero)
 	 * @param max
 	 *            maximum subset size
 	 * @return the power-set
+	 * @see #powerSet()
+	 * @see #powerSetSize(int, int)
 	 */
 	public List<? extends ExtendedSet<T>> powerSet(int min, int max);
 
@@ -440,6 +426,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * The power-set does <i>not</i> contains the empty set.
 	 * 
 	 * @return the power-set size
+	 * @see #powerSet()
 	 */
 	public int powerSetSize();
 
@@ -455,6 +442,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * @param max
 	 *            maximum subset size
 	 * @return the power-set size
+	 * @see #powerSet(int, int)
 	 */
 	public int powerSetSize(int min, int max);
 
@@ -499,7 +487,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	public boolean removeFirstOf(SortedSet<T> set);
 
 	/**
-	 * Prints debug info
+	 * Prints debug info about the given {@link ExtendedSet} implementation
 	 * 
 	 * @return a string that describes the internal representation of the
 	 *         instance
@@ -507,8 +495,10 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	public String debugInfo();
 
 	/**
-	 * Adds to the sets all the elements between <code>first</code> and
-	 * <code>last</code>, both included.
+	 * Adds to the set all the elements between <code>first</code> and
+	 * <code>last</code>, both included. It supposes that there is an ordering
+	 * of the elements of type <code>T</code> and that the universe of all
+	 * possible elements is known.
 	 * 
 	 * @param from
 	 *            first element
@@ -518,8 +508,10 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	public void fill(T from, T to);
 
 	/**
-	 * Remove to the sets all the elements between <code>first</code> and
-	 * <code>last</code>, both included.
+	 * Removes from the set all the elements between <code>first</code> and
+	 * <code>last</code>, both included. It supposes that there is an ordering
+	 * of the elements of type <code>T</code> and that the universe of all
+	 * possible elements is known.
 	 * 
 	 * @param from
 	 *            first element
@@ -538,6 +530,8 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	public void flip(T e);
 	
 	/**
+	 * Gets the read-only version of the current set
+	 * 
 	 * @return the read-only version of the current set
 	 */
 	public ExtendedSet<T> unmodifiable();
@@ -586,7 +580,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	/**
 	 * Converts a given {@link Collection} instance into an instance of the
 	 * current class. <b>NOTE:</b> when the collection is already an instance of
-	 * the current class, the method returns this collection.
+	 * the current class, the method returns the collection itself.
 	 * 
 	 * @param c
 	 *            collection to use to generate the new instance

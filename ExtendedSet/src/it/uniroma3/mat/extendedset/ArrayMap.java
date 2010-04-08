@@ -57,7 +57,7 @@ public class ArrayMap<T> extends AbstractMap<Integer, T> {
 	 */
 	private class SimpleEntry implements Entry<Integer, T> {
 		/** index of {@link ArrayMap#array} */
-		final Integer actualIndex; 
+		final int actualIndex; 
 		
 		/**
 		 * Creates an entry
@@ -65,7 +65,7 @@ public class ArrayMap<T> extends AbstractMap<Integer, T> {
 		 * @param index
 		 *            index of {@link ArrayMap#array}
 		 */
-		private SimpleEntry(Integer index) {
+		private SimpleEntry(int index) {
 			this.actualIndex = index;
 		}
 		
@@ -187,8 +187,8 @@ public class ArrayMap<T> extends AbstractMap<Integer, T> {
 	 */
 	@Override
 	public boolean containsKey(Object key) {
-		Integer index = (Integer) key - indexShift;
-		return index.compareTo(0) >= 0 && index.compareTo(array.length) < 0;
+		int index = (Integer) key - indexShift;
+		return (index >= 0) && (index < array.length);
 	}
 	
 	/**

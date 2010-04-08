@@ -28,8 +28,9 @@ import java.util.Set;
 import java.util.SortedSet;
 
 /**
- * An {@link AbstractExtendedSet} implementation that maps elements to an integer set
- * referred to as "indices".
+ * An {@link ExtendedSet} implementation that maps each element of the universe
+ * (i.e., the collection of all possible elements) to an integer referred to as
+ * its "index".
  * 
  * @author Alessandro Colantonio
  * @version $Id$
@@ -191,7 +192,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 
 	/**
 	 * Creates an empty {@link IndexedSet} instance that can contain all
-	 * integral number ranging from the given first number to "infinity"
+	 * integral numbers ranging from the given first number to "infinity"
 	 * <p>
 	 * Note that <code>T</code> must be {@link Integer}.
 	 * <p>

@@ -35,17 +35,15 @@ import java.util.SortedSet;
  * <p>
  * This class is a {@link SortedSet} of integers that are internally represented
  * by compressed bitmaps though a RLE (Run-Length Encoding) compression
- * algorithm.
+ * algorithm. See <a
+ * href="http://arxiv.org/abs/1004.0403">http://arxiv.org/abs/1004.0403</a> for
+ * more details.
  * <p>
  * The RLE compression method is mainly inspired by WAH (<i>Word-Aligned
  * Hybrid</i> compression). However, CONCISE allows for a better compression for
- * sparse data. When compared to WAH, this approach avoids that sparse sets
- * generates sequences of one literal word followed by one sequence word. In
- * this way, we have at most one word for each item to represent plus one word
- * for the first 0's sequence. Put another way, the memory footprint required by
- * a representation of <code>n</code> elements is at most the same as an array
- * of <code>n + 1</code> elements. In WAH, this requires an array of size
- * <code>2 * n</code> elements.
+ * sparse data. The memory footprint required by a representation of
+ * <code>n</code> elements is at most the same as an array of <code>n + 1</code>
+ * elements. In WAH, this requires an array of size <code>2 * n</code> elements.
  * <p>
  * Notice that the returned iterator is <i>fail-fast</i>, similar to most
  * {@link Collection}-derived classes. If the set is structurally modified at
@@ -117,7 +115,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	protected int modCount = 0;
 
 	/**
-	 * Highest representable integer.
+	 * The highest representable integer.
 	 * <p>
 	 * Its value is computed as follows. The number of bits required to
 	 * represent the longest sequence of 0's or 1's is
@@ -137,7 +135,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	public final static int MAX_ALLOWED_INTEGER = 31 * (1 << 25) + 30;
 
 	/** 
-	 * Lowest representable integer.
+	 * The lowest representable integer.
 	 */
 	public final static int MIN_ALLOWED_SET_BIT = 0;
 	
@@ -313,8 +311,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * Calculates the modulus division by 31 in a faster way than using <code>n % 31</code>
 	 * <p>
 	 * This method of finding modulus division by an integer that is one less
-	 * than a power of 2 takes at most O(lg(32)) time. The number of operations
-	 * is at most 12 + 9 * ceil(lg(32)).
+	 * than a power of 2 takes at most <tt>O(lg(32))</tt> time. The number of operations
+	 * is at most <tt>12 + 9 * ceil(lg(32))</tt>.
 	 * <p>
 	 * See <a
 	 * href="http://graphics.stanford.edu/~seander/bithacks.html">http://graphics.stanford.edu/~seander/bithacks.html</a>
@@ -2100,7 +2098,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * @param other {@link ConciseSet} instance to use to replace the current one
 	 * @return <code>true</code> if the given set is different from the current set
 	 */
-	private boolean becomeAliasOf(ConciseSet other) {
+	private boolean replaceWith(ConciseSet other) {
 		if (this == other)
 			return false;
 		
@@ -2210,7 +2208,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		// the bit is in the middle of a sequence or it may cause a literal to
 		// become a sequence, thus the "easiest" way to add it is by ORing
 		Statistics.unionCount++;
-		return becomeAliasOf(performOperation(convert(b), Operator.OR));
+		return replaceWith(performOperation(convert(b), Operator.OR));
 	}
 
 	/**
@@ -2300,7 +2298,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		// the bit is in the middle of a sequence or it may cause a literal to
 		// become a sequence, thus the "easiest" way to remove it by ANDNOTing
 		Statistics.differenceCount++;
-		return becomeAliasOf(performOperation(convert(b), Operator.ANDNOT));
+		return replaceWith(performOperation(convert(b), Operator.ANDNOT));
 	}
 
 	/**
@@ -2545,13 +2543,13 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			if (contains(other.last())) {
 				if (size == 1) 
 					return false;
-				return becomeAliasOf(convert(other.last));
+				return replaceWith(convert(other.last));
 			} 
 			clear();
 			return true;
 		}
 		
-		return becomeAliasOf(performOperation(other, Operator.AND));
+		return replaceWith(performOperation(other, Operator.AND));
 	}
 
 	/**
@@ -2568,7 +2566,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		if (other.size == 1) 
 			return add(other.last());
 		
-		return becomeAliasOf(performOperation(convert(c), Operator.OR));
+		return replaceWith(performOperation(convert(c), Operator.OR));
 	}
 
 	/**
@@ -2588,7 +2586,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		if (other.size == 1) 
 			return remove(other.last());
 		
-		return becomeAliasOf(performOperation(convert(c), Operator.ANDNOT));
+		return replaceWith(performOperation(convert(c), Operator.ANDNOT));
 	}
 
 	/**
@@ -2598,7 +2596,6 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	public int size() {
 		if (size < 0) {
 			size = 0;
-			int literalLength = 0;
 			for (int i = 0; i <= lastWordIndex; i++) {
 				int w = words[i];
 				if (isLiteral(w)) {
