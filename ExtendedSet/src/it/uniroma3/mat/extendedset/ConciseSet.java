@@ -1564,16 +1564,18 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		int previousWord = words[lastWordIndex - 1];
 		
 		// the previous word is a sequence of the same kind --> add one block
-		if ((isCurrentWordAllOnes && isOneSequence(previousWord)) 
-				|| (isCurrentWordAllZeros && isZeroSequence(previousWord))) {
+		final boolean isPreviousWordZeroSeq = isZeroSequence(previousWord);
+		final boolean isPreviousWordOneSeq = isOneSequence(previousWord);
+		if ((isCurrentWordAllOnes && isPreviousWordOneSeq) 
+				|| (isCurrentWordAllZeros && isPreviousWordZeroSeq)) {
 			lastWordIndex--;
 			words[lastWordIndex]++;
 			return true;
 		}
 
 		// the previous word is a sequence of a different kind --> cannot merge
-		if ((isCurrentWordAllOnes && isZeroSequence(previousWord))
-				|| (isCurrentWordAllZeros && isOneSequence(previousWord))) 
+		if ((isCurrentWordAllOnes && isPreviousWordZeroSeq)
+				|| (isCurrentWordAllZeros && isPreviousWordOneSeq)) 
 			return false;
 		
 		// try to convert the previous literal word in a sequence and to merge 
@@ -1582,13 +1584,13 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			// convert set bits to unset bits 
 			previousWord = ALL_ZEROS_LITERAL | ~previousWord;
 		}
-		int previousWordBitCount = simulateWAH ? getLiteralBits(previousWord) : getLiteralBitCount(previousWord);
-		if (previousWordBitCount == 0) {
+		int b = getLiteralBits(previousWord);
+		if (b == 0) {
 			lastWordIndex--;
 			words[lastWordIndex] = makeSequenceWord(0, isCurrentWordAllOnes, 1);
 			return true;
 		}
-		if (!simulateWAH && previousWordBitCount == 1) {
+		if (!simulateWAH && containsOnlyOneBit(b)) {
 			int setBit = 1 + Integer.numberOfTrailingZeros(previousWord);
 			lastWordIndex--;
 			words[lastWordIndex] = makeSequenceWord(setBit, isCurrentWordAllOnes, 1);
