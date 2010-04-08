@@ -37,7 +37,10 @@ import java.util.TreeSet;
 import java.util.Map.Entry;
 
 /**
- * Class for performance evaluation
+ * Class for performance evaluation.
+ * <p>
+ * This class has been used to produce the pictures in <a
+ * href="http://arxiv.org/abs/1004.0403">http://arxiv.org/abs/1004.0403</a>.
  * 
  * @author Alessandro Colantonio
  * @version $Id$
