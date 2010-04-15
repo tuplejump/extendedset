@@ -385,13 +385,13 @@ public class Debug {
 			RandomNumbers rn;
 			switch (r.nextInt(3)) {
 			case 0:
-				rn = new RandomNumbers.Uniform(r.nextInt(maxCardinality), r.nextDouble(), r.nextInt(maxCardinality / 10));
+				rn = new RandomNumbers.Uniform(r.nextInt(maxCardinality), r.nextDouble() * 0.999, r.nextInt(maxCardinality / 10));
 				break;
 			case 1:
-				rn = new RandomNumbers.Zipfian(r.nextInt(maxCardinality), r.nextDouble(), r.nextInt(maxCardinality / 10), 2 + r.nextInt(4));
+				rn = new RandomNumbers.Zipfian(r.nextInt(maxCardinality), r.nextDouble() * 0.9, r.nextInt(maxCardinality / 10), 2);
 				break;
 			case 2:
-				rn = new RandomNumbers.Markovian(r.nextInt(maxCardinality), r.nextDouble(), r.nextInt(maxCardinality / 10));
+				rn = new RandomNumbers.Markovian(r.nextInt(maxCardinality), r.nextDouble() * 0.999, r.nextInt(maxCardinality / 10));
 				break;
 			default:
 				throw new RuntimeException("unexpected");
@@ -402,6 +402,7 @@ public class Debug {
 			 */
 			bitsRight.clear();
 			itemsRight.clear();
+			ExtendedSet<Integer> clone; 
 			for (Integer e : rn.generate()) {
 				if (itemsRight.contains(e) ^ bitsRight.contains(e)) {
 					System.out.println("CONTAINS ERROR!");
@@ -413,8 +414,25 @@ public class Debug {
 					System.out.println(bitsRight.debugInfo());
 					return;
 				}
+				clone = bitsRight.clone();
 				boolean resItems = itemsRight.add(e);
 				boolean resBits = bitsRight.add(e);
+				ExtendedSet<Integer> app = empty(c);
+				app.addAll(itemsRight);
+				if (bitsRight.hashCode() != app.hashCode()) {
+					System.out.println("ADD ERROR!");
+					System.out.println("itemsRight.contains(" + e + "): " + itemsRight.contains(e));
+					System.out.println("bitsRight.contains(" + e + "): " + bitsRight.contains(e));
+					System.out.println("itemsRight:");
+					System.out.println(itemsRight);
+					System.out.println("bitsRight:");
+					System.out.println(bitsRight.debugInfo());
+					System.out.println("Append:");
+					System.out.println(app.debugInfo());
+					System.out.println("Clone:");
+					System.out.println(clone.debugInfo());
+					return;
+				}
 				if (resItems != resBits) {
 					System.out.println("ADD BOOLEAN ERROR!");
 					System.out.println("itemsRight.add(" + e + "): " + resItems);
@@ -425,20 +443,27 @@ public class Debug {
 					System.out.println(bitsRight.debugInfo());
 					return;
 				}
-				if (itemsRight.contains(e) ^ bitsRight.contains(e)) {
-					System.out.println("ADD ERROR!");
+			}
+			for (Integer e : rn.generate()) {
+				clone = bitsRight.clone();
+				boolean resItems = itemsRight.remove(e);
+				boolean resBits = bitsRight.remove(e);
+				ExtendedSet<Integer> app = empty(c);
+				app.addAll(itemsRight);
+				if (bitsRight.hashCode() != app.hashCode()) {
+					System.out.println("REMOVE ERROR!");
 					System.out.println("itemsRight.contains(" + e + "): " + itemsRight.contains(e));
 					System.out.println("bitsRight.contains(" + e + "): " + bitsRight.contains(e));
 					System.out.println("itemsRight:");
 					System.out.println(itemsRight);
 					System.out.println("bitsRight:");
 					System.out.println(bitsRight.debugInfo());
+					System.out.println("Append:");
+					System.out.println(app.debugInfo());
+					System.out.println("Clone:");
+					System.out.println(clone.debugInfo());
 					return;
 				}
-			}
-			for (Integer e : rn.generate()) {
-				boolean resItems = itemsRight.remove(e);
-				boolean resBits = bitsRight.remove(e);
 				if (resItems != resBits) {
 					System.out.println("REMOVE BOOLEAN ERROR!");
 					System.out.println("itemsRight.remove(" + e + "): " + resItems);
@@ -447,16 +472,30 @@ public class Debug {
 					System.out.println(itemsRight);
 					System.out.println("bitsRight:");
 					System.out.println(bitsRight.debugInfo());
+					System.out.println("Clone:");
+					System.out.println(clone.debugInfo());
 					return;
 				}
-				if (itemsRight.contains(e) ^ bitsRight.contains(e)) {
-					System.out.println("REMOVE ERROR!");
+			}
+			for (Integer e : rn.generate()) {
+				clone = bitsRight.clone();
+				if (!itemsRight.remove(e))
+					itemsRight.add(e);
+				bitsRight.flip(e);
+				ExtendedSet<Integer> app = empty(c);
+				app.addAll(itemsRight);
+				if (bitsRight.hashCode() != app.hashCode()) {
+					System.out.println("FLIP ERROR!");
 					System.out.println("itemsRight.contains(" + e + "): " + itemsRight.contains(e));
 					System.out.println("bitsRight.contains(" + e + "): " + bitsRight.contains(e));
 					System.out.println("itemsRight:");
 					System.out.println(itemsRight);
 					System.out.println("bitsRight:");
 					System.out.println(bitsRight.debugInfo());
+					System.out.println("Append:");
+					System.out.println(app.debugInfo());
+					System.out.println("Clone:");
+					System.out.println(clone.debugInfo());
 					return;
 				}
 			}
@@ -573,8 +612,7 @@ public class Debug {
 			 */
 			int operationSize = 0;
 			boolean resItems = true, resBits = true;
-//			switch (1 + r.nextInt(5)) {
-			switch (1 + r.nextInt(4)) {
+			switch (1 + r.nextInt(5)) {
 			case 1:
 				System.out.format(" union of %d elements with %d elements... ", itemsLeft.size(), itemsRight.size());
 				operationSize = bitsLeft.unionSize(bitsRight);
@@ -606,17 +644,15 @@ public class Debug {
 				bitsLeft = bitsLeft.symmetricDifference(bitsRight);
 				break;
 
-//			case 5:
-//				System.out.format(" complement of %d elements... ", itemsLeft.size());
-//				operationSize = bitsLeft.complementSize();
-//				TreeSet<Integer> temp2 = new TreeSet<Integer>();
-//				if (!itemsLeft.isEmpty())
-//					for (int j = 0; j < itemsLeft.last(); j++) 
-//						temp2.add(j);
-//				temp2.removeAll(itemsLeft);
-//				itemsLeft = temp2;
-//				bitsLeft.complement();
-//				break;
+			case 5:
+				System.out.format(" complement of %d elements... ", itemsLeft.size());
+				operationSize = bitsLeft.complementSize();
+				if (!itemsLeft.isEmpty())
+					for (int j = itemsLeft.last(); j >= 0; j--)
+						if (!itemsLeft.add(j))
+							itemsLeft.remove(j);
+				bitsLeft.complement();
+				break;
 			}
 			
 			// check the list of elements

@@ -18,13 +18,12 @@
 
 package it.uniroma3.mat.extendedset.transactions;
 
+import it.uniroma3.mat.extendedset.AbstractExtendedSet;
 import it.uniroma3.mat.extendedset.ConciseSet;
 import it.uniroma3.mat.extendedset.ExtendedSet;
 import it.uniroma3.mat.extendedset.FastSet;
 import it.uniroma3.mat.extendedset.IndexedSet;
-import it.uniroma3.mat.extendedset.ExtendedSet.ExtendedIterator;
 
-import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -69,11 +68,8 @@ import java.util.Set;
  * @see FastSet
  * 
  */
-
-/*
- * TODO: this class should extend "ExtendedSet<Pair<T, I>>" and not "AbstractSet<Pair<T, I>>"...
- */
-public class PairSet<T, I> extends AbstractSet<Pair<T, I>> implements Cloneable {
+//TODO: complete, make it compliant with ExtendedSet, and override methods of AbstractExtendedSet
+public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cloneable {
 	/** transaction-item pair indices */
 	private final ExtendedSet<Integer> indices;
 	
@@ -408,6 +404,7 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> implements Cloneable 
 	 *            index calculated as <code>transaction * maxItemCount + item</code>
 	 * @return the pair corresponding to the given index
 	 */
+	//TODO rename, since it is conflicting with ExtendedSet methods
 	public final Pair<T, I> getPair(int index) {
 		return new Pair<T, I>(allTransactions.absoluteGet(index / maxItemCount), allItems.absoluteGet(index % maxItemCount));
 	}
@@ -422,6 +419,7 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> implements Cloneable 
 	 * @return the index corresponding to the given pair
 	 * @see #indexOf(Pair) 
 	 */
+	//TODO rename, since it is conflicting with ExtendedSet methods
 	public final int indexOf(T transaction, I item) {
 		return allTransactions.absoluteIndexOf(transaction) * maxItemCount + allItems.absoluteIndexOf(item);
 	}
@@ -434,6 +432,8 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> implements Cloneable 
 	 * @return the index corresponding to the given pair 
 	 * @see #indexOf(Object, Object) 
 	 */
+	//TODO rename, since it is conflicting with ExtendedSet methods
+	@Override
 	public final int indexOf(Pair<T, I> p) {
 		return indexOf(p.transaction, p.item);
 	}
@@ -571,8 +571,8 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> implements Cloneable 
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Iterator<Pair<T, I>> iterator() {
-		return new Iterator<Pair<T, I>>() {
+	public ExtendedIterator<Pair<T, I>> iterator() {
+		return new ExtendedIterator<Pair<T, I>>() {
 			private final Iterator<Integer> itr = indices.iterator();
 
 			/** {@inheritDoc} */
@@ -591,6 +591,12 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> implements Cloneable 
 			@Override
 			public void remove() {
 				itr.remove();
+			}
+
+			@Override
+			public void skipAllBefore(Pair<T, I> element) {
+				// TODO Auto-generated method stub
+				throw new UnsupportedOperationException("TODO");
 			}
 		};
 	}
@@ -650,6 +656,7 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> implements Cloneable 
 	 *            collection of items
 	 * @return <code>true</code> if the set set has been changed
 	 */
+	//TODO do the same for retainAll...
 	public boolean removeAll(Collection<T> transactionSet, Collection<I> itemSet) {
 		if (transactionSet == null || transactionSet.isEmpty())
 			return false;
@@ -801,21 +808,17 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> implements Cloneable 
 	}
 
 	/**
-	 * Get the i-th transaction-item pair of the set
-	 * 
-	 * @param index
-	 *            position of the transaction-item pair
-	 * @return the i-th pair of the set
+	 * {@inheritDoc}
 	 */
+	@Override
 	public Pair<T, I> get(int index) {
 		return getPair(indices.get(index));
 	}
 
 	/**
-	 * Gets the matrix representation of the transaction set
-	 * 
-	 * @return the matrix representation of the transaction set
+	 * {@inheritDoc}
 	 */
+	@Override
 	public String debugInfo() {
 		StringBuilder s = new StringBuilder();
 		
@@ -855,21 +858,17 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> implements Cloneable 
 	}
 
 	/**
-	 * Computes the compression factor of the bitmap-based representation of the
-	 * pair collection (1 means not compressed)
-	 * 
-	 * @return the compression factor
+	 * {@inheritDoc}
 	 */
+	@Override
 	public double bitmapCompressionRatio() {
 		return indices.bitmapCompressionRatio();
 	}
 
 	/**
-	 * Computes the compression factor of the array-based representation of the
-	 * pair collection (1 means not compressed)
-	 * 
-	 * @return the compression factor
-	 */	
+	 * {@inheritDoc}
+	 */
+	@Override
 	public double collectionCompressionRatio() {
 		return indices.collectionCompressionRatio();
 	}
@@ -995,10 +994,9 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> implements Cloneable 
 	}
 
 	/**
-	 * Creates an empty set with the same set of possible transactions and items
-	 * 
-	 * @return the empty set
+	 * {@inheritDoc}
 	 */
+	@Override
 	public PairSet<T, I> empty() {
 		return new PairSet<T, I>(
 				allTransactions, 
@@ -1008,6 +1006,24 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> implements Cloneable 
 				indices.empty());
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void complement() {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("TODO");
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Comparator<? super Pair<T, I>> comparator() {
+		// TODO Auto-generated method stub
+		throw new UnsupportedOperationException("TODO");
+	}
+
 	/**
 	 * Test procedure
 	 * 
@@ -1037,5 +1053,4 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> implements Cloneable 
 		System.out.println(m.involvedItems());
 		System.out.println(m.involvedTransactions());
 	}
-
 }
