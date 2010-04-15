@@ -31,7 +31,7 @@ import java.util.NoSuchElementException;
 import java.util.SortedSet;
 
 /**
- * This is CONCISE: COmpressed 'N' Composable Integer Set.
+ * This is CONCISE: COmpressed 'N' Composable Integer SEt.
  * <p>
  * This class is a {@link SortedSet} of integers that are internally represented
  * by compressed bitmaps though a RLE (Run-Length Encoding) compression
@@ -2394,7 +2394,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		}
 
 		// the intersection is equal to the other set
-		return true;
+		return otherItr.endOfWords();
 	}
 
 	/**
@@ -2404,10 +2404,10 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	public boolean containsAny(Collection<? extends Integer> other) {
 		Statistics.sizeCheckCount++;
 
-		if (other == null || other.isEmpty() || this.isEmpty())
-			return false;
-		if (other == this)
+		if (other == null || other.isEmpty() || other == this)
 			return true;
+		if (isEmpty())
+			return false;
 		
 		final ConciseSet otherSet = convert(other);
 		if (otherSet.size == 1)
@@ -2461,10 +2461,10 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		Statistics.sizeCheckCount++;
 
 		// empty arguments
-		if ((size >= 0 && size < minElements) || other == null || other.isEmpty())
+		if ((size >= 0 && size < minElements) || other == null || other.isEmpty() || isEmpty())
 			return false;
-		if (other == this)
-			return true;
+		if (this == other)
+			return size() >= minElements;
 
 		
 		// convert the other set in order to perform a more complex intersection

@@ -409,7 +409,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public boolean containsAll(Collection<?> c) {
-		return c != null && !c.isEmpty() && this.indices.containsAll(convert(c).indices);
+		return c == null || this.indices.containsAll(convert(c).indices);
 	}
 
 	/**
@@ -417,7 +417,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public boolean containsAny(Collection<? extends T> other) {
-		return other != null && !other.isEmpty() && this.indices.containsAny(convert(other).indices);
+		return other == null || this.indices.containsAny(convert(other).indices);
 	}
 
 	/**

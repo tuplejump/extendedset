@@ -45,6 +45,9 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	private /*final*/ Set<T> elements;
 	
 	/** class implementing {@link Set} that is used to collect elements */
+	// TODO: change Set to List. In the latter case, maintain the list sorted
+	// (add and remove performed by first searching the right position through
+	// Collections.binarySearch())
 	@SuppressWarnings("unchecked")
 	private final Class<? extends Set> setClass;
 

@@ -18,20 +18,17 @@
 
 package it.uniroma3.mat.extendedset.test;
 
+import it.uniroma3.mat.extendedset.ConcisePlusSet;
 import it.uniroma3.mat.extendedset.ConciseSet;
 import it.uniroma3.mat.extendedset.FastSet;
-import it.uniroma3.mat.extendedset.utilities.MersenneTwister;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
-import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.Random;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.Map.Entry;
@@ -46,7 +43,9 @@ import java.util.Map.Entry;
  * @version $Id$
  */
 public class Performance {
-	/** class to test the WAH algorithm */
+	/** 
+	 * Class to test the WAH algorithm 
+	 */
 	private static class WAHSet extends ConciseSet {
 		@SuppressWarnings("unused")
 		public WAHSet() {super(true);}
@@ -55,6 +54,9 @@ public class Performance {
 
 	/** number of times to repeat each test */
 	private final static int REPETITIONS = 5;
+
+	/** minimum element */
+	private final static int SHIFT = 1000;
 
 	/** time measurement, in nanoseconds */
 	private static long lastExecTime = -1;
@@ -140,7 +142,7 @@ public class Performance {
 				cRemoveAll[i].add(x);
 		}
 		endTimer(classToTest, "1) add()", REPETITIONS * (4 * leftOperand.size() + rightOperand.size()));
-		
+
 		// REMOVAL
 		startTimer();
 		for (int i = 0; i < REPETITIONS; i++) {
@@ -157,15 +159,15 @@ public class Performance {
 		}
 		endTimer(classToTest, "3) contains()", rightOperand.size() * REPETITIONS);
 		
-		// CONTAINS for SORTED LISTS
-		if (classToTest.getSimpleName().endsWith("List")) {
-			startTimer();
-			for (int i = 0; i < REPETITIONS; i++) {
-				for (Integer x : rightOperand)
-					Collections.binarySearch((List) (cAddAll[i]), x);
-			}
-			endTimer(classToTest, "3) contains() - bin", rightOperand.size() * REPETITIONS);
-		}
+//		// BINARY SEARCH FOR SORTED LISTS
+//		if (classToTest.getSimpleName().endsWith("List")) {
+//			startTimer();
+//			for (int i = 0; i < REPETITIONS; i++) {
+//				for (Integer x : rightOperand)
+//					Collections.binarySearch((List) (cAddAll[i]), x);
+//			}
+//			endTimer(classToTest, "3) contains() - bin", rightOperand.size() * REPETITIONS);
+//		}
 		
 		// AND SIZE
 		startTimer();
@@ -199,270 +201,152 @@ public class Performance {
 	/**
 	 * Summary information
 	 */
-	private static void printSummary(int cardinality, double density) {
+	private static void printSummary(int cardinality, double density, Class<?>[] classes) {
 		for (Entry<String, Map<Class<?>, Double>> e : TIME_VALUES.entrySet()) {
 			// method name
-			System.out.print(cardinality + "\t" + density + "\t");
+			System.out.format(Locale.ENGLISH, "%7d\t%.4f\t", cardinality, density);
 			System.out.print(e.getKey());
-			for (Entry<Class<?>, Double> m : e.getValue().entrySet()) {
-				// class name
-				System.out.print("\t" + m.getKey().getSimpleName() + "\t");
-				
-				// test values
-				System.out.print(m.getValue().intValue());
+			for (Class<?> c : classes) {
+				Double op = e.getValue().get(c);
+				System.out.format("\t%12d", (op == null ? 0 : op.intValue()));
 			}
 			System.out.println();
 		}
 	}
 
 	/**
-	 * Generates a set if integral numbers at random with uniform distribution
-	 * 
-	 * @param rnd
-	 *            pseudo-random number generator
-	 * @param cardinality
-	 *            number of elements (i.e., the {@link Collection#size()}
-	 *            result)
-	 * @param density
-	 *            ration between cardinality and max integer
-	 * @return the set of integers
-	 */
-	private static Collection<Integer> uniform(Random rnd, int cardinality, double density) {
-		// parameter check
-		if (cardinality < 0)
-			throw new IllegalArgumentException("cardinality < 0: " + cardinality);
-		if (density < 0D)
-			throw new IllegalArgumentException("density < 0: " + density);
-		if (density > 1D)
-			throw new IllegalArgumentException("density > 1: " + density);
-		
-		// maximum element
-		int max = (int) (cardinality / density) + 1;
-		
-		// final set of random integers
-		Set<Integer> integers = new HashSet<Integer>(Math.max(16, (int) (cardinality / .75f) + 1));
-		while (integers.size() < cardinality)
-			integers.add(rnd.nextInt(max));
-		
-		// sort integers
-		List<Integer> res = new ArrayList<Integer>(integers);
-		Collections.sort(res);
-		
-		return res;
-	}
-
-	/**
-	 * Generates a set if integral numbers at random with Markovian distribution
-	 * 
-	 * @param rnd
-	 *            pseudo-random number generator
-	 * @param cardinality
-	 *            number of elements (i.e., the {@link Collection#size()}
-	 *            result)
-	 * @param switchProb
-	 *            the probability of switching from 0 to 1 (and viceversa) in
-	 *            the sequence
-	 * @return the set of integers
-	 */
-	private static Collection<Integer> markovian(Random rnd, int cardinality, double switchProb) {
-		// parameter check
-		if (cardinality < 0)
-			throw new IllegalArgumentException("cardinality < 0: " + cardinality);
-		if (switchProb < 0D)
-			throw new IllegalArgumentException("switchProb < 0: " + switchProb);
-		if (switchProb > 1D)
-			throw new IllegalArgumentException("switchProb > 1: " + switchProb);
-		
-		// final set of random integers
-		List<Integer> res = new ArrayList<Integer>(cardinality);
-		int i = 0;
-		boolean add = true;
-		while(res.size() < cardinality) {
-			if (add)
-				res.add(i);
-			add ^= rnd.nextDouble() < switchProb;
-			i++;
-		}
-		
-		return res;
-	}
-
-	/**
-	 * Generates a set if integral numbers at random with Zipfian distribution
-	 * 
-	 * @param rnd
-	 *            pseudo-random number generator
-	 * @param cardinality
-	 *            number of elements (i.e., the {@link Collection#size()}
-	 *            result)
-	 * @param max
-	 *            maximal integer
-	 * @return the set of integers
-	 */
-	private static Collection<Integer> zipfian(Random rnd, int cardinality, int max) {
-		int k = 4;
-		
-		// parameter check
-		if (cardinality < 0)
-			throw new IllegalArgumentException("cardinality < 0: " + cardinality);
-		if (max <= cardinality)
-			throw new IllegalArgumentException("max <= cardinality: " + max + " <= " + cardinality);
-		
-		// final set of random integers
-		Set<Integer> integers = new HashSet<Integer>(Math.max(16, (int) (cardinality / .75f) + 1));
-		while (integers.size() < cardinality)
-			integers.add((int) (max * Math.pow(rnd.nextDouble(), k)));
-		
-		// sort integers
-		List<Integer> res = new ArrayList<Integer>(integers);
-		Collections.sort(res);
-		
-		return res;
-	}
-	
-	/**
 	 * TEST
 	 * 
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		Random rnd = new MersenneTwister(31);
+		boolean onlyBitmaps = true;
+
+		boolean calcMemory = true;
+		boolean calcTime = true;
 		
 		boolean calcUniform = true;
 		boolean calcMarkovian = true;
 		boolean calcZipfian = true;
 		
-		int maxCardinality = 100000;
-		
+		int maxCardinality = 10000;
 		
 		/*
 		 * MEMORY
 		 */
-		
-		if (calcUniform) {
+		for (int i = 0; calcMemory && i < 3; i++) {
+			System.out.println();
+			switch (i) {
+			case 0:
+				if (!calcUniform)
+					continue;
+				System.out.println("#MEMORY UNIFORM");
+				break;
+			case 1:
+				if (!calcMarkovian)
+					continue;
+				System.out.println("#MEMORY MARKOVIAN");
+				break;
+			case 2:
+				if (!calcZipfian)
+					continue;
+				System.out.println("#MEMORY ZIPFIAN");
+				break;
+			default:
+				throw new RuntimeException("unexpected");
+			}
+			System.out.println("#cardinality\tdensity\tFastSet\tConciseSet\tWAHSet\tConcisePlusSet");
 			for (int cardinality = 1000; cardinality <= maxCardinality; cardinality *= 10) {
-				for (double density = .01; density < 1D; density += .01) {
-					System.out.format("MEMORY UNIFORM --> cardinality: %7d, density: %.2f, words: ", cardinality, density);
+				for (double density = .0001; density < 1D; density *= 1.7) {
+					System.out.format(Locale.ENGLISH, "%7d\t%.4f\t", cardinality, density);
 					
-					Collection<Integer> integers = uniform(rnd, cardinality, density);
+					Collection<Integer> integers;
+					switch (i) {
+					case 0:
+						integers = new RandomNumbers.Uniform(cardinality, density, SHIFT).generate();
+						break;
+					case 1:
+						integers = new RandomNumbers.Markovian(cardinality, density, SHIFT).generate();
+						break;
+					case 2:
+						integers = new RandomNumbers.Zipfian(cardinality, density, SHIFT, 4).generate();
+						break;
+					default:
+						throw new RuntimeException("unexpected");
+					}
 					
 					FastSet s0 = new FastSet(integers);
-					System.out.format("FastSet=%7d", (int) (s0.collectionCompressionRatio() * cardinality));
+					System.out.format("%7d\t", (int) (s0.collectionCompressionRatio() * cardinality));
 					
 					ConciseSet s1 = new ConciseSet(integers);
-					System.out.format(", ConciseSet=%7d", (int) (s1.collectionCompressionRatio() * cardinality));
+					System.out.format("%7d\t", (int) (s1.collectionCompressionRatio() * cardinality));
 					
 					WAHSet s2 = new WAHSet(integers);
-					System.out.format(", WAHSet=%7d\n", (int) (s2.collectionCompressionRatio() * cardinality));
+					System.out.format("%7d\t", (int) (s2.collectionCompressionRatio() * cardinality));
+
+					ConcisePlusSet s3 = new ConcisePlusSet(integers);
+					System.out.format("%7d\n", (int) (s3.collectionCompressionRatio() * cardinality));
 				}
 			}
 		}
-
-		if (calcMarkovian) {
-			for (int cardinality = 1000; cardinality <= maxCardinality; cardinality *= 10) {
-				double delta = .00001;
-				for (double density = delta; density < 1D; density += delta, delta *= 1.1) {
-					System.out.format("MEMORY MARKOVIAN --> cardinality: %7d, density: %.5f, words: ", cardinality, density);
-					
-					Collection<Integer> integers = markovian(rnd, cardinality, density);
-					
-					FastSet s0 = new FastSet(integers);
-					System.out.format("FastSet=%7d", (int) (s0.collectionCompressionRatio() * cardinality));
-					
-					ConciseSet s1 = new ConciseSet(integers);
-					System.out.format(", ConciseSet=%7d", (int) (s1.collectionCompressionRatio() * cardinality));
-					
-					WAHSet s2 = new WAHSet(integers);
-					System.out.format(", WAHSet=%7d\n", (int) (s2.collectionCompressionRatio() * cardinality));
-				}
-			}
-		}
-
-		if (calcZipfian) {
-			for (int cardinality = 1000; cardinality <= maxCardinality; cardinality *= 10) {
-				for (int max = (int) (cardinality * 1.2); max < (cardinality << 17); max *= 1.2) {
-					System.out.format("MEMORY ZIPFIAN --> cardinality: %7d, max: %10d, words: ", cardinality, max);
-					
-					Collection<Integer> integers = zipfian(rnd, cardinality, max);
-					
-					FastSet s0 = new FastSet(integers);
-					System.out.format("FastSet=%10d", (int) (s0.collectionCompressionRatio() * cardinality));
-					
-					ConciseSet s1 = new ConciseSet(integers);
-					System.out.format(", ConciseSet=%10d", (int) (s1.collectionCompressionRatio() * cardinality));
-					
-					WAHSet s2 = new WAHSet(integers);
-					System.out.format(", WAHSet=%10d\n", (int) (s2.collectionCompressionRatio() * cardinality));
-				}
-			}
-		}
-
 		
-		
+		Class<?>[] classes;
+		if (onlyBitmaps)
+			classes = new Class[] { FastSet.class, ConciseSet.class,
+					ConcisePlusSet.class };
+		else
+			classes = new Class[] { ArrayList.class, LinkedList.class,
+					TreeSet.class, HashSet.class, FastSet.class,
+					ConciseSet.class, WAHSet.class, ConcisePlusSet.class };
+
 		/*
 		 * TIME
 		 */
-		
-		if (calcUniform) {
-			System.out.println("\nTIME UNIFORM\n----------");
+		for (int i = 0; calcTime && i < 3; i++) {
+			System.out.println();
+			switch (i) {
+			case 0:
+				if (!calcUniform)
+					continue;
+				System.out.println("#TIME UNIFORM");
+				break;
+			case 1:
+				if (!calcMarkovian)
+					continue;
+				System.out.println("#TIME MARKOVIAN");
+				break;
+			case 2:
+				if (!calcZipfian)
+					continue;
+				System.out.println("#TIME ZIPFIAN");
+				break;
+			default:
+				throw new RuntimeException("unexpected");
+			}
+			System.out.print("#cardinality\tdensity\toperation");
+			for (Class<?> c : classes) 
+				System.out.print("\t" + c.getSimpleName());
+			System.out.println();
 			for (int cardinality = 1000; cardinality <= maxCardinality; cardinality *= 10) {
-				for (double density : new double[] {.00625, .00625, .0125, .025, .05, .1, .2, .4, .8, .999}) {
-					Collection<Integer> left = uniform(rnd, cardinality, density);
-					Collection<Integer> right = uniform(rnd, cardinality, density);
-					
-					testClass(ArrayList.class, left, right);
-					testClass(LinkedList.class, left, right);
-					testClass(TreeSet.class, left, right);
-					testClass(HashSet.class, left, right);
-					testClass(FastSet.class, left, right);
-					testClass(ConciseSet.class, left, right);
-					testClass(WAHSet.class, left, right);
-	
-					printSummary(cardinality, density);
+				RandomNumbers r = new RandomNumbers.Uniform(cardinality, 0.5, SHIFT);
+				Collection<Integer> x = r.generate(), y = r.generate();
+				for (Class<?> c : classes) { 
+					testClass(c, x, y);
+					testClass(c, x, y);
+				}
+				for (double density = .0001; density < 1D; density *= 1.7) {
+					r = new RandomNumbers.Uniform(cardinality, density, SHIFT);
+					x = r.generate(); 
+					y = r.generate();
+					for (Class<?> c : classes) {
+						testClass(c, x, y);
+						testClass(c, x, y);
+					}
+					printSummary(cardinality, density, classes);
 				}
 			}
 		}
 
-		if (calcMarkovian) {
-			System.out.println("\nTIME MARKOVIAN\n----------");
-			for (int cardinality = 1000; cardinality <= maxCardinality; cardinality *= 10) {
-				for (double switchProb : new double[] {.00625, .00625, .0125, .025, .05, .1, .2, .4, .8, .999}) {
-					Collection<Integer> left = markovian(rnd, cardinality, switchProb);
-					Collection<Integer> right = markovian(rnd, cardinality, switchProb);
-					
-					testClass(ArrayList.class, left, right);
-					testClass(LinkedList.class, left, right);
-					testClass(TreeSet.class, left, right);
-					testClass(HashSet.class, left, right);
-					testClass(FastSet.class, left, right);
-					testClass(ConciseSet.class, left, right);
-					testClass(WAHSet.class, left, right);
-	
-					printSummary(cardinality, switchProb);
-				}
-			}
-		}
-
-		if (calcZipfian) {
-			System.out.println("\nTIME ZIPFIAN\n----------");
-			for (int cardinality = 1000; cardinality <= maxCardinality; cardinality *= 10) {
-				for (double max : new double[] {1.2, 1.2, 10, 100, 1000, 10000, 100000}) {
-					Collection<Integer> left = zipfian(rnd, cardinality, (int) (cardinality * max));
-					Collection<Integer> right = zipfian(rnd, cardinality, (int) (cardinality * max));
-					
-					testClass(ArrayList.class, left, right);
-					testClass(LinkedList.class, left, right);
-					testClass(TreeSet.class, left, right);
-					testClass(HashSet.class, left, right);
-					testClass(FastSet.class, left, right);
-					testClass(ConciseSet.class, left, right);
-					testClass(WAHSet.class, left, right);
-
-					printSummary(cardinality, max);
-				}
-			}
-		}
-		
 		System.out.println("\nDone!");
 	}
 }

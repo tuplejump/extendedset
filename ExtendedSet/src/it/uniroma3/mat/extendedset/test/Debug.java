@@ -18,6 +18,7 @@
 
 package it.uniroma3.mat.extendedset.test;
 
+import it.uniroma3.mat.extendedset.ConcisePlusSet;
 import it.uniroma3.mat.extendedset.ConciseSet;
 import it.uniroma3.mat.extendedset.ExtendedSet;
 import it.uniroma3.mat.extendedset.FastSet;
@@ -27,7 +28,6 @@ import it.uniroma3.mat.extendedset.ExtendedSet.Statistics;
 import it.uniroma3.mat.extendedset.utilities.MersenneTwister;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -43,9 +43,6 @@ import java.util.TreeSet;
  * @version $Id$
  */
 public class Debug {
-	private static int DEFAULT_SET_SIZE = 1000;
-	private static Random RANDOM = new MersenneTwister(31);
-	
 	/**
 	 * Checks if a {@link ExtendedSet} instance and a {@link TreeSet} instance
 	 * contains the same elements. {@link TreeSet} is used because it is the
@@ -61,7 +58,7 @@ public class Debug {
 	 * @return <code>true</code> if the given {@link ConciseSet} and
 	 *         {@link TreeSet} are equals in terms of contained elements
 	 */
-	private static <T> boolean checkContent(ExtendedSet<T> bits, TreeSet<T> items) {
+	private static <T> boolean checkContent(ExtendedSet<T> bits, SortedSet<T> items) {
 		if (bits.size() != items.size())
 			return false;
 		if (bits.isEmpty() && items.isEmpty())
@@ -72,7 +69,11 @@ public class Debug {
 		for (T i : items) 
 			if (!bits.contains(i)) 
 				return false;
-		return bits.last().equals(items.last());
+		if (!bits.last().equals(items.last()))
+			return false;
+		if (!bits.first().equals(items.first()))
+			return false;
+		return true;
 	}
 	
 	/**
@@ -89,6 +90,7 @@ public class Debug {
 	 * @param max
 	 *            greatest element
 	 */
+	//TODO: cancellare
 	private static void populate(ExtendedSet<Integer> set, Random rnd, int size, int min, int max) {
 		if (min > max) 
 			throw new IllegalArgumentException("min > max");
@@ -146,24 +148,16 @@ public class Debug {
 	 * @param max
 	 *            greatest elements
 	 */
+	//TODO: cancellare
 	private static void populate(ExtendedSet<Integer> set, Random rnd, int max) {
 		populate(set, rnd, (int) (rnd.nextDouble() * max), 0, max);
 	}
-	
-	/**
-	 * Populates a set with random values, from 0 to the specified greatest element
-	 * 
-	 * @param set
-	 *            the set to populate
-	 */            
-	@SuppressWarnings("unused")
-	private static void populate(ExtendedSet<Integer> set) {
-		populate(set, RANDOM, DEFAULT_SET_SIZE);
-	}
-	
+
 	/**
 	 * Generates an empty set of the specified class
+	 * 
 	 * @param c
+	 *            the given class
 	 * @return the empty set
 	 */
 	private static <X extends Collection<Integer>> X empty(Class<X> c) {
@@ -172,344 +166,6 @@ public class Debug {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-	}
-	
-	/**
-	 * Simple append test 
-	 * <p>
-	 * It appends sequential numbers, thus generating 2 blocks of 1's
-	 * 
-	 * @param c class to test
-	 */
-	private static void testForAppendSimple(Class<? extends ExtendedSet<Integer>> c) {
-		ExtendedSet<Integer> bits = empty(c);
-		for (int i = 0; i < 62; i++) {
-			System.out.format("Appending %d...\n", i);
-			bits.add(i);
-			System.out.println(bits.debugInfo());
-		}
-	}
-	
-	/**
-	 * Another append test
-	 * <p>
-	 * Different from {@link #testForAppendSimple()}, it tests some particular
-	 * cases
-	 * 
-	 * @param c class to test
-	 */
-	private static void testForAppendComplex(Class<? extends ExtendedSet<Integer>> c) {
-		ExtendedSet<Integer> bits = empty(c);
-		TreeSet<Integer> items = new TreeSet<Integer>();
-
-		// elements to append
-		items.add(1000);
-		items.add(1001);
-		items.add(1023);
-		items.add(2000);
-		items.add(2046);
-		for (int i = 0; i < 62; i++) 
-			items.add(2048 + i);
-		items.add(2158);
-		items.add(1000000);
-		items.add(ConciseSet.MAX_ALLOWED_INTEGER);
-
-		// append elements
-		for (Integer i : items) {
-			System.out.format("Appending %d...\n", i);
-			try {
-				bits.add(i);
-			} catch (OutOfMemoryError e) {
-				// it will happen with FastSet when adding
-				// ConciseSet.MAX_ALLOWED_SET_BIT
-				System.out.println("out of memory!");
-				return;
-			}
-			System.out.println(bits.debugInfo());
-		}
-		
-		// check the result
-		if (!checkContent(bits, items)) 
-			System.out.println("ERRORS!");
-		System.out.println("Done!");
-	}
-	
-	/**
-	 * Random append test
-	 * <p>
-	 * It adds randomly generated numbers
-	 */
-	private static void testForAppendRandom() {
-		ConciseSet bits = new ConciseSet();
-		TreeSet<Integer> items = new TreeSet<Integer>();
-
-		// random number generator
-		Random rnd = new MersenneTwister(31);
-
-		bits.clear();
-		items.clear();
-		System.out.println("SPARSE ITEMS");
-		for (int i = 0; i < 10000; i++)
-			items.add(rnd.nextInt(1000000000));
-		for (Integer i : items)
-			bits.add(i);
-		System.out.println("Correct: " + checkContent(bits, items));
-		System.out.println("Original: " + items);
-		System.out.println(bits.debugInfo());
-
-		bits.clear();
-		items.clear();
-		System.out.println("DENSE ITEMS");
-		for (int i = 0; i < 10000; i++)
-			items.add(rnd.nextInt(10000 + 1));
-		for (Integer i : items)
-			bits.add(i);
-		System.out.println("Correct: " + checkContent(bits, items));
-		System.out.println("Original: " + items);
-		System.out.println(bits.debugInfo());
-
-		bits.clear();
-		items.clear();
-		System.out.println("MORE DENSE ITEMS");
-		for (int i = 0; i < 2000; i++)
-			items.add(rnd.nextInt(310 + 1));
-		for (int i = 0; i < 2000; i++)
-			items.add(714 + rnd.nextInt(805 - 714 + 1));
-		for (int i = 0; i < 2000; i++)
-			items.add(850 + rnd.nextInt(900 - 850 + 1));
-		for (int i = 0; i < 4000; i++)
-			items.add(700 + rnd.nextInt(100000 - 700 + 1));
-		for (Integer e : items)
-			bits.add(e);
-		System.out.println("Correct: " + checkContent(bits, items));
-		System.out.println("Original: " + items);
-		System.out.println(bits.debugInfo());
-	}
-	
-	/**
-	 * Simple test for the method {@link ExtendedSet#intersection(ExtendedSet)}
-	 * 
-	 * @param c class to test
-	 */
-	private static void testForIntersectionSimple(Class<? extends ExtendedSet<Integer>> c) {
-		System.out.println("FIRST SET");
-		ExtendedSet<Integer> bitsLeft = empty(c);
-		ExtendedSet<Integer> bitsRight = empty(c);
-		TreeSet<Integer> itemsLeft = new TreeSet<Integer>();
-		TreeSet<Integer> itemsRight = new TreeSet<Integer>();
-		itemsLeft.add(1);
-		itemsLeft.add(2);
-		itemsLeft.add(3);
-		itemsLeft.add(100);
-		itemsLeft.add(1000);
-		for (Integer i : itemsLeft)
-			bitsLeft.add(i);
-		System.out.println("Correct: " + checkContent(bitsLeft, itemsLeft));
-		System.out.println("Original: " + itemsLeft);
-		System.out.println(bitsLeft.debugInfo());
-
-		System.out.println("SECOND SET");
-		itemsRight.add(100);
-		itemsRight.add(101);
-		for (Integer i : itemsRight)
-			bitsRight.add(i);
-		System.out.println("Correct: " + checkContent(bitsRight, itemsRight));
-		System.out.println("Original: " + itemsRight);
-		System.out.println(bitsRight.debugInfo());
-
-		System.out.println("INTERSECTION SET");
-		ExtendedSet<Integer> bitsIntersection = bitsLeft.intersection(bitsRight);
-		TreeSet<Integer> itemsIntersection = new TreeSet<Integer>(itemsLeft);
-		itemsIntersection.retainAll(itemsRight);
-		System.out.println("Correct: " + checkContent(bitsIntersection, itemsIntersection));
-		System.out.println("Original: " + itemsIntersection);
-		System.out.println(bitsIntersection.debugInfo());
-	}
-	
-	/**
-	 * More complex test for the methods
-	 * {@link ExtendedSet#intersection(ExtendedSet)} and
-	 * {@link ExtendedSet#intersectionSize(ExtendedSet)}
-	 * 
-	 * @param c class to test
-	 */
-	private static void testForIntersectionComplex(Class<? extends ExtendedSet<Integer>> c) {
-		// generate items to intersect completely at random
-		Random rnd = new MersenneTwister(31);
-
-		ExtendedSet<Integer> bitsLeft = empty(c);
-		ExtendedSet<Integer> bitsRight = empty (c);
-		TreeSet<Integer> itemsLeft = new TreeSet<Integer>();
-		TreeSet<Integer> itemsRight = new TreeSet<Integer>();
-
-		System.out.println("FIRST SET");
-		for (int i = 0; i < 30; i++)
-			itemsLeft.add(rnd.nextInt(1000 + 1));
-		for (int i = 0; i < 1000; i++)
-			itemsLeft.add(rnd.nextInt(200 + 1));
-		bitsLeft.addAll(itemsLeft);
-		System.out.println("Correct: " + checkContent(bitsLeft, itemsLeft));
-		System.out.println("Original: " + itemsLeft);
-		System.out.println(bitsLeft.debugInfo());
-
-		System.out.println("SECOND SET");
-		for (int i = 0; i < 30; i++)
-			itemsRight.add(rnd.nextInt(1000 + 1));
-		for (int i = 0; i < 1000; i++)
-			itemsRight.add(150 + rnd.nextInt(300 - 150 + 1));
-		bitsRight.addAll(itemsRight);
-		System.out.println("Correct: " + checkContent(bitsRight, itemsRight));
-		System.out.println("Original: " + itemsRight);
-		System.out.println(bitsRight.debugInfo());
-
-		System.out.println("INTERSECTION SET");
-		ExtendedSet<Integer> bitsIntersection = bitsLeft.intersection(bitsRight);
-		TreeSet<Integer> itemsIntersection = new TreeSet<Integer>(itemsLeft);
-		itemsIntersection.retainAll(itemsRight);
-		System.out.println("Correct: " + checkContent(bitsIntersection, itemsIntersection));
-		System.out.println("Original: " + itemsIntersection);
-		System.out.println(bitsIntersection.debugInfo());
-		
-		System.out.println("INTERSECTION SIZE");
-		System.out.println("Correct: " + (itemsIntersection.size() == bitsLeft.intersectionSize(bitsRight)));	
-	}
-	
-	/**
-	 * Simple test for the method {@link ExtendedSet#union(ExtendedSet)}
-	 * 
-	 * @param c class to test
-	 */
-	private static void testForUnionSimple(Class<? extends ExtendedSet<Integer>> c) {
-		ExtendedSet<Integer> bitsLeft = empty(c);
-		ExtendedSet<Integer> bitsRight = empty(c);
-		TreeSet<Integer> itemsLeft = new TreeSet<Integer>();
-		TreeSet<Integer> itemsRight = new TreeSet<Integer>();
-
-		System.out.println("FIRST SET");
-		itemsLeft.add(1);
-		itemsLeft.add(2);
-		itemsLeft.add(30000);
-		for (Integer i : itemsLeft)
-			bitsLeft.add(i);
-		System.out.println("Correct: " + checkContent(bitsLeft, itemsLeft));
-		System.out.println("Original: " + itemsLeft);
-		System.out.println(bitsLeft.debugInfo());
-
-		System.out.println("SECOND SET");
-		itemsRight.add(100);
-		itemsRight.add(101);
-		itemsRight.add(100000000);
-		for (int i = 0; i < 62; i++)
-			itemsRight.add(341 + i);
-		for (Integer i : itemsRight) 
-			bitsRight.add(i);
-		System.out.println("Correct: " + checkContent(bitsRight, itemsRight));
-		System.out.println("Original: " + itemsRight);
-		System.out.println(bitsRight.debugInfo());
-
-		System.out.println("UNION SET");
-		ExtendedSet<Integer> bitsUnion = bitsLeft.union(bitsRight);
-		TreeSet<Integer> itemsUnion = new TreeSet<Integer>(itemsLeft);
-		itemsUnion.addAll(itemsRight);
-		System.out.println("Correct: " + checkContent(bitsUnion, itemsUnion));
-		System.out.println("Original: " + itemsUnion);
-		System.out.println(bitsUnion.debugInfo());
-		
-		System.out.println("UNION SIZE");
-		System.out.println("Correct: " + (itemsUnion.size() == bitsLeft.unionSize(bitsRight)));
-	}
-	
-	/**
-	 * Simple test for the method {@link ExtendedSet#complemented()}
-	 * 
-	 * @param c class to test
-	 */
-	private static void testForComplement(Class<? extends ExtendedSet<Integer>> c) {
-		ExtendedSet<Integer> bits = empty(c);
-		
-		System.out.println("Original");
-		bits.add(1);
-		bits.add(2);
-		bits.add(30000);
-		System.out.println(bits.debugInfo());
-
-		System.out.format("Complement size: %d\n", bits.complementSize());
-		System.out.println("Complement");
-		bits = bits.complemented();
-		System.out.println(bits.debugInfo());
-
-		System.out.format("Complement size: %d\n", bits.complementSize());
-		System.out.println("Complement");
-		bits = bits.complemented();
-		System.out.println(bits.debugInfo());
-
-		System.out.format("Complement size: %d\n", bits.complementSize());
-		System.out.println("Complement");
-		bits = bits.complemented();
-		System.out.println(bits.debugInfo());
-
-		System.out.format("Complement size: %d\n", bits.complementSize());
-		System.out.println("Complement");
-		bits = bits.complemented();
-		System.out.println(bits.debugInfo());
-	}
-	
-	/**
-	 * Simple test for the methods:
-	 * <ul>
-	 * <li> {@link ExtendedSet#add(Integer)}
-	 * <li> {@link ExtendedSet#remove(Object)}
-	 * <li> {@link ExtendedSet#addAll(Collection)}
-	 * <li> {@link ExtendedSet#removeAll(Collection)}
-	 * <li> {@link ExtendedSet#retainAll(Collection)}
-	 * <li> {@link ExtendedSet#getSymmetricDifference(ExtendedSet)}
-	 * <li> {@link ExtendedSet#complemented()}
-	 * </ul>
-	 * 
-	 * @param c class to test
-	 */
-	private static void testForMixedStuff(Class<? extends ExtendedSet<Integer>> c) {
-		ExtendedSet<Integer> bitsLeft = empty(c);
-		ExtendedSet<Integer> bitsRight = empty(c);
-
-		bitsLeft.add(1);
-		bitsLeft.add(100);
-		bitsLeft.add(2);
-		bitsLeft.add(3);
-		bitsLeft.add(2);
-		bitsLeft.add(100);
-		System.out.println("A: " + bitsLeft);
-		System.out.println(bitsLeft.debugInfo());
-
-		bitsRight.add(1);
-		bitsRight.add(1000000);
-		bitsRight.add(2);
-		bitsRight.add(30000);
-		bitsRight.add(1000000);
-		System.out.println("B: " + bitsRight);
-		System.out.println(bitsRight.debugInfo());
-
-		System.out.println("A.getSymmetricDifference(B): " + bitsLeft.symmetricDifference(bitsRight));
-		System.out.println(bitsLeft.symmetricDifference(bitsRight).debugInfo());
-
-		System.out.println("A.getComplement(): " + bitsLeft.complemented());
-		System.out.println(bitsLeft.complemented().debugInfo());
-
-		bitsLeft.removeAll(bitsRight);
-		System.out.println("A.removeAll(B): " + bitsLeft);
-		System.out.println(bitsLeft.debugInfo());
-
-		bitsLeft.addAll(bitsRight);
-		System.out.println("A.addAll(B): " + bitsLeft);
-		System.out.println(bitsLeft.debugInfo());
-
-		bitsLeft.retainAll(bitsRight);
-		System.out.println("A.retainAll(B): " + bitsLeft);
-		System.out.println(bitsLeft.debugInfo());
-
-		bitsLeft.remove(1);
-		System.out.println("A.remove(1): " + bitsLeft);
-		System.out.println(bitsLeft.debugInfo());
 	}
 	
 	/**
@@ -605,10 +261,12 @@ public class Debug {
 	 * become 1's sequences with 1 unset bit and there will be few 
 	 * words per item, then words become literals, and finally they 
 	 * become 0's sequences and drastically reduce in number)
+	 * 
+	 * @param c class to test
 	 */
-	private static void testForRemovalStress() {
-		ConciseSet previousBits = new ConciseSet();
-		ConciseSet currentBits = new ConciseSet();
+	private static void testForRemovalStress(Class<? extends ExtendedSet<Integer>> c) {
+		ExtendedSet<Integer> previousBits = empty(c);
+		ExtendedSet<Integer> currentBits = empty(c);
 		TreeSet<Integer> currentItems = new TreeSet<Integer>();
 
 		Random rnd = new MersenneTwister();
@@ -664,7 +322,8 @@ public class Debug {
 			}
 			
 			// check the representation
-			ConciseSet otherBits = new ConciseSet(currentItems);
+			ExtendedSet<Integer> otherBits = empty(c);
+			otherBits.addAll(currentItems);
 			if (otherBits.hashCode() != currentBits.hashCode()) {
 				System.out.println("Representation error");
 				System.out.println(currentBits.debugInfo());
@@ -675,7 +334,7 @@ public class Debug {
 			}
 
 			// check the union size
-			ConciseSet singleBitSet = new ConciseSet();
+			ExtendedSet<Integer> singleBitSet = empty(c);
 			singleBitSet.add(item);
 			if (currentItems.size() != currentBits.differenceSize(singleBitSet)) {
 				System.out.println("Size error");
@@ -707,86 +366,215 @@ public class Debug {
 	private static void testForRandomOperationsStress(Class<? extends ExtendedSet<Integer>> c) {
 		ExtendedSet<Integer> bitsLeft = empty(c);
 		ExtendedSet<Integer> bitsRight = empty(c);
-		TreeSet<Integer> itemsLeft = new TreeSet<Integer>();
-		TreeSet<Integer> itemsRight = new TreeSet<Integer>();
+		SortedSet<Integer> itemsLeft = new TreeSet<Integer>();
+		SortedSet<Integer> itemsRight = new TreeSet<Integer>();
 
-		Random rnd = new MersenneTwister(31);
-
+		Random r = new MersenneTwister();
+		final int maxCardinality = 1000;
+		
 		// random operation loop
-		final int m = 10000;
 		for (int i = 0; i < 1000000; i++) {
 			System.out.print("Test " + i + ": ");
 			
-			// new set
-			itemsRight.clear();
+			//TODO:
+			// clear(x,x)
+			// fill(x,x)
+			// equals()
+			// unire gli altri test qui, in modo tale che ne faccio uno solo... Magari mantenere separato add e remove...
+			
+			RandomNumbers rn;
+			switch (r.nextInt(3)) {
+			case 0:
+				rn = new RandomNumbers.Uniform(r.nextInt(maxCardinality), r.nextDouble(), r.nextInt(maxCardinality / 10));
+				break;
+			case 1:
+				rn = new RandomNumbers.Zipfian(r.nextInt(maxCardinality), r.nextDouble(), r.nextInt(maxCardinality / 10), 2 + r.nextInt(4));
+				break;
+			case 2:
+				rn = new RandomNumbers.Markovian(r.nextInt(maxCardinality), r.nextDouble(), r.nextInt(maxCardinality / 10));
+				break;
+			default:
+				throw new RuntimeException("unexpected");
+			}
+			
+			/*
+			 * contains(), add(), and remove()
+			 */
 			bitsRight.clear();
-			final int size = 1 + rnd.nextInt(m);
-			final int min = 1 + rnd.nextInt(m - 1);
-			final int max = min + rnd.nextInt(m - min + 1);
-			for (int j = 0; j < size; j++) {
-				if (rnd.nextDouble() < 0.1D) {
-					// sequence
-					int minSeq = min + rnd.nextInt(max - min + 1);
-					int maxSeq = minSeq + rnd.nextInt(max - minSeq + 1);
-					if (rnd.nextDouble() < 0.3D) {
-						for (int item = minSeq; item <= maxSeq; item++) 
-							itemsRight.remove(item);
-						bitsRight.clear(minSeq, maxSeq);
-					} else {
-						for (int item = minSeq; item <= maxSeq; item++)
-							itemsRight.add(item);
-						bitsRight.fill(minSeq, maxSeq);
-					}
-				} else {
-					// singleton
-					int item = min + rnd.nextInt(max - min + 1);
-					boolean resItems, resBits;
-					if (rnd.nextDouble() < 0.01D) {
-						resItems = itemsRight.remove(item);
-						resBits = bitsRight.remove(item);
-					} else {
-						resItems = itemsRight.add(item);
-						resBits = bitsRight.add(item);
-					}
-					if (resItems != resBits) {
-						System.out.println("BOOLEAN ERROR!");
-						System.out.println("resItems: " + resItems);
-						System.out.println("resBits: " + resBits);
-						return;
-					}
+			itemsRight.clear();
+			for (Integer e : rn.generate()) {
+				if (itemsRight.contains(e) ^ bitsRight.contains(e)) {
+					System.out.println("CONTAINS ERROR!");
+					System.out.println("itemsRight.contains(" + e + "): " + itemsRight.contains(e));
+					System.out.println("bitsRight.contains(" + e + "): " + bitsRight.contains(e));
+					System.out.println("itemsRight:");
+					System.out.println(itemsRight);
+					System.out.println("bitsRight:");
+					System.out.println(bitsRight.debugInfo());
+					return;
+				}
+				boolean resItems = itemsRight.add(e);
+				boolean resBits = bitsRight.add(e);
+				if (resItems != resBits) {
+					System.out.println("ADD BOOLEAN ERROR!");
+					System.out.println("itemsRight.add(" + e + "): " + resItems);
+					System.out.println("bitsRight.add(" + e + "): " + resBits);
+					System.out.println("itemsRight:");
+					System.out.println(itemsRight);
+					System.out.println("bitsRight:");
+					System.out.println(bitsRight.debugInfo());
+					return;
+				}
+				if (itemsRight.contains(e) ^ bitsRight.contains(e)) {
+					System.out.println("ADD ERROR!");
+					System.out.println("itemsRight.contains(" + e + "): " + itemsRight.contains(e));
+					System.out.println("bitsRight.contains(" + e + "): " + bitsRight.contains(e));
+					System.out.println("itemsRight:");
+					System.out.println(itemsRight);
+					System.out.println("bitsRight:");
+					System.out.println(bitsRight.debugInfo());
+					return;
 				}
 			}
+			for (Integer e : rn.generate()) {
+				boolean resItems = itemsRight.remove(e);
+				boolean resBits = bitsRight.remove(e);
+				if (resItems != resBits) {
+					System.out.println("REMOVE BOOLEAN ERROR!");
+					System.out.println("itemsRight.remove(" + e + "): " + resItems);
+					System.out.println("bitsRight.remove(" + e + "): " + resBits);
+					System.out.println("itemsRight:");
+					System.out.println(itemsRight);
+					System.out.println("bitsRight:");
+					System.out.println(bitsRight.debugInfo());
+					return;
+				}
+				if (itemsRight.contains(e) ^ bitsRight.contains(e)) {
+					System.out.println("REMOVE ERROR!");
+					System.out.println("itemsRight.contains(" + e + "): " + itemsRight.contains(e));
+					System.out.println("bitsRight.contains(" + e + "): " + bitsRight.contains(e));
+					System.out.println("itemsRight:");
+					System.out.println(itemsRight);
+					System.out.println("bitsRight:");
+					System.out.println(bitsRight.debugInfo());
+					return;
+				}
+			}
+			
+			// new right operand
+			itemsRight = rn.generate();
+			bitsRight.clear();
+			bitsRight.addAll(itemsRight);
+
+			/*
+			 * check for content correctness, first(), and last() 
+			 */
 			if (!checkContent(bitsRight, itemsRight)) {
-				System.out.println("ERROR!");
+				System.out.println("RIGHT OPERAND ERROR!");
 				System.out.println("Same elements: " + (itemsRight.toString().equals(bitsRight.toString())));
-				System.out.println("Original: " + itemsRight);
+				System.out.println("itemsRight:");
+				System.out.println(itemsRight);
+				System.out.println("bitsRight:");
 				System.out.println(bitsRight.debugInfo());
 
-				System.out.println(bitsRight.size() + " ?= " + itemsRight.size());
-				System.out.println(bitsRight.isEmpty() && itemsRight.isEmpty());
+				System.out.println("itemsRight.size(): "  + itemsRight.size() + " ?= bitsRight.size(): " + bitsRight.size());
 				for (Integer x : bitsRight) 
 					if (!itemsRight.contains(x)) 
-						System.out.println(x + " false");
+						System.out.println("itemsRight does not contain " + x);
 				for (Integer x : itemsRight) 
 					if (!bitsRight.contains(x)) 
-						System.out.println(x + " false");
-				System.out.println(bitsRight.last().equals(itemsRight.last()));
-				
+						System.out.println("itemsRight does not contain " + x);
+				System.out.println("bitsRight.last(): " + bitsRight.last() + " ?= itemsRight.last(): " + itemsRight.last());
+				System.out.println("bitsRight.first(): " + bitsRight.first() + " ?= itemsRight.first(): " + itemsRight.first());
+
 				return;
 			}
 			
-			// perform some read-only operations
+			/*
+			 * containsAll()
+			 */
 			boolean bitsRes = bitsLeft.containsAll(bitsRight);
 			boolean itemsRes = itemsLeft.containsAll(itemsRight);
 			if (bitsRes != itemsRes) {
+				System.out.println("CONTAINS_ALL ERROR!");
 				System.out.println("bitsLeft.containsAll(bitsRight): " + bitsRes);
 				System.out.println("itemsLeft.containsAll(itemsRight): " + itemsRes);
+				System.out.println("bitsLeft:");
+				System.out.println(bitsLeft.debugInfo());				
+				System.out.println("bitsRight:");
+				System.out.println(bitsRight.debugInfo());
+				System.out.println("bitsLeft.intersection(bitsRight)");
+				System.out.println(bitsLeft.intersection(bitsRight));
+				System.out.println("itemsLeft.retainAll(itemsRight)");
+				itemsLeft.retainAll(itemsRight);
+				System.out.println(itemsLeft);
+				return;
+			}
+
+			/*
+			 * containsAny()
+			 */
+			bitsRes = bitsLeft.containsAny(bitsRight);
+			itemsRes = true;
+			for (Integer x : itemsRight) {
+				itemsRes = itemsLeft.contains(x);
+				if (itemsRes)
+					break;
+			}
+			if (bitsRes != itemsRes) {
+				System.out.println("bitsLeft.containsAny(bitsRight): " + bitsRes);
+				System.out.println("itemsLeft.containsAny(itemsRight): " + itemsRes);
+				System.out.println("bitsLeft:");
+				System.out.println(bitsLeft.debugInfo());				
+				System.out.println("bitsRight:");
+				System.out.println(bitsRight.debugInfo());
+				System.out.println("bitsLeft.intersection(bitsRight)");
+				System.out.println(bitsLeft.intersection(bitsRight));
+				System.out.println("itemsLeft.retainAll(itemsRight)");
+				itemsLeft.retainAll(itemsRight);
+				System.out.println(itemsLeft);
+				return;
 			}
 			
-			// perform the random operation with the previous set
+			/*
+			 * containsAtLeast()
+			 */
+			int l = 1 + r.nextInt(bitsRight.size() + 1);
+			bitsRes = bitsLeft.containsAtLeast(bitsRight, l);
+			int itemsResCnt = 0;
+			for (Integer x : itemsRight) {
+				if (itemsLeft.contains(x))
+					itemsResCnt++;
+				if (itemsResCnt >= l)
+					break;
+			}
+			if (bitsRes != (itemsResCnt >= l)) {
+				System.out.println("bitsLeft.containsAtLeast(bitsRight, " + l + "): " + bitsRes);
+				System.out.println("itemsLeft.containsAtLeast(itemsRight, " + l + "): " + (itemsResCnt >= l));
+				System.out.println("bitsLeft:");
+				System.out.println(bitsLeft.debugInfo());				
+				System.out.println("bitsRight:");
+				System.out.println(bitsRight.debugInfo());
+				System.out.println("bitsLeft.intersection(bitsRight)");
+				System.out.println(bitsLeft.intersection(bitsRight));
+				System.out.println("itemsLeft.retainAll(itemsRight)");
+				itemsLeft.retainAll(itemsRight);
+				System.out.println(itemsLeft);
+				return;
+			}
+
+			/*
+			 * Perform a random operation with the previous set:
+			 * addAll() and unionSize()
+			 * removeAll() and differenceSize()
+			 * retainAll() and intersectionSize()
+			 * symmetricDifference() and symmetricDifferenceSize()
+			 * complement() and complementSize()
+			 */
 			int operationSize = 0;
 			boolean resItems = true, resBits = true;
-			switch (1 + rnd.nextInt(5)) {
+//			switch (1 + r.nextInt(5)) {
+			switch (1 + r.nextInt(4)) {
 			case 1:
 				System.out.format(" union of %d elements with %d elements... ", itemsLeft.size(), itemsRight.size());
 				operationSize = bitsLeft.unionSize(bitsRight);
@@ -818,54 +606,70 @@ public class Debug {
 				bitsLeft = bitsLeft.symmetricDifference(bitsRight);
 				break;
 
-			case 5:
-				System.out.format(" complement of %d elements... ", itemsLeft.size());
-				operationSize = bitsLeft.complementSize();
-				TreeSet<Integer> temp2 = new TreeSet<Integer>();
-				if (!itemsLeft.isEmpty())
-					for (int j = 0; j < itemsLeft.last(); j++) 
-						temp2.add(j);
-				temp2.removeAll(itemsLeft);
-				itemsLeft = temp2;
-				bitsLeft.complement();
-				break;
+//			case 5:
+//				System.out.format(" complement of %d elements... ", itemsLeft.size());
+//				operationSize = bitsLeft.complementSize();
+//				TreeSet<Integer> temp2 = new TreeSet<Integer>();
+//				if (!itemsLeft.isEmpty())
+//					for (int j = 0; j < itemsLeft.last(); j++) 
+//						temp2.add(j);
+//				temp2.removeAll(itemsLeft);
+//				itemsLeft = temp2;
+//				bitsLeft.complement();
+//				break;
 			}
 			
 			// check the list of elements
 			if (!checkContent(bitsLeft, itemsLeft)) {
 				System.out.println("OPERATION ERROR!");
-				System.out.println("Same elements: " + 
-						(itemsLeft.toString().equals(bitsLeft.toString())));
-				System.out.println("Original: " + itemsLeft);
+				System.out.println("Same elements: " + (itemsLeft.toString().equals(bitsLeft.toString())));
+				System.out.println("itemsLeft:");
+				System.out.println(itemsLeft);
+				System.out.println("bitsLeft:");
 				System.out.println(bitsLeft.debugInfo());
-				System.out.println("Right operand:");
-				System.out.println(bitsRight.debugInfo());
-				return;
-			}
-			
-			// check the representation
-			ExtendedSet<Integer> x = bitsLeft.empty();
-			x.addAll(itemsLeft);
-			if (x.hashCode() != bitsLeft.hashCode()) {
-				System.out.println("REPRESENTATION ERROR!");
-				System.out.println(bitsLeft.debugInfo());
-				System.out.println(new ConciseSet(itemsLeft).debugInfo());
+
+				System.out.println("itemsLeft.size(): "  + itemsLeft.size() + " ?= bitsLeft.size(): " + bitsLeft.size());
+				for (Integer x : bitsLeft) 
+					if (!itemsLeft.contains(x)) 
+						System.out.println("itemsLeft does not contain " + x);
+				for (Integer x : itemsLeft) 
+					if (!bitsLeft.contains(x)) 
+						System.out.println("itemsLeft does not contain " + x);
+				System.out.println("bitsLeft.last(): " + bitsLeft.last() + " ?= itemsLeft.last(): " + itemsLeft.last());
+				System.out.println("bitsLeft.first(): " + bitsLeft.first() + " ?= itemsLeft.first(): " + itemsLeft.first());
+				
 				return;
 			}
 
-			// check the union size
+			// check the size
 			if (itemsLeft.size() != operationSize) {
-				System.out.println("SIZE ERROR");
+				System.out.println("OPERATION SIZE ERROR");
 				System.out.println("Wrong size: " + operationSize);
 				System.out.println("Correct size: " + itemsLeft.size());
+				System.out.println("bitsLeft:");
 				System.out.println(bitsLeft.debugInfo());
 				return;
 			}
-			
+
+			// check the boolean result
 			if (resItems != resBits) {
-				System.out.println("BOOLEAN ERROR!");
+				System.out.println("OPERATION BOOLEAN ERROR!");
 				System.out.println("resItems: " + resItems);
 				System.out.println("resBits: " + resBits);
+				System.out.println("bitsLeft:");
+				System.out.println(bitsLeft.debugInfo());
+				return;
+			}
+
+			// check the internal representation of the result
+			ExtendedSet<Integer> x = bitsLeft.empty();
+			x.addAll(itemsLeft);
+			if (x.hashCode() != bitsLeft.hashCode()) {
+				System.out.println("Internal representation error!");
+				System.out.println("FROM APPEND:");
+				System.out.println(x.debugInfo());
+				System.out.println("FROM OPERATION:");
+				System.out.println(bitsLeft.debugInfo());
 				return;
 			}
 
@@ -1185,62 +989,6 @@ public class Debug {
 	}
 	
 	/**
-	 * Simple test for {@link IndexedSet}
-	 */
-	private static void testForIndexedSet() {
-		Collection<String> allStrings = new ArrayList<String>();
-		allStrings.add("One");
-		allStrings.add("Two");
-		allStrings.add("Three");
-		allStrings.add("Four");
-
-		ExtendedSet<String> empty = new IndexedSet<String>(allStrings, false);
-
-		ExtendedSet<String> s1 = empty.clone();
-		System.out.println(s1);
-
-		s1.add("Two");
-		System.out.println(s1);
-
-		s1.add("One");
-		System.out.println(s1);
-
-		s1.add("Three");
-		System.out.println(s1);
-
-		s1.remove("One");
-		System.out.println(s1);
-
-		ExtendedSet<String> s2 = empty.clone();
-		s2.add("Four");
-		s2.add("Three");
-		System.out.println(s2);
-
-		s2.retainAll(s1);
-		System.out.println(s2);
-
-		s2.add("Four");
-		System.out.println(s2);
-
-		s1.addAll(s2);
-		System.out.println(s1);
-		
-		/**
-		 * Expected output:
-		 * 
-		 * []
-		 * [Two]
-		 * [One, Two]
-		 * [One, Two, Three]
-		 * [Two, Three]
-		 * [Three, Four]
-		 * [Three]
-		 * [Three, Four]
-		 * [Two, Three, Four]
-		 */
-	}
-	
-	/**
 	 * Test the method {@link ExtendedSet#compareTo(ExtendedSet)}
 	 * 
 	 * @param c class to test
@@ -1437,37 +1185,6 @@ public class Debug {
 	}
 	
 	/**
-	 * Stress test for {@link ExtendedSet#equals(Object)}
-	 *
-	 * @param c class to test
-	 */
-	private static void testForEquals(Class<? extends ExtendedSet<Integer>> c) {
-		ExtendedSet<Integer> b1 = empty(c), b2 = empty(c), b3 = empty(c);
-		b1.fill(10, 20);
-		b2.fill(1, 50);
-		b2 = b2.subSet(10, 21);
-		b3.fill(10, 20);
-		b3 = b3.unmodifiable();
-		
-		System.out.println(b1.equals(b2));
-		System.out.println(b1.equals(b3));
-		System.out.println(b2.equals(b1));
-		System.out.println(b2.equals(b3));
-		System.out.println(b3.equals(b1));
-		System.out.println(b3.equals(b2));
-
-		b3 = b3.subSet(10, 21);
-		b2 = b2.unmodifiable();
-
-		System.out.println(b1.equals(b2));
-		System.out.println(b1.equals(b3));
-		System.out.println(b2.equals(b1));
-		System.out.println(b2.equals(b3));
-		System.out.println(b3.equals(b1));
-		System.out.println(b3.equals(b2));
-	}
-	
-	/**
 	 * Test for {@link ExtendedIterator#skipAllBefore(Object)}
 	 * 
 	 * @param c class to test
@@ -1517,43 +1234,25 @@ public class Debug {
 	}
 
 	private enum TestCase {
-		APPEND_SIMPLE_CONCISESET,
-		APPEND_SIMPLE_FASTSET,
-		APPEND_COMPLEX_CONCISESET,
-		APPEND_COMPLEX_FASTSET,
-		INDEXEDSET,
-		APPEND_RANDOM_CONCISESET,
-		INTERSECTION_SIMPLE_CONCISESET,
-		INTERSECTION_SIMPLE_FASTSET,
-		INTERSECTION_COMPLEX_CONCISESET,
-		INTERSECTION_COMPLEX_FASTSET,
-		UNION_SIMPLE_CONCISESET,
-		UNION_SIMPLE_FASTSET,
-		COMPLEMENT_CONCISESET,
-		COMPLEMENT_FASTSET,
-		MIXED_STUFF_CONCISESET,
-		MIXED_STUFF_FASTSET,
-		ADDITION_STRESS_CONCISESET,
-		ADDITION_STRESS_FASTSET,
-		REMOVAL_STRESS_CONCISESET,
-		RANDOM_OPERATION_STRESS_CONCISESET,
-		RANDOM_OPERATION_STRESS_FASTSET,
+		ADDITION_STRESS,
+		REMOVAL_STRESS,
+		RANDOM_OPERATION_STRESS,
 		SUBSET_ADDITION_STRESS_CONCISESET,
 		SUBSET_REMOVAL_STRESS_CONCISESET,
 		SUBSET_RANDOM_OPERATION_STRESS_CONCISESET,
-		COMPARATOR_SIMPLE_CONCISESET,
-		COMPARATOR_SIMPLE_FASTSET,
-		COMPARATOR_COMPLEX_CONCISESET,
-		COMPARATOR_COMPLEX_FASTSET,
-		DESCENDING_ITERATOR_CONCISESET,
-		DESCENDING_ITERATOR_FASTSET,
-		POSITION_CONCISESET,
-		POSITION_FASTSET,
-		EQUALS_CONCISESET,
-		EQUALS_FASTSET,
-		SKIP_CONCISESET,
-		SKIP_FASTSET,
+		COMPARATOR_SIMPLE,
+		COMPARATOR_COMPLEX,
+		DESCENDING_ITERATOR,
+		POSITION,
+		SKIP,
 		;
+	}
+
+	@SuppressWarnings("unused")
+	private static class MyIndexedSet extends IndexedSet<Integer> {
+		MyIndexedSet() {
+			super(0, 10000000, false);
+		}
 	}
 	
 	/**
@@ -1562,10 +1261,13 @@ public class Debug {
 	 * @param args ID of the test to execute
 	 */
 	public static void main(String[] args) {
-		// NOTE: the most complete tests are:
-		// - TestCase.RANDOM_OPERATION_STRESS_CONCISESET
-		// - TestCase.RANDOM_OPERATION_STRESS_FASTSET
-		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS_CONCISESET;
+		// NOTE: the most complete test is TestCase.RANDOM_OPERATION_STRESS
+		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS;
+//		TestCase testCase = TestCase.ADDITION_STRESS;
+//		Class<? extends ExtendedSet<Integer>> classToTest = FastSet.class;
+//		Class<? extends ExtendedSet<Integer>> classToTest = ConciseSet.class;
+		Class<? extends ExtendedSet<Integer>> classToTest = ConcisePlusSet.class;
+//		Class<? extends ExtendedSet<Integer>> classToTest = MyIndexedSet.class;
 		
 		if (args != null && args.length > 0) {
 			try {
@@ -1576,68 +1278,14 @@ public class Debug {
 		}
 		
 		switch (testCase) {
-		case APPEND_SIMPLE_CONCISESET:
-			testForAppendSimple(ConciseSet.class);
+		case ADDITION_STRESS:
+			testForAdditionStress(classToTest);
 			break;
-		case APPEND_SIMPLE_FASTSET:
-			testForAppendSimple(FastSet.class);
+		case REMOVAL_STRESS:
+			testForRemovalStress(classToTest);
 			break;
-		case APPEND_COMPLEX_CONCISESET:
-			testForAppendComplex(ConciseSet.class);
-			break;
-		case APPEND_COMPLEX_FASTSET:
-			testForAppendComplex(FastSet.class);
-			break;
-		case APPEND_RANDOM_CONCISESET:
-			testForAppendRandom();
-			break;
-		case INDEXEDSET:
-			testForIndexedSet();
-			break;
-		case INTERSECTION_SIMPLE_CONCISESET:
-			testForIntersectionSimple(ConciseSet.class);
-			break;
-		case INTERSECTION_SIMPLE_FASTSET:
-			testForIntersectionSimple(FastSet.class);
-			break;
-		case INTERSECTION_COMPLEX_CONCISESET:
-			testForIntersectionComplex(ConciseSet.class);
-			break;
-		case INTERSECTION_COMPLEX_FASTSET:
-			testForIntersectionComplex(FastSet.class);
-			break;
-		case UNION_SIMPLE_CONCISESET:
-			testForUnionSimple(ConciseSet.class);
-			break;
-		case UNION_SIMPLE_FASTSET:
-			testForUnionSimple(FastSet.class);
-			break;
-		case COMPLEMENT_CONCISESET:
-			testForComplement(ConciseSet.class);
-			break;
-		case COMPLEMENT_FASTSET:
-			testForComplement(FastSet.class);
-			break;
-		case MIXED_STUFF_CONCISESET:
-			testForMixedStuff(ConciseSet.class);
-			break;
-		case MIXED_STUFF_FASTSET:
-			testForMixedStuff(FastSet.class);
-			break;
-		case ADDITION_STRESS_CONCISESET:
-			testForAdditionStress(ConciseSet.class);
-			break;
-		case ADDITION_STRESS_FASTSET:
-			testForAdditionStress(FastSet.class);
-			break;
-		case REMOVAL_STRESS_CONCISESET:
-			testForRemovalStress();
-			break;
-		case RANDOM_OPERATION_STRESS_CONCISESET:
-			testForRandomOperationsStress(ConciseSet.class);
-			break;
-		case RANDOM_OPERATION_STRESS_FASTSET:
-			testForRandomOperationsStress(FastSet.class);
+		case RANDOM_OPERATION_STRESS:
+			testForRandomOperationsStress(classToTest);
 			break;
 		case SUBSET_ADDITION_STRESS_CONCISESET:
 			testForSubSetAdditionStress();
@@ -1648,42 +1296,20 @@ public class Debug {
 		case SUBSET_RANDOM_OPERATION_STRESS_CONCISESET:
 			testForSubSetRandomOperationsStress();
 			break;
-		case COMPARATOR_SIMPLE_CONCISESET:
-			testForComparatorSimple(ConciseSet.class);
+		case COMPARATOR_SIMPLE:
+			testForComparatorSimple(classToTest);
 			break;
-		case COMPARATOR_SIMPLE_FASTSET:
-			testForComparatorSimple(FastSet.class);
+		case COMPARATOR_COMPLEX:
+			testForComparatorComplex(classToTest);
 			break;
-		case COMPARATOR_COMPLEX_CONCISESET:
-			testForComparatorComplex(ConciseSet.class);
+		case DESCENDING_ITERATOR:
+			testForDescendingIterator(classToTest);
 			break;
-		case COMPARATOR_COMPLEX_FASTSET:
-			testForComparatorComplex(FastSet.class);
+		case POSITION:
+			testForPosition(classToTest);
 			break;
-		case DESCENDING_ITERATOR_CONCISESET:
-			testForDescendingIterator(ConciseSet.class);
-			break;
-		case DESCENDING_ITERATOR_FASTSET:
-			testForDescendingIterator(FastSet.class);
-			break;
-		case POSITION_CONCISESET:
-			testForPosition(ConciseSet.class);
-			break;
-		case POSITION_FASTSET:
-			testForPosition(FastSet.class);
-			break;
-		case EQUALS_CONCISESET:
-			testForEquals(ConciseSet.class);
-			break;
-		case EQUALS_FASTSET:
-			testForEquals(FastSet.class);
-			break;
-		case SKIP_CONCISESET:
-			testForSkip(ConciseSet.class);
-			break;
-		case SKIP_FASTSET:
-			testForSkip(FastSet.class);
-			break;
+		case SKIP:
+			testForSkip(classToTest);
 		}
 	}
 }

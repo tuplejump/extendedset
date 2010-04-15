@@ -422,10 +422,10 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 
 		if (minElements < 1)
 			throw new IllegalArgumentException();
-		if (c == null || c.isEmpty() || c == this)
-			return true;
-		if (isEmpty())
+		if ((size >= 0 && size < minElements) || c == null || c.isEmpty() || isEmpty())
 			return false;
+		if (this == c)
+			return size() >= minElements;
 
 		if (c instanceof FastSet) {
 			final FastSet other = (FastSet) c;
@@ -449,7 +449,9 @@ public class FastSet extends AbstractExtendedSet<Integer> {
 	public boolean containsAny(Collection<? extends Integer> c) {
 		Statistics.sizeCheckCount++;
 
-		if (c == null || c.isEmpty() || isEmpty())
+		if (c == null || c.isEmpty() || c == this)
+			return true;
+		if (isEmpty())
 			return false;
 		
 		if (c instanceof FastSet) {
