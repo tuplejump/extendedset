@@ -18,14 +18,15 @@
 
 package it.uniroma3.mat.extendedset.test;
 
+import it.uniroma3.mat.extendedset.ArraySet;
 import it.uniroma3.mat.extendedset.ConcisePlusSet;
 import it.uniroma3.mat.extendedset.ConciseSet;
 import it.uniroma3.mat.extendedset.FastSet;
+import it.uniroma3.mat.extendedset.GenericExtendedSet;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Map;
@@ -48,8 +49,26 @@ public class Performance {
 	 */
 	private static class WAHSet extends ConciseSet {
 		@SuppressWarnings("unused")
-		public WAHSet() {super(true);}
-		public WAHSet(Collection<? extends Integer> c) {super(true, c);}
+		WAHSet() {super(true);}
+		WAHSet(Collection<? extends Integer> c) {super(true, c);}
+	}
+
+	/** 
+	 * Class to test the sorted array
+	 */
+	private static class ArrayListSet extends GenericExtendedSet<Integer> {
+		ArrayListSet() {
+			super(ArrayList.class, GenericExtendedSet.ALL_POSITIVE_INTEGERS);
+		}
+	}
+
+	/** 
+	 * Class to test the sorted linked lists
+	 */
+	private static class LinkedListSet extends GenericExtendedSet<Integer> {
+		LinkedListSet() {
+			super(LinkedList.class, GenericExtendedSet.ALL_POSITIVE_INTEGERS);
+		}
 	}
 
 	/** number of times to repeat each test */
@@ -293,11 +312,12 @@ public class Performance {
 		Class<?>[] classes;
 		if (onlyBitmaps)
 			classes = new Class[] { FastSet.class, ConciseSet.class,
-					ConcisePlusSet.class };
+					ConcisePlusSet.class, ArraySet.class };
 		else
 			classes = new Class[] { ArrayList.class, LinkedList.class,
-					TreeSet.class, HashSet.class, FastSet.class,
-					ConciseSet.class, WAHSet.class, ConcisePlusSet.class };
+					ArrayListSet.class, LinkedListSet.class, TreeSet.class,
+					ArraySet.class, FastSet.class, ConciseSet.class,
+					WAHSet.class, ConcisePlusSet.class, ArraySet.class };
 
 		/*
 		 * TIME

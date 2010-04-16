@@ -22,15 +22,18 @@ import it.uniroma3.mat.extendedset.ConcisePlusSet;
 import it.uniroma3.mat.extendedset.ConciseSet;
 import it.uniroma3.mat.extendedset.ExtendedSet;
 import it.uniroma3.mat.extendedset.FastSet;
+import it.uniroma3.mat.extendedset.GenericExtendedSet;
 import it.uniroma3.mat.extendedset.IndexedSet;
 import it.uniroma3.mat.extendedset.ExtendedSet.ExtendedIterator;
 import it.uniroma3.mat.extendedset.ExtendedSet.Statistics;
 import it.uniroma3.mat.extendedset.utilities.MersenneTwister;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Random;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -1291,6 +1294,20 @@ public class Debug {
 		}
 	}
 	
+	@SuppressWarnings("unused")
+	private static class ListSet extends GenericExtendedSet<Integer> {
+		ListSet() {
+			super(ArrayList.class, GenericExtendedSet.ALL_POSITIVE_INTEGERS);
+		}
+	}
+
+	@SuppressWarnings("unused")
+	private static class LinkedSet extends GenericExtendedSet<Integer> {
+		LinkedSet() {
+			super(LinkedList.class, GenericExtendedSet.ALL_POSITIVE_INTEGERS);
+		}
+	}
+
 	/**
 	 * Test launcher
 	 * 
@@ -1304,6 +1321,9 @@ public class Debug {
 //		Class<? extends ExtendedSet<Integer>> classToTest = ConciseSet.class;
 		Class<? extends ExtendedSet<Integer>> classToTest = ConcisePlusSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = MyIndexedSet.class;
+//		Class<? extends ExtendedSet<Integer>> classToTest = ListSet.class;
+//		Class<? extends ExtendedSet<Integer>> classToTest = LinkedSet.class;
+//		Class<? extends ExtendedSet<Integer>> classToTest = ArraySet.class;
 		
 		if (args != null && args.length > 0) {
 			try {

@@ -148,7 +148,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 * {@inheritDoc}
 	 */
 	public boolean containsAny(Collection<? extends T> other) {
-		return intersectionSize(other) > 0;
+		return other == null || other.isEmpty() || intersectionSize(other) > 0;
 	}
 
 	/**

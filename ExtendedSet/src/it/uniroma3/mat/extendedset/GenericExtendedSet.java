@@ -23,16 +23,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Set;
 import java.util.SortedSet;
 
 /**
  * {@link ExtendedSet}-based class internally managed by an instance of any
- * class implementing {@link Set}
+ * class implementing {@link Collection}
  * 
  * @author Alessandro Colantonio
  * @version $Id$
@@ -42,14 +40,11 @@ import java.util.SortedSet;
  */
 public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtendedSet<T> {
 	/** elements of the set */
-	private /*final*/ Set<T> elements;
+	private /*final*/ Collection<T> elements;
 	
-	/** class implementing {@link Set} that is used to collect elements */
-	// TODO: change Set to List. In the latter case, maintain the list sorted
-	// (add and remove performed by first searching the right position through
-	// Collections.binarySearch())
+	/** class implementing {@link Collection} that is used to collect elements */
 	@SuppressWarnings("unchecked")
-	private final Class<? extends Set> setClass;
+	private final Class<? extends Collection> setClass;
 
 	/**
 	 * collection of all possible elements. If <code>null</code>,
@@ -105,7 +100,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 * Empty-set constructor
 	 * 
 	 * @param setClass
-	 *            {@link Set}-derived class
+	 *            {@link Collection}-derived class
 	 * @param universe
 	 *            all possible elements manageable by the instance. It is used
 	 *            by, {@link ExtendedSet#complement()},
@@ -120,7 +115,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 * @see GenericExtendedSet#ALL_POSITIVE_INTEGERS           
 	 */
 	@SuppressWarnings("unchecked")
-	public GenericExtendedSet(Class<? extends Set> setClass, Collection<T> universe) {
+	public GenericExtendedSet(Class<? extends Collection> setClass, Collection<T> universe) {
 		this.setClass = setClass;
 		this.universe = universe;
 		try {
@@ -169,7 +164,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	public ExtendedIterator<T> iterator() {
 		// prepare the sorted set
 		final Collection<T> sorted;
-		if (elements instanceof SortedSet<?>) {
+		if (elements instanceof SortedSet<?> || elements instanceof List<?>) {
 			//NOTE: SortedSet.comparator() is null
 			sorted = elements;
 		} else {
@@ -215,9 +210,10 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 		GenericExtendedSet<T> c = empty();
 		try {
 			if (elements instanceof Cloneable) {
-				c.elements = (Set<T>) elements.getClass().getMethod("clone").invoke(elements);
+				c.elements = (Collection<T>) elements.getClass().getMethod("clone").invoke(elements);
 			} else {
 				c.elements = setClass.newInstance();
+				Statistics.intersectionCount--;
 				c.elements.addAll(elements);
 			}
 		} catch (Exception e) {
@@ -234,20 +230,165 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 		return setClass.getSimpleName() + ": " + elements.toString();
 	}
 	
+	
+	
 	/* 
-	 * Set methods
+	 * Collection methods
 	 */
-	/** {@inheritDoc} */ @Override public boolean add(T e) {return elements.add(e);}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override 
+	public boolean add(T e) {
+		if (elements instanceof List<?>) {
+			final List<T> l = (List<T>) elements;
+			int pos = Collections.binarySearch(l, e);
+			if (pos >= 0)
+				return false;
+			l.add(-(pos + 1), e);
+			return true;
+		}
+		return elements.add(e);
+	}
+	
+	/** 
+	 * {@inheritDoc} 
+	 */ 
+	@SuppressWarnings("unchecked")
+	@Override 
+	public boolean remove(Object o) {
+		if (elements instanceof List<?>) {
+			try {
+				final List<T> l = (List<T>) elements;
+				int pos = Collections.binarySearch(l, (T) o);
+				if (pos < 0)
+					return false;
+				l.remove(pos);
+				return true;
+			} catch (ClassCastException e) {
+				return false;
+			}
+		}
+		return elements.remove(o);
+	}
+	
+	/** 
+	 * {@inheritDoc} 
+	 */ 
+	@SuppressWarnings("unchecked")
+	@Override 
+	public boolean contains(Object o) {
+		if (elements instanceof List<?>) {
+			try {
+				return Collections.binarySearch((List<T>) elements, (T) o) >= 0;
+			} catch (ClassCastException e) {
+				return false;
+			}
+		}
+		return elements.contains(o);
+	}
+
+	/** 
+	 * {@inheritDoc} 
+	 */ 
+	@SuppressWarnings("unchecked")
+	@Override 
+	public boolean containsAll(Collection<?> c) {
+		Statistics.sizeCheckCount++;
+		if (isEmpty() || c == null || c.isEmpty())
+			return false;
+		if (this == c)
+			return true;
+		
+		if (elements instanceof List<?> && c instanceof GenericExtendedSet<?> && ((GenericExtendedSet<?>) c).elements instanceof List<?>) {
+			Iterator<T> thisItr = elements.iterator();
+			Iterator<T> otherItr = ((GenericExtendedSet<T>) c).elements.iterator();
+			while (thisItr.hasNext() && otherItr.hasNext()) {
+				T thisValue = thisItr.next();
+				T otherValue = otherItr.next();
+
+				int r;
+				while ((r = otherValue.compareTo(thisValue)) > 0) {
+					if (!thisItr.hasNext())
+						return false;
+					thisValue = thisItr.next();
+				}
+				if (r < 0)
+					return false;
+			}
+			return !otherItr.hasNext();
+		}
+
+		return elements.containsAll(c);
+	}
+
+	/** 
+	 * {@inheritDoc} 
+	 */
+	@Override
+	public boolean addAll(Collection<? extends T> c) {
+		if (elements instanceof List<?>) {
+			Collection<T> res = union(c).elements;
+			boolean r = !res.equals(elements);
+			elements = res;
+			return r;
+		}
+		Statistics.unionCount++;
+		return elements.addAll(c);
+	}
+
+	/** 
+	 * {@inheritDoc} 
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public boolean retainAll(Collection<?> c) {
+		if (elements instanceof List<?>) {
+			try {
+				Collection<T> res = intersection((Collection<T>) c).elements;
+				boolean r = !res.equals(elements);
+				elements = res;
+				return r;
+			} catch (ClassCastException e) {
+				return false;
+			}
+		}
+		Statistics.intersectionCount++;
+		return elements.retainAll(c);
+	}
+
+	/** 
+	 * {@inheritDoc} 
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public boolean removeAll(Collection<?> c) {
+		if (elements instanceof List<?>) {
+			try {
+				Collection<T> res = difference((Collection<T>) c).elements;
+				boolean r = !res.equals(elements);
+				elements = res;
+				return r;
+			} catch (ClassCastException e) {
+				return false;
+			}
+		}
+		Statistics.differenceCount++;
+		return elements.removeAll(c);
+	}
+
+	/** 
+	 * {@inheritDoc} 
+	 */ 
+	@Override 
+	public boolean equals(Object o) {
+		return o instanceof GenericExtendedSet<?> && ((GenericExtendedSet<?>) o).elements.equals(elements);
+	}
+
 	/** {@inheritDoc} */ @Override public int size() {return elements.size();}
 	/** {@inheritDoc} */ @Override public boolean isEmpty() {return elements.isEmpty();}
-	/** {@inheritDoc} */ @Override public boolean contains(Object o) {return elements.contains(o);}
-	/** {@inheritDoc} */ @Override public boolean remove(Object o) {return elements.remove(o);}
-	/** {@inheritDoc} */ @Override public boolean containsAll(Collection<?> c) {return elements.containsAll(c);}
-	/** {@inheritDoc} */ @Override public boolean addAll(Collection<? extends T> c) {return elements.addAll(c);}
-	/** {@inheritDoc} */ @Override public boolean retainAll(Collection<?> c) {return elements.retainAll(c);}
-	/** {@inheritDoc} */ @Override public boolean removeAll(Collection<?> c) {return elements.removeAll(c);}
 	/** {@inheritDoc} */ @Override public void clear() {elements.clear();}
-	/** {@inheritDoc} */ @Override public boolean equals(Object o) {return elements.equals(o);}
 	/** {@inheritDoc} */ @Override public int hashCode() {return elements.hashCode();}
 
 	
@@ -261,19 +402,27 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 		return null;
 	}
 	
-	/** {@inheritDoc} */ 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override 
 	public T first() {
 		if (elements instanceof SortedSet<?>)
 			return ((SortedSet<T>) elements).first();
+		if (elements instanceof List<?>)
+			return ((List<T>) elements).get(0);
 		return super.first();
 	}
 
-	/** {@inheritDoc} */ 
+	/**
+	 * {@inheritDoc}
+	 */
 	@Override 
 	public T last() {
 		if (elements instanceof SortedSet<?>)
 			return ((SortedSet<T>) elements).last();
+		if (elements instanceof List<?>)
+			return ((List<T>) elements).get(elements.size() - 1);
 		return super.last();
 	}
 	
@@ -316,6 +465,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 		return super.headSet(toElement);
 	}
 
+	
 	/*
 	 * ExtendedSet methods 
 	 */
@@ -324,8 +474,91 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 * {@inheritDoc}
 	 */
 	@Override
+	public int intersectionSize(Collection<? extends T> other) {
+		Statistics.sizeCheckCount++;
+		if (isEmpty() || other == null || other.isEmpty())
+			return 0;
+		if (this == other)
+			return size();
+		
+		if (elements instanceof List<?> && other instanceof GenericExtendedSet<?> && ((GenericExtendedSet<?>) other).elements instanceof List<?>) {
+			int res = 0;
+			Iterator<T> thisItr = elements.iterator();
+			@SuppressWarnings("unchecked")
+			Iterator<T> otherItr = ((GenericExtendedSet<T>) other).elements.iterator();
+			while (thisItr.hasNext() && otherItr.hasNext()) {
+				T thisValue = thisItr.next();
+				T otherValue = otherItr.next();
+
+				int r = thisValue.compareTo(otherValue);
+				while (r != 0) {
+					while ((r = thisValue.compareTo(otherValue)) > 0) {
+						if (!otherItr.hasNext())
+							return res;
+						otherValue = otherItr.next();
+					}
+					if (r == 0)
+						break;
+					while ((r = otherValue.compareTo(thisValue)) > 0) {
+						if (!thisItr.hasNext())
+							return res;
+						thisValue = thisItr.next();
+					}
+				}
+				
+				res++;
+			}
+			return res;
+		}
+
+		Statistics.sizeCheckCount--;
+		return super.intersectionSize(other);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
 	public GenericExtendedSet<T> intersection(Collection<? extends T> other) {
-		return (GenericExtendedSet<T>) super.intersection(other);
+		Statistics.intersectionCount++;
+		if (isEmpty() || other == null || other.isEmpty())
+			return empty();
+		if (this == other)
+			return clone();
+		
+		if (elements instanceof List<?> && other instanceof GenericExtendedSet<?> && ((GenericExtendedSet<?>) other).elements instanceof List<?>) {
+			GenericExtendedSet<T> res = empty();
+			Iterator<T> thisItr = elements.iterator();
+			@SuppressWarnings("unchecked")
+			Iterator<T> otherItr = ((GenericExtendedSet<T>) other).elements.iterator();
+			while (thisItr.hasNext() && otherItr.hasNext()) {
+				T thisValue = thisItr.next();
+				T otherValue = otherItr.next();
+
+				int r = thisValue.compareTo(otherValue);
+				while (r != 0) {
+					while ((r = thisValue.compareTo(otherValue)) > 0) {
+						if (!otherItr.hasNext())
+							return res;
+						otherValue = otherItr.next();
+					}
+					if (r == 0)
+						break;
+					while ((r = otherValue.compareTo(thisValue)) > 0) {
+						if (!thisItr.hasNext())
+							return res;
+						thisValue = thisItr.next();
+					}
+				}
+				
+				res.elements.add(thisValue);
+			}
+			return res;
+		}
+
+		GenericExtendedSet<T> clone = clone();
+		clone.elements.retainAll(other);
+		return clone;
 	}
 	
 	/**
@@ -333,7 +566,60 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 */
 	@Override
 	public GenericExtendedSet<T> union(Collection<? extends T> other) {
-		return (GenericExtendedSet<T>) super.union(other);
+		Statistics.unionCount++;
+		if (this == other || other == null || other.isEmpty())
+			return clone();
+		if (isEmpty()) {
+			GenericExtendedSet<T> res = empty();
+			res.elements.addAll(other);
+			return res;
+		}
+		
+		if (elements instanceof List<?> && other instanceof GenericExtendedSet<?> && ((GenericExtendedSet<?>) other).elements instanceof List<?>) {
+			GenericExtendedSet<T> res = empty();
+			Iterator<T> thisItr = elements.iterator();
+			@SuppressWarnings("unchecked")
+			Iterator<T> otherItr = ((GenericExtendedSet<T>) other).elements.iterator();
+			mainLoop:
+			while (thisItr.hasNext() && otherItr.hasNext()) {
+				T thisValue = thisItr.next();
+				T otherValue = otherItr.next();
+
+				int r = thisValue.compareTo(otherValue);
+				while (r != 0) {
+					while ((r = thisValue.compareTo(otherValue)) > 0) {
+						res.elements.add(otherValue);
+						if (!otherItr.hasNext()) {
+							res.elements.add(thisValue);
+							break mainLoop;
+						}
+						otherValue = otherItr.next();
+					}
+					if (r == 0)
+						break;
+					while ((r = otherValue.compareTo(thisValue)) > 0) {
+						res.elements.add(thisValue);
+						if (!thisItr.hasNext()) {
+							res.elements.add(otherValue);
+							break mainLoop;
+						}
+						thisValue = thisItr.next();
+					}
+				}
+				
+				res.elements.add(thisValue);
+			}
+			while (thisItr.hasNext())
+				res.elements.add(thisItr.next());
+			while (otherItr.hasNext())
+				res.elements.add(otherItr.next());
+			return res;
+		}
+
+		GenericExtendedSet<T> clone = clone();
+		for (T e : other)
+			clone.add(e);
+		return clone;
 	}
 	
 	/**
@@ -341,7 +627,49 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 */
 	@Override
 	public GenericExtendedSet<T> difference(Collection<? extends T> other) {
-		return (GenericExtendedSet<T>) super.difference(other);
+		Statistics.differenceCount++;
+		if (isEmpty() || this == other)
+			return empty();
+		if (other == null || other.isEmpty()) 
+			return clone();
+		
+		if (elements instanceof List<?> && other instanceof GenericExtendedSet<?> && ((GenericExtendedSet<?>) other).elements instanceof List<?>) {
+			GenericExtendedSet<T> res = empty();
+			Iterator<T> thisItr = elements.iterator();
+			@SuppressWarnings("unchecked")
+			Iterator<T> otherItr = ((GenericExtendedSet<T>) other).elements.iterator();
+			mainLoop:
+			while (thisItr.hasNext() && otherItr.hasNext()) {
+				T thisValue = thisItr.next();
+				T otherValue = otherItr.next();
+
+				int r = thisValue.compareTo(otherValue);
+				while (r != 0) {
+					while ((r = thisValue.compareTo(otherValue)) > 0) {
+						if (!otherItr.hasNext()) {
+							res.elements.add(thisValue);
+							break mainLoop;
+						}
+						otherValue = otherItr.next();
+					}
+					if (r == 0)
+						break;
+					while ((r = otherValue.compareTo(thisValue)) > 0) {
+						res.elements.add(thisValue);
+						if (!thisItr.hasNext())
+							break mainLoop;
+						thisValue = thisItr.next();
+					}
+				}
+			}
+			while (thisItr.hasNext())
+				res.elements.add(thisItr.next());
+			return res;
+		}
+		
+		GenericExtendedSet<T> clone = clone();
+		clone.elements.removeAll(other);
+		return clone;
 	}
 	
 	/**
@@ -349,7 +677,57 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 */
 	@Override
 	public GenericExtendedSet<T> symmetricDifference(Collection<? extends T> other) {
-		return (GenericExtendedSet<T>) super.symmetricDifference(other);
+		Statistics.symmetricDifferenceCount++;
+		if (this == other || other == null || other.isEmpty())
+			return clone();
+		if (isEmpty()) {
+			GenericExtendedSet<T> res = empty();
+			res.elements.addAll(other);
+			return res;
+		}
+		
+		if (elements instanceof List<?> && other instanceof GenericExtendedSet<?> && ((GenericExtendedSet<?>) other).elements instanceof List<?>) {
+			GenericExtendedSet<T> res = empty();
+			Iterator<T> thisItr = elements.iterator();
+			@SuppressWarnings("unchecked")
+			Iterator<T> otherItr = ((GenericExtendedSet<T>) other).elements.iterator();
+			mainLoop:
+			while (thisItr.hasNext() && otherItr.hasNext()) {
+				T thisValue = thisItr.next();
+				T otherValue = otherItr.next();
+
+				int r = thisValue.compareTo(otherValue);
+				while (r != 0) {
+					while ((r = thisValue.compareTo(otherValue)) > 0) {
+						res.elements.add(otherValue);
+						if (!otherItr.hasNext()) {
+							res.elements.add(thisValue);
+							break mainLoop;
+						}
+						otherValue = otherItr.next();
+					}
+					if (r == 0)
+						break;
+					while ((r = otherValue.compareTo(thisValue)) > 0) {
+						res.elements.add(thisValue);
+						if (!thisItr.hasNext()) {
+							res.elements.add(otherValue);
+							break mainLoop;
+						}
+						thisValue = thisItr.next();
+					}
+				}
+			}
+			while (thisItr.hasNext())
+				res.elements.add(thisItr.next());
+			while (otherItr.hasNext())
+				res.elements.add(otherItr.next());
+			return res;
+		}
+		
+		GenericExtendedSet<T> clone = union(other);
+		clone.removeAll(intersection(other));
+		return clone;
 	}
 
 	/**
@@ -359,13 +737,15 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	public void complement() {
 		if (universe == null)
 			throw new UnsupportedOperationException("missing universe");
-		Iterator<T> itr = universe.iterator();
-		GenericExtendedSet<T> clone = clone();
+		Iterator<T> universeItr = universe.iterator();
+		Iterator<T> thisItr = clone().iterator(); // avoid concurrency
 		clear();
 		T u;
-		for (T e : clone)
-			while ((u = itr.next()).compareTo(e) < 0)  
-				add(u);
+		while (thisItr.hasNext()) {
+			T c = thisItr.next();
+			while ((u = universeItr.next()).compareTo(c) < 0)  
+				elements.add(u);
+		}
 	}
 	
 	/**
@@ -374,7 +754,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	@Override
 	public ExtendedSet<T> unmodifiable() {
 		GenericExtendedSet<T> c = empty();
-		c.elements = Collections.unmodifiableSet(elements);
+		c.elements = Collections.unmodifiableCollection(elements);
 		return c;
 	}
 
@@ -404,6 +784,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 		if (universe == null)
 			throw new UnsupportedOperationException("missing universe");
 		if (universe instanceof SortedSet<?>) { 
+			Statistics.differenceCount--;
 			removeAll(((SortedSet<T>) universe).subSet(from, to));
 		} else {
 			Iterator<T> uniItr = universe.iterator();
@@ -419,7 +800,10 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 */
 	@Override
 	public GenericExtendedSet<T> convert(Collection<?> c) {
-		return (GenericExtendedSet<T>) super.convert(c);
+		GenericExtendedSet<T> res = (GenericExtendedSet<T>) super.convert(c);
+		if (res.elements instanceof List<?>)
+			Collections.sort((List<T>) res.elements);
+		return res;
 	}
 
 	/**
@@ -427,7 +811,10 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 */
 	@Override
 	public GenericExtendedSet<T> convert(Object... e) {
-		return (GenericExtendedSet<T>) super.convert(e);
+		GenericExtendedSet<T> res = (GenericExtendedSet<T>) super.convert(e);
+		if (res.elements instanceof List<?>)
+			Collections.sort((List<T>) res.elements);
+		return res;
 	}
 	
 	/**
@@ -436,7 +823,8 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		GenericExtendedSet<Integer> s = new GenericExtendedSet<Integer>(HashSet.class, ALL_POSITIVE_INTEGERS);
+//		GenericExtendedSet<Integer> s = new GenericExtendedSet<Integer>(HashSet.class, ALL_POSITIVE_INTEGERS);
+		GenericExtendedSet<Integer> s = new GenericExtendedSet<Integer>(ArrayList.class, ALL_POSITIVE_INTEGERS);
 		s = s.convert(4, 40, 3, 1, 11000);
 		System.out.println("s = " + s.debugInfo() + " ---> " + s);
 		
@@ -444,6 +832,10 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 		System.out.println("t = " + t.debugInfo() + " ---> " + t);
 		
 		System.out.println("t.intersection(s) = " + t.intersection(s));
+		System.out.println("t.union(s) = " + t.union(s));
+		System.out.println("t.difference(s) = " + t.difference(s));
+		System.out.println("t.symmetricDifference(s) = " + t.symmetricDifference(s));
+		System.out.println("t.intersectionSize(s) = " + t.intersectionSize(s));
 		System.out.println("t.subSet(3, 11).intersection(s) = " + t.subSet(3, 11).intersection(s));
 		
 		System.out.println("t.complemented() = " + t.complemented());
