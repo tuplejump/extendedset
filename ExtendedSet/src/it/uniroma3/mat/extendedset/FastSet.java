@@ -43,6 +43,11 @@ import java.util.NoSuchElementException;
  * @see ConciseSet
  * @see IndexedSet
  */
+//TODO: since integers are internally represented by bits, there could be a
+//garbage collecting problem when iterating over integers. Indeed, new Integer
+//instances are created due to autoboxing. Therefore:
+//-- Add something to cache generated Integer instances!!!
+//-- Create a "companion" class that directly operates on primitive int type
 public class FastSet extends AbstractExtendedSet<Integer> {
 	/** number of bits within each word */
 	private final static int BITS_PER_WORD = 32;

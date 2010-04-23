@@ -65,6 +65,11 @@ import java.util.SortedSet;
  * @see FastSet
  * @see IndexedSet
  */
+// TODO: since integers are internally represented by bits, there could be a
+// garbage collecting problem when iterating over integers. Indeed, new Integer
+// instances are created due to autoboxing. Therefore:
+// -- Add something to cache generated Integer instances!!!
+// -- Create a "companion" class that directly operates on primitive int type
 public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		SortedSet<Integer>, Cloneable {
 	/**
