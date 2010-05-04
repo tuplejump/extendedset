@@ -18,6 +18,7 @@
 
 package it.uniroma3.mat.extendedset;
 
+
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -187,7 +188,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 				itemToIndex.put(indexToItem.get(i), i);
 		}
 
-		indices = compressed ? new ConciseSet() : new FastSet();
+		indices = new IntegerSet(compressed ? new ConciseSet() : new FastSet());
 	}
 
 	/**
@@ -219,7 +220,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	public IndexedSet(int first, boolean compressed) {
 		indexToItem = (Map<Integer, T>) new UncheckedFakeMap(first);
 		itemToIndex = (Map<T, Integer>) new UncheckedFakeMap(-first);
-		indices = compressed ? new ConciseSet() : new FastSet();
+		indices = new IntegerSet(compressed ? new ConciseSet() : new FastSet());
 	}
 
 	/**
@@ -249,7 +250,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 			throw new IllegalArgumentException("first > last");
 		indexToItem = (Map<Integer, T>) new CheckedFakeMap(last - first + 1, first, false);
 		itemToIndex = (Map<T, Integer>) new CheckedFakeMap(last - first + 1, first, true);
-		indices = compressed ? new ConciseSet() : new FastSet();
+		indices = new IntegerSet(compressed ? new ConciseSet() : new FastSet());
 	}
 
 	/**

@@ -19,6 +19,7 @@
 
 package it.uniroma3.mat.extendedset;
 
+
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
@@ -148,7 +149,7 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * Generates the intersection set
 	 * 
 	 * @param other
-	 *            {@link AbstractExtendedSet} instance that represents the right
+	 *            {@link ExtendedSet} instance that represents the right
 	 *            operand
 	 * @return the result of the operation
 	 * 

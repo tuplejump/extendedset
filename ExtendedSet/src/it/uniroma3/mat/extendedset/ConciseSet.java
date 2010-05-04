@@ -19,36 +19,26 @@
 
 package it.uniroma3.mat.extendedset;
 
-import java.util.ArrayList;
+
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.ConcurrentModificationException;
 import java.util.Formatter;
-import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
-import java.util.SortedSet;
 
 /**
  * This is CONCISE: COmpressed 'N' Composable Integer SEt.
  * <p>
- * This class is a {@link SortedSet} of integers that are internally represented
- * by compressed bitmaps though a RLE (Run-Length Encoding) compression
- * algorithm. See <a
+ * This class is an instance of {@link IntSet} internally represented by
+ * compressed bitmaps though a RLE (Run-Length Encoding) compression algorithm.
+ * See <a
  * href="http://arxiv.org/abs/1004.0403">http://arxiv.org/abs/1004.0403</a> for
  * more details.
  * <p>
- * The RLE compression method is mainly inspired by WAH (<i>Word-Aligned
- * Hybrid</i> compression). However, CONCISE allows for a better compression for
- * sparse data. The memory footprint required by a representation of
- * <code>n</code> elements is at most the same as an array of <code>n + 1</code>
- * elements. In WAH, this requires an array of size <code>2 * n</code> elements.
- * <p>
- * Notice that the returned iterator is <i>fail-fast</i>, similar to most
- * {@link Collection}-derived classes. If the set is structurally modified at
- * any time after the iterator is created, the iterator will throw a
+ * Notice that the iterator by {@link #intIterator()} is <i>fail-fast</i>, similar
+ * to most {@link Collection}-derived classes. If the set is structurally
+ * modified at any time after the iterator is created, the iterator will throw a
  * {@link ConcurrentModificationException}. Thus, in the face of concurrent
  * modification, the iterator fails quickly and cleanly, rather than risking
  * arbitrary, non-deterministic behavior at an undetermined time in the future.
@@ -65,13 +55,7 @@ import java.util.SortedSet;
  * @see FastSet
  * @see IndexedSet
  */
-// TODO: since integers are internally represented by bits, there could be a
-// garbage collecting problem when iterating over integers. Indeed, new Integer
-// instances are created due to autoboxing. Therefore:
-// -- Add something to cache generated Integer instances!!!
-// -- Create a "companion" class that directly operates on primitive int type
-public class ConciseSet extends AbstractExtendedSet<Integer> implements
-		SortedSet<Integer>, Cloneable {
+public class ConciseSet extends IntSet {
 	/**
 	 * This is the compressed bitmap, that is a collection of words. For each
 	 * word:
@@ -201,98 +185,6 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	public ConciseSet(boolean simulateWAH) {
 		this.simulateWAH = simulateWAH;
 		reset();
-	}
-
-	/**
-	 * Creates an empty {@link ConciseSet} instance and then populates it from
-	 * an existing integer collection
-	 * 
-	 * @param c
-	 */
-	public ConciseSet(Collection<? extends Integer> c) {
-		this(false, c);
-	}
-
-	/**
-	 * Creates an empty {@link ConciseSet} instance and then populates it from
-	 * an existing integer collection
-	 * 
-	 * @param simulateWAH
-	 *            <code>true</code> if the class must simulate the behavior of
-	 *            WAH
-	 * @param c
-	 */
-	public ConciseSet(boolean simulateWAH, Collection<? extends Integer> c) {
-		this(simulateWAH);
-
-		// try to convert the collection
-		if (c != null && !c.isEmpty()) {
-			// sorted element (in order to use the append() method)
-			Collection<? extends Integer> elements;
-			if ((c instanceof SortedSet<?>) && (((SortedSet<?>) c).comparator() == null)) {
-				// if elements are already ordered according to the natural
-				// order of Integer, simply use them
-				elements = c;
-			} else {
-				// sort elements in ascending order
-				elements = new ArrayList<Integer>(c);
-				Collections.sort((List<?>) elements, null);
-			}
-
-			// append elements
-			for (Integer i : elements)
-				// check for duplicates
-				if (last != i.intValue())
-					append(i.intValue());
-		}	
-	}
-
-	/**
-	 * Creates an empty {@link ConciseSet} instance and then populates it from
-	 * an existing integer collection
-	 * 
-	 * @param a
-	 */
-	public ConciseSet(Object... a) {
-		this(false, a);
-	}
-
-	/**
-	 * Creates an empty {@link ConciseSet} instance and then populates it from
-	 * an existing integer collection
-	 * 
-	 * @param simulateWAH
-	 *            <code>true</code> if the class must simulate the behavior of
-	 *            WAH
-	 * @param a
-	 */
-	@SuppressWarnings("unchecked")
-	public ConciseSet(boolean simulateWAH, Object... a) {
-		this(simulateWAH, a == null ? (Collection) null : Arrays.asList(a));
-	}
-
-	/**
-	 * Creates an empty {@link ConciseSet} instance and then populates it with
-	 * the given integer
-	 * 
-	 * @param a
-	 */
-	public ConciseSet(int a) {
-		this(false, a);
-	}
-	
-	/**
-	 * Creates an empty {@link ConciseSet} instance and then populates it with
-	 * the given integer
-	 * 
-	 * @param simulateWAH
-	 *            <code>true</code> if the class must simulate the behavior of
-	 *            WAH
-	 * @param a
-	 */
-	public ConciseSet(boolean simulateWAH, int a) {
-		this(simulateWAH);
-		append(a);
 	}
 
 	/**
@@ -1260,15 +1152,13 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 *            operator
 	 * @return the result of the operation
 	 */
-	private ConciseSet performOperation(Collection<? extends Integer> other, Operator operator) {
-		ConciseSet otherSet = convert(other);
-		
+	private ConciseSet performOperation(ConciseSet other, Operator operator) {
 		// non-empty arguments
-		if (this.isEmpty() || otherSet.isEmpty()) 
-			return operator.combineEmptySets(this, otherSet);
+		if (this.isEmpty() || other.isEmpty()) 
+			return operator.combineEmptySets(this, other);
 		
 		// if the two operands are disjoint, the operation is faster
-		ConciseSet res = operator.combineDisjointSets(this, otherSet);
+		ConciseSet res = operator.combineDisjointSets(this, other);
 		if (res != null)
 			return res;
 		
@@ -1281,12 +1171,12 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		// for the uncompressed representation
 		res = new ConciseSet(simulateWAH);
 		res.words = new int[Math.min(
-				this.lastWordIndex + otherSet.lastWordIndex + 3, 
-				maxLiteralLengthDivision(Math.max(this.last, otherSet.last)) + 1)];
+				this.lastWordIndex + other.lastWordIndex + 3, 
+				maxLiteralLengthDivision(Math.max(this.last, other.last)) + 1)];
 
 		// scan "this" and "other"
 		WordIterator thisItr = this.new WordIterator();
-		WordIterator otherItr = otherSet.new WordIterator();
+		WordIterator otherItr = other.new WordIterator();
 		res.last = 0;
 		while (!thisItr.endOfWords() && !otherItr.endOfWords()) {
 			// perform the operation
@@ -1348,32 +1238,33 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public int intersectionSize(Collection<? extends Integer> other) {
-		Statistics.sizeCheckCount++;
-		
-		// empty arguments
-		if (other == null || other.isEmpty() || this.isEmpty())
+	public int intersectionSize(IntSet c) {
+		if (c == null || c.isEmpty())
+			return 0;
+		if (c == this)
+			return size();
+		if (isEmpty())
 			return 0;
 
 		// single-element intersection
 		if (size == 1)
-			return other.contains(last()) ? 1 : 0;
-		
+			return c.contains(last()) ? 1 : 0;
+
 		// convert the other set in order to perform a more complex intersection
-		ConciseSet otherSet = convert(other);
-		if (otherSet.size == 1) 
-			return contains(otherSet.last()) ? 1 : 0;
+		final ConciseSet other = convert(c);
+		if (other.size == 1) 
+			return contains(other.last()) ? 1 : 0;
 		
 		// disjoint sets
 		if (isSequenceWithNoBits(this.words[0]) 
-				&& maxLiteralLengthMultiplication(getSequenceCount(this.words[0]) + 1) > otherSet.last) {
+				&& maxLiteralLengthMultiplication(getSequenceCount(this.words[0]) + 1) > other.last) {
 			if (isZeroSequence(this.words[0]))
 				return 0;
-			return otherSet.size();
+			return other.size();
 		}
-		if (isSequenceWithNoBits(otherSet.words[0]) 
-				&& maxLiteralLengthMultiplication(getSequenceCount(otherSet.words[0]) + 1) > this.last) {
-			if (isZeroSequence(otherSet.words[0]))
+		if (isSequenceWithNoBits(other.words[0]) 
+				&& maxLiteralLengthMultiplication(getSequenceCount(other.words[0]) + 1) > this.last) {
+			if (isZeroSequence(other.words[0]))
 				return 0;
 			return this.size();
 		}
@@ -1383,7 +1274,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 
 		// scan "this" and "other"
 		WordIterator thisItr = this.new WordIterator();
-		WordIterator otherItr = otherSet.new WordIterator();
+		WordIterator otherItr = other.new WordIterator();
 		while (!thisItr.endOfWords() && !otherItr.endOfWords()) {
 			// perform the operation
 			int curRes = getLiteralBitCount(thisItr.currentLiteral & otherItr.currentLiteral);
@@ -1406,17 +1297,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public int complementSize() {
-		if (isEmpty())
-			return 0;
-		return last - size() + 1;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Integer get(int i) {
+	public int get(int i) {
 		if (i < 0)
 			throw new IndexOutOfBoundsException();
 
@@ -1482,8 +1363,9 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public int indexOf(Integer e) {
-		// empty element
+	public int indexOf(int e) {
+		if (e < 0)
+			throw new IndexOutOfBoundsException();
 		if (isEmpty())
 			return -1;
 
@@ -1609,36 +1491,32 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ConciseSet intersection(Collection<? extends Integer> other) {
-		Statistics.intersectionCount++;
-		return performOperation(other, Operator.AND);
+	public ConciseSet intersection(IntSet other) {
+		return performOperation(convert(other), Operator.AND);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ConciseSet union(Collection<? extends Integer> other) {
-		Statistics.unionCount++;
-		return performOperation(other, Operator.OR);
+	public ConciseSet union(IntSet other) {
+		return performOperation(convert(other), Operator.OR);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ConciseSet difference(Collection<? extends Integer> other) {
-		Statistics.differenceCount++;
-		return performOperation(other, Operator.ANDNOT);
+	public ConciseSet difference(IntSet  other) {
+		return performOperation(convert(other), Operator.ANDNOT);
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ConciseSet symmetricDifference(Collection<? extends Integer> other) {
-		Statistics.symmetricDifferenceCount++;
-		return performOperation(other, Operator.XOR);
+	public ConciseSet symmetricDifference(IntSet other) {
+		return performOperation(convert(other), Operator.XOR);
 	}
 
 	/**
@@ -1743,7 +1621,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	/**
 	 * Iterator for set bits of {@link ConciseSet}, from LSB to MSB
 	 */
-	private class BitIterator implements ExtendedIterator<Integer> {
+	private class BitIterator implements ExtendedIntIterator {
 		private WordIterator wordItr = new WordIterator();
 		private int rightmostBitOfCurrentWord = 0;
 		private int nextBitToCheck = 0;
@@ -1771,7 +1649,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		 * {@inheritDoc}
 		 */
 		@Override
-		public Integer next() {
+		public int next() {
 			// check for concurrent modification 
 			if (initialModCount != modCount)
 				throw new ConcurrentModificationException();
@@ -1800,23 +1678,23 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 				}
 			}
 
-			return new Integer(rightmostBitOfCurrentWord + nextSetBit);
+			return rightmostBitOfCurrentWord + nextSetBit;
 		}
 
 		/**
 		 * {@inheritDoc}
 		 */
 		@Override
-		public void skipAllBefore(Integer element) {
-			if (element.intValue() > MAX_ALLOWED_INTEGER)
-				throw new IndexOutOfBoundsException(element.toString());
+		public void skipAllBefore(int element) {
+			if (element > MAX_ALLOWED_INTEGER)
+				throw new IndexOutOfBoundsException(String.valueOf(element));
 
 			// the element is before the next one
-			if (element.intValue() <= rightmostBitOfCurrentWord + nextBitToCheck)
+			if (element <= rightmostBitOfCurrentWord + nextBitToCheck)
 				return;
 			
 			// the element is after the last one
-			if (element.intValue() > last){
+			if (element > last){
 				// makes hasNext() return "false"
 				wordItr.remainingWords = 0;
 				wordItr.currentWordCopy = ALL_ZEROS_LITERAL;
@@ -1824,7 +1702,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 			}
 			
 			// next element
-			nextBitToCheck = element.intValue() - rightmostBitOfCurrentWord;
+			nextBitToCheck = element - rightmostBitOfCurrentWord;
 			
 			// the element is in the current word
 			if (nextBitToCheck < MAX_LITERAL_LENGHT)
@@ -1881,7 +1759,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	/**
 	 * Iterator for set bits of {@link ConciseSet}, from MSB to LSB
 	 */
-	private class ReverseBitIterator implements ExtendedIterator<Integer> {
+	private class ReverseBitIterator implements ExtendedIntIterator {
 		private ReverseWordIterator wordItr = new ReverseWordIterator();
 		private int rightmostBitOfCurrentWord = maxLiteralLengthMultiplication(maxLiteralLengthDivision(last));
 		private int nextBitToCheck = maxLiteralLengthModulus(last);
@@ -1910,7 +1788,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		 * {@inheritDoc}
 		 */
 		@Override
-		public Integer next() {
+		public int next() {
 			// check for concurrent modification 
 			if (initialModCount != modCount)
 				throw new ConcurrentModificationException();
@@ -1950,16 +1828,16 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		 * {@inheritDoc}
 		 */
 		@Override
-		public void skipAllBefore(Integer element) {
-			if (element.intValue() < 0)
-				throw new IndexOutOfBoundsException(element.toString());
+		public void skipAllBefore(int element) {
+			if (element < 0)
+				throw new IndexOutOfBoundsException(String.valueOf(element));
 			
 			// the element is before the next one
-			if (element.intValue() >= rightmostBitOfCurrentWord + nextBitToCheck)
+			if (element >= rightmostBitOfCurrentWord + nextBitToCheck)
 				return;
 			
 			// next element
-			nextBitToCheck = element.intValue() - rightmostBitOfCurrentWord;
+			nextBitToCheck = element - rightmostBitOfCurrentWord;
 			
 			// the element is in the current word
 			if (nextBitToCheck > 0)
@@ -2012,12 +1890,12 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ExtendedIterator<Integer> iterator() {
+	public ExtendedIntIterator intIterator() {
 		if (isEmpty()) {
-			return new ExtendedIterator<Integer>() {
-				@Override public void skipAllBefore(Integer element) {/*empty*/}
+			return new ExtendedIntIterator() {
+				@Override public void skipAllBefore(int element) {/*empty*/}
 				@Override public boolean hasNext() {return false;}
-				@Override public Integer next() {throw new NoSuchElementException();}
+				@Override public int next() {throw new NoSuchElementException();}
 				@Override public void remove() {throw new UnsupportedOperationException();}
 			};
 		}
@@ -2028,12 +1906,12 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ExtendedIterator<Integer> descendingIterator() {
+	public ExtendedIntIterator descendingIntIterator() {
 		if (isEmpty()) {
-			return new ExtendedIterator<Integer>() {
-				@Override public void skipAllBefore(Integer element) {/*empty*/}
+			return new ExtendedIntIterator() {
+				@Override public void skipAllBefore(int element) {/*empty*/}
 				@Override public boolean hasNext() {return false;}
-				@Override public Integer next() {throw new NoSuchElementException();}
+				@Override public int next() {throw new NoSuchElementException();}
 				@Override public void remove() {throw new UnsupportedOperationException();}
 			};
 		}
@@ -2052,57 +1930,53 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public Comparator<? super Integer> comparator() {
-		// natural order of Integer
-		return null;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public Integer last() {
+	public int last() {
 		if (isEmpty()) 
 			throw new NoSuchElementException();
-		return new Integer(last);
+		return last;
 	}
 
 	/**
-	 * {@inheritDoc}
+	 * Convert a given collection to a {@link ConciseSet} instance
 	 */
-	@SuppressWarnings("unchecked")
-	@Override
-	public ConciseSet convert(Collection<?> c) {
-		if (c == null)
-			return new ConciseSet(simulateWAH);
+	private ConciseSet convert(IntSet c) {
 		if (c instanceof ConciseSet)
 			return (ConciseSet) c;
-		return new ConciseSet(simulateWAH, (Collection<? extends Integer>) c);
+		if (c == null)
+			return new ConciseSet(simulateWAH);
+
+		ConciseSet res = new ConciseSet(simulateWAH);
+		ExtendedIntIterator itr = c.intIterator();
+		while (itr.hasNext()) 
+			res.add(itr.next());
+		return res;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ConciseSet convert(Object... e) {
-		return new ConciseSet(simulateWAH, e);
+	public ConciseSet convert(int... a) {
+		ConciseSet res = new ConciseSet();
+		if (a != null) {
+			a = Arrays.copyOf(a, a.length);
+			Arrays.sort(a);
+			for (int i : a)
+				if (last != i)
+					res.add(i);
+		}
+		return res;
 	}
 
 	/**
-	 * Converts a given integer into an instance of the current class
+	 * Replace the current instance with another {@link ConciseSet} instance. It
+	 * also returns <code>true</code> if the given set is actually different
+	 * from the current one
 	 * 
-	 * @param e integer to convert
-	 * @return the converted collection
-	 */
-	public ConciseSet convert(int e) {
-		return new ConciseSet(simulateWAH, e);
-	}
-	
-	/**
-	 * Replace the current instance with another {@link ConciseSet} instance
-	 * 
-	 * @param other {@link ConciseSet} instance to use to replace the current one
-	 * @return <code>true</code> if the given set is different from the current set
+	 * @param other
+	 *            {@link ConciseSet} instance to use to replace the current one
+	 * @return <code>true</code> if the given set is different from the current
+	 *         set
 	 */
 	private boolean replaceWith(ConciseSet other) {
 		if (this == other)
@@ -2131,27 +2005,25 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean add(Integer e) {
+	public boolean add(int e) {
 		modCount++;
 
-		final int b = e.intValue();
-
 		// range check
-		if (b < MIN_ALLOWED_SET_BIT || b > MAX_ALLOWED_INTEGER)
-			throw new IndexOutOfBoundsException(Integer.toString(b));
+		if (e < MIN_ALLOWED_SET_BIT || e > MAX_ALLOWED_INTEGER)
+			throw new IndexOutOfBoundsException(String.valueOf(e));
 
 		// the element can be simply appended
-		if (b > last) {
-			append(b);
+		if (e > last) {
+			append(e);
 			return true;
 		}
 
-		if (b == last)
+		if (e == last)
 			return false;
 
 		// check if the element can be put in a literal word
-		int blockIndex = maxLiteralLengthDivision(b);
-		int bitPosition = maxLiteralLengthModulus(b);
+		int blockIndex = maxLiteralLengthDivision(e);
+		int bitPosition = maxLiteralLengthModulus(e);
 		for (int i = 0; i <= lastWordIndex && blockIndex >= 0; i++) {
 			int w = words[i];
 			if (isLiteral(w)) {
@@ -2213,29 +2085,26 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		
 		// the bit is in the middle of a sequence or it may cause a literal to
 		// become a sequence, thus the "easiest" way to add it is by ORing
-		Statistics.unionCount++;
-		return replaceWith(performOperation(convert(b), Operator.OR));
+		return replaceWith(performOperation(convert(e), Operator.OR));
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean remove(Object o) {
+	public boolean remove(int o) {
 		modCount++;
 
-		if (o == null || isEmpty() || !(o instanceof Integer))
+		if (isEmpty())
 			return false;
 
-		final int b = ((Integer) o).intValue();
-
 		// the element cannot exist
-		if (b > last) 
+		if (o > last) 
 			return false;
 
 		// check if the element can be removed from a literal word
-		int blockIndex = maxLiteralLengthDivision(b);
-		int bitPosition = maxLiteralLengthModulus(b);
+		int blockIndex = maxLiteralLengthDivision(o);
+		int bitPosition = maxLiteralLengthModulus(o);
 		for (int i = 0; i <= lastWordIndex && blockIndex >= 0; i++) {
 			int w = words[i];
 			if (isLiteral(w)) {
@@ -2270,7 +2139,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 						size--;
 					
 					// if the bit is the maximal element, update it
-					if (b == last) {
+					if (o == last) {
 						last -= maxLiteralLengthModulus(last) - (MAX_LITERAL_LENGHT 
 								- Integer.numberOfLeadingZeros(getLiteralBits(words[i])));
 					}
@@ -2303,27 +2172,20 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		
 		// the bit is in the middle of a sequence or it may cause a literal to
 		// become a sequence, thus the "easiest" way to remove it by ANDNOTing
-		Statistics.differenceCount++;
-		return replaceWith(performOperation(convert(b), Operator.ANDNOT));
+		return replaceWith(performOperation(convert(o), Operator.ANDNOT));
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean contains(Object o) {
-		if (o == null || isEmpty() || !(o instanceof Integer))
-			return false;
-
-		final int b = ((Integer)o ).intValue();
-		
-		// the element is greater than the maximal value
-		if (b > last) 
+	public boolean contains(int o) {
+		if (isEmpty() || o > last || o < 0)
 			return false;
 
 		// check if the element is within a literal word
-		int blockIndex = maxLiteralLengthDivision(b);
-		int bitPosition = maxLiteralLengthModulus(b);
+		int blockIndex = maxLiteralLengthDivision(o);
+		int bitPosition = maxLiteralLengthModulus(o);
 		for (int i = 0; i <= lastWordIndex && blockIndex >= 0; i++) {
 			int w = words[i];
 			if (isLiteral(w)) {
@@ -2363,25 +2225,23 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean containsAll(Collection<?> c) {
-		Statistics.sizeCheckCount++;
-
+	public boolean containsAll(IntSet c) {
 		if (c == null || c.isEmpty() || c == this)
 			return true;
 		if (isEmpty())
 			return false;
-		
-		final ConciseSet otherSet = convert(c);
-		if (otherSet.last > last)
+
+		final ConciseSet other = convert(c);
+		if (other.last > last)
 			return false;
-		if (size >= 0 && otherSet.size > size)
+		if (size >= 0 && other.size > size)
 			return false;
-		if (otherSet.size == 1) 
-			return contains(otherSet.last());
+		if (other.size == 1) 
+			return contains(other.last());
 
 		// scan "this" and "other"
 		WordIterator thisItr = this.new WordIterator();
-		WordIterator otherItr = otherSet.new WordIterator();
+		WordIterator otherItr = other.new WordIterator();
 		while (!thisItr.endOfWords() && !otherItr.endOfWords()) {
 			// check shared elements between the two sets
 			int curRes = thisItr.currentLiteral & otherItr.currentLiteral;
@@ -2407,35 +2267,33 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean containsAny(Collection<? extends Integer> other) {
-		Statistics.sizeCheckCount++;
-
-		if (other == null || other.isEmpty() || other == this)
+	public boolean containsAny(IntSet c) {
+		if (c == null || c.isEmpty() || c == this)
 			return true;
 		if (isEmpty())
 			return false;
 		
-		final ConciseSet otherSet = convert(other);
-		if (otherSet.size == 1)
-			return contains(otherSet.last);
+		final ConciseSet other = convert(c);
+		if (other.size == 1)
+			return contains(other.last);
 
 		// disjoint sets
 		if (isSequenceWithNoBits(this.words[0]) 
-				&& maxLiteralLengthMultiplication(getSequenceCount(this.words[0]) + 1) > otherSet.last) {
+				&& maxLiteralLengthMultiplication(getSequenceCount(this.words[0]) + 1) > other.last) {
 			if (isZeroSequence(this.words[0]))
 				return false;
 			return true;
 		}
-		if (isSequenceWithNoBits(otherSet.words[0]) 
-				&& maxLiteralLengthMultiplication(getSequenceCount(otherSet.words[0]) + 1) > this.last) {
-			if (isZeroSequence(otherSet.words[0]))
+		if (isSequenceWithNoBits(other.words[0]) 
+				&& maxLiteralLengthMultiplication(getSequenceCount(other.words[0]) + 1) > this.last) {
+			if (isZeroSequence(other.words[0]))
 				return false;
 			return true;
 		}
 
 		// scan "this" and "other"
 		WordIterator thisItr = this.new WordIterator();
-		WordIterator otherItr = otherSet.new WordIterator();
+		WordIterator otherItr = other.new WordIterator();
 		while (!thisItr.endOfWords() && !otherItr.endOfWords()) {
 			// check shared elements between the two sets
 			int curRes = thisItr.currentLiteral & otherItr.currentLiteral;
@@ -2460,38 +2318,33 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean containsAtLeast(Collection<? extends Integer> other, int minElements) {
+	public boolean containsAtLeast(IntSet c, int minElements) {
 		if (minElements < 1)
 			throw new IllegalArgumentException();
-		
-		Statistics.sizeCheckCount++;
-
-		// empty arguments
-		if ((size >= 0 && size < minElements) || other == null || other.isEmpty() || isEmpty())
+		if ((size >= 0 && size < minElements) || c == null || c.isEmpty() || isEmpty())
 			return false;
-		if (this == other)
+		if (this == c)
 			return size() >= minElements;
 
-		
 		// convert the other set in order to perform a more complex intersection
-		ConciseSet otherSet = convert(other);
-		if (otherSet.size >= 0 && otherSet.size < minElements)
+		ConciseSet other = convert(c);
+		if (other.size >= 0 && other.size < minElements)
 			return false;
-		if (minElements == 1 && otherSet.size == 1)
-			return contains(otherSet.last());
+		if (minElements == 1 && other.size == 1)
+			return contains(other.last());
 		if (minElements == 1 && size == 1)
-			return otherSet.contains(last());
+			return other.contains(last());
 		
 		// disjoint sets
 		if (isSequenceWithNoBits(this.words[0]) 
-				&& maxLiteralLengthMultiplication(getSequenceCount(this.words[0]) + 1) > otherSet.last) {
+				&& maxLiteralLengthMultiplication(getSequenceCount(this.words[0]) + 1) > other.last) {
 			if (isZeroSequence(this.words[0]))
 				return false;
 			return true;
 		}
-		if (isSequenceWithNoBits(otherSet.words[0]) 
-				&& maxLiteralLengthMultiplication(getSequenceCount(otherSet.words[0]) + 1) > this.last) {
-			if (isZeroSequence(otherSet.words[0]))
+		if (isSequenceWithNoBits(other.words[0]) 
+				&& maxLiteralLengthMultiplication(getSequenceCount(other.words[0]) + 1) > this.last) {
+			if (isZeroSequence(other.words[0]))
 				return false;
 			return true;
 		}
@@ -2501,7 +2354,7 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 
 		// scan "this" and "other"
 		WordIterator thisItr = this.new WordIterator();
-		WordIterator otherItr = otherSet.new WordIterator();
+		WordIterator otherItr = other.new WordIterator();
 		while (!thisItr.endOfWords() && !otherItr.endOfWords()) {
 			// perform the operation
 			int curRes = getLiteralBitCount(thisItr.currentLiteral & otherItr.currentLiteral);
@@ -2533,9 +2386,8 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean retainAll(Collection<?> c) {
+	public boolean retainAll(IntSet c) {
 		modCount++;
-		Statistics.intersectionCount++;
 
 		if (isEmpty() || c == this)
 			return false;
@@ -2562,10 +2414,9 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean addAll(Collection<? extends Integer> c) {
+	public boolean addAll(IntSet c) {
 		modCount++;
-		Statistics.unionCount++;
-		if (c == null || c.isEmpty() || c == this)
+		if (c == null || c.isEmpty() || this == c)
 			return false;
 
 		ConciseSet other = convert(c);
@@ -2579,14 +2430,15 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean removeAll(Collection<?> c) {
+	public boolean removeAll(IntSet c) {
 		modCount++;
-		Statistics.differenceCount++;
 
 		if (c == null || c.isEmpty() || isEmpty())
 			return false;
-		if (c == this)
+		if (c == this) {
 			clear();
+			return true;
+		}
 
 		ConciseSet other = convert(c);
 		if (other.size == 1) 
@@ -2645,14 +2497,12 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 */
 	@Override
 	public boolean equals(Object obj) {
-		Statistics.equalsCount++;
-
 		if (this == obj)
 			return true;
-		if (obj == null)
+		if (!(obj instanceof ConciseSet))
 			return false;
 		
-		ConciseSet other = convert((Collection<?>) obj);
+		final ConciseSet other = (ConciseSet) obj;
 		if (last != other.last)
 			return false;
 		if (!isEmpty())
@@ -2666,21 +2516,16 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	 * {@inheritDoc}
 	 */
 	@Override
-	public int compareTo(ExtendedSet<Integer> o) {
-		// check if the given object has the same internal representation
-		if (!(o instanceof ConciseSet))
-			return super.compareTo(o);
-
-		Statistics.equalsCount++;
-		final ConciseSet other = (ConciseSet) o;
-		
+	public int compareTo(IntSet o) {
 		// empty set cases
-		if (this.isEmpty() && other.isEmpty())
+		if (this.isEmpty() && o.isEmpty())
 			return 0;
 		if (this.isEmpty())
 			return -1;
-		if (other.isEmpty())
+		if (o.isEmpty())
 			return 1;
+		
+		final ConciseSet other = convert(o);
 		
 		// the word at the end must be the same
 		int res = this.last - other.last;
@@ -2709,24 +2554,6 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 	/**
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings("unchecked")
-	@Override
-	public List<? extends ConciseSet> powerSet() {
-		return (List<? extends ConciseSet>) super.powerSet();
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@SuppressWarnings("unchecked")
-	@Override
-	public List<? extends ConciseSet> powerSet(int min, int max) {
-		return (List<? extends ConciseSet>) super.powerSet(min, max);
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
 	@Override
 	public double bitmapCompressionRatio() {
 		if (isEmpty())
@@ -2744,38 +2571,6 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 		return (double) (lastWordIndex + 1) / size();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public ExtendedSet<Integer> headSet(Integer toElement) {
-		if (toElement.intValue() > MAX_ALLOWED_INTEGER)
-			throw new IllegalArgumentException(toElement.toString());
-		return super.headSet(toElement);
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public ExtendedSet<Integer> subSet(Integer fromElement, Integer toElement) {
-		if (toElement.intValue() > MAX_ALLOWED_INTEGER)
-			throw new IllegalArgumentException(toElement.toString());
-		if (fromElement.intValue() < 0)
-			throw new IllegalArgumentException(fromElement.toString());
-		return super.subSet(fromElement, toElement);
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public ExtendedSet<Integer> tailSet(Integer fromElement) {
-		if (fromElement.intValue() < 0)
-			throw new IllegalArgumentException(fromElement.toString());
-		return super.tailSet(fromElement);
-	}
-	
 	/*
 	 * DEBUG METHODS
 	 */
@@ -2878,20 +2673,42 @@ public class ConciseSet extends AbstractExtendedSet<Integer> implements
 
 		return s.toString();
 	}
-	
+
 	/**
-	 * Test method
-	 * 
-	 * @param args
+	 * {@inheritDoc}
 	 */
-	public static void main(String[] args) {
-		ConciseSet s = new ConciseSet(true, 3, 5);
-		s.fill(31, 93);
-		s.add(1024);
-		s.add(1028);
-		s.add(MAX_ALLOWED_INTEGER);
-		System.out.println(s.debugInfo());
+	@Override
+	public void clear(int from, int to) {
+		ConciseSet toRemove = empty();
+		toRemove.fill(from, to);
+		this.removeAll(toRemove);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void fill(int from, int to) {
+		ConciseSet toAdd = empty();
+		toAdd.add(to);
+		toAdd.complement();
+		toAdd.add(to);
+
+		ConciseSet toRemove = empty();
+		toRemove.add(from);
+		toRemove.complement();
 		
-		System.out.println(new ConciseSet(false, s).debugInfo());
+		toAdd.removeAll(toRemove);
+		
+		this.addAll(toAdd);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void flip(int e) {
+		if (!add(e))
+			remove(e);
 	}
 }
