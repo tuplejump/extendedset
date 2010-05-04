@@ -24,6 +24,7 @@ import it.uniroma3.mat.extendedset.ExtendedSet;
 import it.uniroma3.mat.extendedset.FastSet;
 import it.uniroma3.mat.extendedset.GenericExtendedSet;
 import it.uniroma3.mat.extendedset.IndexedSet;
+import it.uniroma3.mat.extendedset.IntegerSet;
 import it.uniroma3.mat.extendedset.ExtendedSet.ExtendedIterator;
 import it.uniroma3.mat.extendedset.ExtendedSet.Statistics;
 import it.uniroma3.mat.extendedset.utilities.MersenneTwister;
@@ -720,8 +721,8 @@ public class Debug {
 	 * Stress test (addition) for {@link #subSet(Integer, Integer)}
 	 */
 	private static void testForSubSetAdditionStress() {
-		ConciseSet previousBits = new ConciseSet();
-		ConciseSet currentBits = new ConciseSet();
+		IntegerSet previousBits = new IntegerSet(new ConciseSet());
+		IntegerSet currentBits = new IntegerSet(new ConciseSet());
 		TreeSet<Integer> currentItems = new TreeSet<Integer>();
 
 		Random rnd = new MersenneTwister();
@@ -758,7 +759,8 @@ public class Debug {
 			}
 			
 			// check the representation
-			ConciseSet otherBits = new ConciseSet(currentItems);
+			IntegerSet otherBits = new IntegerSet(new ConciseSet());
+			otherBits.addAll(currentItems);
 			if (otherBits.hashCode() != currentBits.hashCode()) {
 				System.out.println("Representation not correct!");
 				System.out.println(currentBits.debugInfo());
@@ -776,8 +778,8 @@ public class Debug {
 	 * Stress test (addition) for {@link ConciseSet#subSet(Integer, Integer)}
 	 */
 	private static void testForSubSetRemovalStress() {
-		ConciseSet previousBits = new ConciseSet();
-		ConciseSet currentBits = new ConciseSet();
+		IntegerSet previousBits = new IntegerSet(new ConciseSet());
+		IntegerSet currentBits = new IntegerSet(new ConciseSet());
 		TreeSet<Integer> currentItems = new TreeSet<Integer>();
 
 		// create a 1-filled bitset
@@ -823,7 +825,8 @@ public class Debug {
 			}
 			
 			// check the representation
-			ConciseSet otherBits = new ConciseSet(currentItems);
+			IntegerSet otherBits = new IntegerSet(new ConciseSet());
+			otherBits.addAll(currentItems);
 			if (otherBits.hashCode() != currentBits.hashCode()) {
 				System.out.println("Representation not correct!");
 				System.out.println(currentBits.debugInfo());
@@ -844,8 +847,8 @@ public class Debug {
 	 * random sets
 	 */
 	private static void testForSubSetRandomOperationsStress() {
-		ConciseSet bits = new ConciseSet();
-		ConciseSet bitsPrevious = new ConciseSet();
+		IntegerSet bits = new IntegerSet(new ConciseSet());
+		IntegerSet bitsPrevious = new IntegerSet(new ConciseSet());
 		TreeSet<Integer> items = new TreeSet<Integer>();
 
 		Random rnd = new MersenneTwister();
@@ -1013,7 +1016,8 @@ public class Debug {
 			}
 			
 			// check the representation
-			ConciseSet otherBits = new ConciseSet(items);
+			IntegerSet otherBits = new IntegerSet(new ConciseSet());
+			otherBits.addAll(items);
 			if (otherBits.hashCode() != bits.hashCode()) {
 				System.out.println("Representation not correct!");
 				System.out.format("min: %d, max: %d, minSub: %d, maxSub: %d\n", min, max, minSub, maxSub);
@@ -1308,6 +1312,13 @@ public class Debug {
 		}
 	}
 
+	@SuppressWarnings("unused")
+	private static class IntegerFastSet extends IntegerSet {IntegerFastSet() {super(new FastSet());}}
+	@SuppressWarnings("unused")
+	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new ConciseSet());}}
+//	@SuppressWarnings("unused")
+	private static class IntegerConcisePlusSet extends IntegerSet {IntegerConcisePlusSet() {super(new ConcisePlusSet());}}
+
 	/**
 	 * Test launcher
 	 * 
@@ -1317,10 +1328,9 @@ public class Debug {
 		// NOTE: the most complete test is TestCase.RANDOM_OPERATION_STRESS
 		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS;
 //		TestCase testCase = TestCase.ADDITION_STRESS;
-//		Class<? extends ExtendedSet<Integer>> classToTest = FastSet.class;
-//		Class<? extends ExtendedSet<Integer>> classToTest = ConciseSet.class;
-		Class<? extends ExtendedSet<Integer>> classToTest = ConcisePlusSet.class;
-//		Class<? extends ExtendedSet<Integer>> classToTest = MyIndexedSet.class;
+//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerFastSet.class;
+//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConciseSet.class;
+		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcisePlusSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = ListSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = LinkedSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = ArraySet.class;

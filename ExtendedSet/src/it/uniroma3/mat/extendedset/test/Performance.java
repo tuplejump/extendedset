@@ -24,6 +24,7 @@ import it.uniroma3.mat.extendedset.ConcisePlusSet;
 import it.uniroma3.mat.extendedset.ConciseSet;
 import it.uniroma3.mat.extendedset.FastSet;
 import it.uniroma3.mat.extendedset.GenericExtendedSet;
+import it.uniroma3.mat.extendedset.IntegerSet;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -45,14 +46,12 @@ import java.util.Map.Entry;
  * @version $Id$
  */
 public class Performance {
-	/** 
-	 * Class to test the WAH algorithm 
-	 */
-	private static class WAHSet extends ConciseSet {
-		@SuppressWarnings("unused")
-		WAHSet() {super(true);}
-		WAHSet(Collection<? extends Integer> c) {super(true, c);}
-	}
+	/* test classes */
+	private static class WAHSet extends ConciseSet {WAHSet() {super(true);}}
+	private static class IntegerFastSet extends IntegerSet {IntegerFastSet() {super(new FastSet());}}
+	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new ConciseSet());}}
+	private static class IntegerConcisePlusSet extends IntegerSet {IntegerConcisePlusSet() {super(new ConcisePlusSet());}}
+	private static class IntegerWAHSet extends IntegerSet {IntegerWAHSet() {super(new WAHSet());}}
 
 	/** 
 	 * Class to test the sorted array
@@ -295,16 +294,20 @@ public class Performance {
 						throw new RuntimeException("unexpected");
 					}
 					
-					FastSet s0 = new FastSet(integers);
+					IntegerSet s0 = new IntegerSet(new FastSet());
+					s0.addAll(integers);
 					System.out.format("%7d\t", (int) (s0.collectionCompressionRatio() * cardinality));
 					
-					ConciseSet s1 = new ConciseSet(integers);
+					IntegerSet s1 = new IntegerSet(new ConciseSet());
+					s1.addAll(integers);
 					System.out.format("%7d\t", (int) (s1.collectionCompressionRatio() * cardinality));
 					
-					WAHSet s2 = new WAHSet(integers);
+					IntegerSet s2 = new IntegerSet(new WAHSet());
+					s2.addAll(integers);
 					System.out.format("%7d\t", (int) (s2.collectionCompressionRatio() * cardinality));
 
-					ConcisePlusSet s3 = new ConcisePlusSet(integers);
+					IntegerSet s3 = new IntegerSet(new ConcisePlusSet());
+					s3.addAll(integers);
 					System.out.format("%7d\n", (int) (s3.collectionCompressionRatio() * cardinality));
 				}
 			}
@@ -312,13 +315,23 @@ public class Performance {
 		
 		Class<?>[] classes;
 		if (onlyBitmaps)
-			classes = new Class[] { FastSet.class, ConciseSet.class,
-					ConcisePlusSet.class, ArraySet.class };
+			classes = new Class[] { 
+				ArraySet.class,
+				IntegerFastSet.class, 
+				IntegerConciseSet.class,
+				IntegerConcisePlusSet.class};
 		else
-			classes = new Class[] { ArrayList.class, LinkedList.class,
-					ArrayListSet.class, LinkedListSet.class, TreeSet.class,
-					ArraySet.class, FastSet.class, ConciseSet.class,
-					WAHSet.class, ConcisePlusSet.class, ArraySet.class };
+			classes = new Class[] { 
+				ArrayList.class, 
+				LinkedList.class,
+				ArrayListSet.class, 
+				LinkedListSet.class, 
+				TreeSet.class,
+				ArraySet.class, 
+				IntegerFastSet.class, 
+				IntegerConciseSet.class,
+				IntegerWAHSet.class, 
+				IntegerConcisePlusSet.class};
 
 		/*
 		 * TIME
