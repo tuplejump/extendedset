@@ -55,6 +55,7 @@ import java.util.NoSuchElementException;
  * @see FastSet
  * @see IndexedSet
  */
+// TODO: REPLACE ALL "WordIterator" INSTANCES WITH "Run" !!!
 public class ConciseSet extends IntSet {
 	/**
 	 * This is the compressed bitmap, that is a collection of words. For each
@@ -155,6 +156,11 @@ public class ConciseSet extends IntSet {
 	private final static int ALL_ZEROS_WITHOUT_MSB = 0x00000000;
 
 	/**
+	 * Sequence bit
+	 */
+	private final static int SEQUENCE_BIT = 0x40000000;
+
+	/**
 	 * Resets to an empty set
 	 * 
 	 * @see #ConciseSet()
@@ -196,7 +202,7 @@ public class ConciseSet extends IntSet {
 			return empty();
 
 		// NOTE: do not use super.clone() since it is 10 times slower!
-		ConciseSet res = new ConciseSet(simulateWAH);
+		ConciseSet res = empty();
 		res.last = last;
 		res.lastWordIndex = lastWordIndex;
 		res.modCount = 0;
@@ -389,34 +395,6 @@ public class ConciseSet extends IntSet {
 	}
 
 	/**
-	 * Generates a sequence word.
-	 * 
-	 * @param bitPosition
-	 *            position of the (un)set bit (0 = it does not exist, 1 = LSB,
-	 *            31 = MSB)
-	 * @param isOneSequence
-	 *            <code>false</code> if it is a literal of all 0's, with at
-	 *            most one set bit and followed by blocks of 0's,
-	 *            <code>true</code> if it is a literal of all 1's, with at
-	 *            most one unset bit and followed by blocks of 1's
-	 * @param numberOfSubsequentBlocks
-	 *            number of blocks made up of 31 0's or 1's after the first
-	 *            literal of the sequence
-	 * @return the generated sequence word
-	 */
-	private /*static*/ int makeSequenceWord(
-			int bitPosition, 
-			boolean isOneSequence, 
-			int numberOfSubsequentBlocks) {
-		if (simulateWAH)
-			return (isOneSequence ? 0x40000000 : 0x00000000)
-			    | numberOfSubsequentBlocks;
-		return (isOneSequence ? 0x40000000 : 0x00000000)
-		    | numberOfSubsequentBlocks 
-			| (bitPosition << 25);
-	}
-	
-	/**
 	 * Gets the number of set bits within the literal word
 	 * 
 	 * @param word
@@ -460,104 +438,16 @@ public class ConciseSet extends IntSet {
 	private static boolean containsOnlyOneBit(int literal) {
 		return (literal & (literal - 1)) == 0;
 	}
-	
-	/**
-	 * Sets the bit at the given absolute position within the uncompressed bit
-	 * string. The bit <i>must</i> be appendable, that is it must represent an
-	 * integer that is strictly greater than the maximum integer in the set.
-	 * Note that the parameter range check is performed by the public method
-	 * {@link #add(Integer)} and <i>not</i> in this method.
-	 * <p>
-	 * <b>NOTE:</b> This method assumes that the last element of {@link #words}
-	 * (i.e. <code>getLastWord()</code>) <i>must</i> be one of the
-	 * following:
-	 * <ul>
-	 * <li> a literal word with <i>at least one</i> set bit;
-	 * <li> a sequence of ones.
-	 * </ul>
-	 * Hence, the last word in {@link #words} <i>cannot</i> be:
-	 * <ul>
-	 * <li> a literal word containing only zeros;
-	 * <li> a sequence of zeros.
-	 * </ul>
-	 * 
-	 * @param i
-	 *            the absolute position of the bit to set (i.e., the integer to add) 
-	 */
-	private void append(int i) {
-		// special case of empty set
-		if (isEmpty()) {
-			int zeroBlocks = maxLiteralLengthDivision(i);
-			if (zeroBlocks == 0) {
-				words = new int[1];
-				lastWordIndex = 0;
-			} else if (!simulateWAH && zeroBlocks == 1) {
-				words = new int[2];
-				lastWordIndex = 1;
-				words[0] = ALL_ZEROS_LITERAL;
-			} else {
-				words = new int[2];
-				lastWordIndex = 1;
-				words[0] = zeroBlocks - 1;
-			}
-			last = i;
-			size = 1;
-			words[lastWordIndex] = ALL_ZEROS_LITERAL | (1 << maxLiteralLengthModulus(i));
-			return;
-		}
-		
-		// position of the next bit to set within the current literal
-		int bit = maxLiteralLengthModulus(last) + i - last;
-
-		// if we are outside the current literal, add zeros in
-		// between the current word and the new 1-bit literal word
-		if (bit >= MAX_LITERAL_LENGHT) {
-			int zeroBlocks = maxLiteralLengthDivision(bit) - 1;
-			if (zeroBlocks == 0) {
-				// just add a new literal word to set the new bit
-				lastWordIndex++;
-				ensureCapacity();
-			} else {
-				// add a 0's sequence before the new literal
-				int w = words[lastWordIndex];
-				if (!simulateWAH && containsOnlyOneBit(getLiteralBits(w))) {
-					// the zero blocks can be merged with the previous literal that contains only one set bit
-					words[lastWordIndex] = makeSequenceWord(1 + Integer.numberOfTrailingZeros(w), false, zeroBlocks);
-					lastWordIndex++;
-					ensureCapacity();
-				} else {
-					// the new zero block cannot be merged with the previous literal
-					lastWordIndex += 2;
-					ensureCapacity();
-					if (zeroBlocks == 1) 
-						words[lastWordIndex - 1] = ALL_ZEROS_LITERAL;
-					else 
-						words[lastWordIndex - 1] = zeroBlocks - 1;
-				}
-			}
-
-			// prepare the new literal word
-			bit = maxLiteralLengthModulus(bit);
-			words[lastWordIndex] = ALL_ZEROS_LITERAL;
-		}
-
-		// set the new bit
-		words[lastWordIndex] |= 1 << bit;
-		last = i;
-		if (size >= 0)
-			size++;
-		compress();
-	}
 
 	/**
 	 * Assures that the length of {@link #words} is sufficient to contain
-	 * {@link #lastWordIndex}.
+	 * the given index.
 	 */
-	private void ensureCapacity() {
+	private void ensureCapacity(int index) {
 		int capacity = words == null ? 0 : words.length;
-		if (capacity > lastWordIndex) 
+		if (capacity > index) 
 			return;
-		capacity = Math.max(capacity << 1, lastWordIndex + 1);
+		capacity = Math.max(capacity << 1, index + 1);
 
 		if (words == null) {
 			// nothing to copy
@@ -568,10 +458,11 @@ public class ConciseSet extends IntSet {
 	}
 
 	/**
-	 * Removes unused allocated words at the end of {@link #words}
+	 * Removes unused allocated words at the end of {@link #words} only when they
+	 * are more than twice of the needed space
 	 */
 	private void compact() {
-		if (words != null && lastWordIndex < words.length - 1)
+		if (words != null && ((lastWordIndex + 1) << 1) < words.length)
 			words = Arrays.copyOf(words, lastWordIndex + 1);
 	}
 
@@ -833,29 +724,6 @@ public class ConciseSet extends IntSet {
 	}
 	
 	/**
-	 * When the given word iterator currently points to a sequence word,
-	 * it decreases this sequence to 0 and return such a count.
-	 * <p>
-	 * Conversely, when the word iterators does <i>not</i> point to a
-	 * sequence word, it returns 0 and does not change the iterator.
-	 * 
-	 * @param itr
-	 *            word iterator
-	 * @return the sequence count of the sequence word pointed by the given
-	 *         iterator
-	 * @see #skipSequence(WordIterator, WordIterator)
-	 */
-	private static int skipSequence(WordIterator itr) {
-		int count = 0;
-		if (isSequenceWithNoBits(itr.currentWordCopy)) {
-			count = getSequenceCount(itr.currentWordCopy);
-			if (count > 0) 
-				itr.currentWordCopy -= count;
-		} 
-		return count;
-	}
-	
-	/**
 	 * The same as {@link #skipSequence(WordIterator, WordIterator)}, but for
 	 * {@link ReverseWordIterator} instances
 	 */
@@ -880,35 +748,6 @@ public class ConciseSet extends IntSet {
 	}
 
 	/**
-	 * Appends to {@code #words} the content of another word array
-	 * 
-	 * @param itr
-	 *            iterator that represents the words to copy. The copy will
-	 *            start from the current index of the iterator.
-	 */
-	private void appendRemainingWords(WordIterator itr) {
-		while (!itr.endOfWords()) {
-			// copy the word
-			lastWordIndex++;
-			last += MAX_LITERAL_LENGHT;
-			words[lastWordIndex] = itr.currentLiteral;
-			compress(); 
-			
-			// avoid to loop if the current word is a sequence 
-			if (!isLiteral(words[lastWordIndex])) {
-				int s = skipSequence(itr);
-				if (s > 0) {
-					words[lastWordIndex] += s;
-					last += maxLiteralLengthMultiplication(s);
-				}
-			}
-
-			// next literal
-			itr.prepareNextLiteral();
-		}
-	}
-	
-	/**
 	 * Possible operations
 	 */
 	private enum Operator {
@@ -923,7 +762,7 @@ public class ConciseSet extends IntSet {
 
 			@Override 
 			public ConciseSet combineEmptySets(ConciseSet op1, ConciseSet op2) {
-				return new ConciseSet(op1.simulateWAH);
+				return op1.empty();
 			}
 
 			/** Used to implement {@link #combineDisjointSets(ConciseSet, ConciseSet)} */
@@ -934,7 +773,7 @@ public class ConciseSet extends IntSet {
 						&& maxLiteralLengthMultiplication(getSequenceCount(op1.words[0]) + 1) > op2.last) {
 					// op2 is completely hidden by op1
 					if (isZeroSequence(op1.words[0]))
-						return new ConciseSet(op1.simulateWAH);
+						return op1.empty();
 					// op2 is left unchanged, but the rest of op1 is hidden
 					return op2.clone();
 				}
@@ -965,7 +804,7 @@ public class ConciseSet extends IntSet {
 					return op1.clone();
 				if (!op2.isEmpty())
 					return op2.clone();
-				return new ConciseSet(op1.simulateWAH);
+				return op1.empty();
 			}
 			
 			/** Used to implement {@link #combineDisjointSets(ConciseSet, ConciseSet)} */
@@ -980,21 +819,17 @@ public class ConciseSet extends IntSet {
 					// op2 is left unchanged, but the rest of op1 must be appended...
 					
 					// ... first, allocate sufficient space for the result
-					ConciseSet res = new ConciseSet(op1.simulateWAH);
+					ConciseSet res = op1.empty();
 					res.words = new int[op1.lastWordIndex + op2.lastWordIndex + 3];
 					res.lastWordIndex = op2.lastWordIndex;
 					
 					// ... then, copy op2
 					System.arraycopy(op2.words, 0, res.words, 0, op2.lastWordIndex + 1);
 					
-					// ... in turn, decrease the sequence of op1 by the blocks covered by op2
-					WordIterator op1Itr = op1.new WordIterator();
-					op1Itr.currentWordCopy -= maxLiteralLengthDivision(op2.last) + 1;
-					if (op1Itr.currentWordCopy < 0)
-						op1Itr.prepareNextLiteral();
-					
 					// ... finally, append op1
-					res.appendRemainingWords(op1Itr);
+					Run run = op1.new Run();
+					run.prepareNext(maxLiteralLengthDivision(op2.last) + 1);
+					run.flush(res);
 					if (op1.size < 0 || op2.size < 0)
 						res.size = -1;
 					else
@@ -1030,7 +865,7 @@ public class ConciseSet extends IntSet {
 					return op1.clone();
 				if (!op2.isEmpty())
 					return op2.clone();
-				return new ConciseSet(op1.simulateWAH);
+				return op1.empty();
 			}
 			
 			/** Used to implement {@link #combineDisjointSets(ConciseSet, ConciseSet)} */
@@ -1071,7 +906,7 @@ public class ConciseSet extends IntSet {
 			public ConciseSet combineEmptySets(ConciseSet op1, ConciseSet op2) {
 				if (!op1.isEmpty())
 					return op1.clone();
-				return new ConciseSet(op1.simulateWAH);
+				return op1.empty();
 			}
 			
 			@Override
@@ -1095,7 +930,7 @@ public class ConciseSet extends IntSet {
 					if (isZeroSequence(op2.words[0]))
 						return op1.clone();
 					// op1 is cleared by op2
-					return new ConciseSet(op1.simulateWAH);
+					return op1.empty();
 				}
 				return null;
 			}
@@ -1141,6 +976,313 @@ public class ConciseSet extends IntSet {
 		 */
 		public abstract ConciseSet combineDisjointSets(ConciseSet op1, ConciseSet op2);
 	}
+
+	/**
+	 * Sets the bit at the given absolute position within the uncompressed bit
+	 * string. The bit <i>must</i> be appendable, that is it must represent an
+	 * integer that is strictly greater than the maximum integer in the set.
+	 * Note that the parameter range check is performed by the public method
+	 * {@link #add(Integer)} and <i>not</i> in this method.
+	 * <p>
+	 * <b>NOTE:</b> This method assumes that the last element of {@link #words}
+	 * (i.e. <code>getLastWord()</code>) <i>must</i> be one of the
+	 * following:
+	 * <ul>
+	 * <li> a literal word with <i>at least one</i> set bit;
+	 * <li> a sequence of ones.
+	 * </ul>
+	 * Hence, the last word in {@link #words} <i>cannot</i> be:
+	 * <ul>
+	 * <li> a literal word containing only zeros;
+	 * <li> a sequence of zeros.
+	 * </ul>
+	 * 
+	 * @param i
+	 *            the absolute position of the bit to set (i.e., the integer to add) 
+	 */
+	private void append(int i) {
+		// special case of empty set
+		if (isEmpty()) {
+			int zeroBlocks = maxLiteralLengthDivision(i);
+			if (zeroBlocks == 0) {
+				words = new int[1];
+				lastWordIndex = 0;
+			} else if (zeroBlocks == 1) {
+				words = new int[2];
+				lastWordIndex = 1;
+				words[0] = ALL_ZEROS_LITERAL;
+			} else {
+				words = new int[2];
+				lastWordIndex = 1;
+				words[0] = zeroBlocks - 1;
+			}
+			last = i;
+			size = 1;
+			words[lastWordIndex] = ALL_ZEROS_LITERAL | (1 << maxLiteralLengthModulus(i));
+			return;
+		}
+		
+		// position of the next bit to set within the current literal
+		int bit = maxLiteralLengthModulus(last) + i - last;
+
+		// if we are outside the current literal, add zeros in
+		// between the current word and the new 1-bit literal word
+		if (bit >= MAX_LITERAL_LENGHT) {
+			int zeroBlocks = maxLiteralLengthDivision(bit) - 1;
+			bit = maxLiteralLengthModulus(bit);
+			if (zeroBlocks == 0) {
+				ensureCapacity(lastWordIndex + 1);
+				appendLiteral(ALL_ZEROS_LITERAL | 1 << bit);
+			} else {
+				ensureCapacity(lastWordIndex + 2);
+				appendFill(zeroBlocks, 0);
+				appendLiteral(ALL_ZEROS_LITERAL | 1 << bit);
+			}
+		} else {
+			words[lastWordIndex] |= 1 << bit;
+			if (words[lastWordIndex] == ALL_ONES_LITERAL) {
+				lastWordIndex--;
+				appendLiteral(ALL_ONES_LITERAL);
+			}
+		}
+
+		// update other info
+		last = i;
+		if (size >= 0)
+			size++;
+	}
+	
+	/**
+	 * Append a literal word after the last word
+	 * 
+	 * @param word
+	 *            the new literal word. Note that the leftmost bit <b>must</b>
+	 *            be set to 1.
+	 */
+	private void appendLiteral(int word) {
+		if (lastWordIndex < 0) {
+			// empty set
+			words[lastWordIndex = 0] = word;
+			return;
+		} 
+		
+		final int lastWord = words[lastWordIndex];
+		if (word == ALL_ZEROS_LITERAL) {
+			if (lastWord == ALL_ZEROS_LITERAL)
+				words[lastWordIndex] = 0x00000001;
+			else if (isZeroSequence(lastWord))
+				words[lastWordIndex]++;
+			else if (!simulateWAH && containsOnlyOneBit(getLiteralBits(lastWord)))
+				words[lastWordIndex] = 0x00000001 | ((1 + Integer.numberOfTrailingZeros(lastWord)) << 25);
+			else
+				words[++lastWordIndex] = word;
+		} else if (word == ALL_ONES_LITERAL) {
+			if (lastWord == ALL_ONES_LITERAL)
+				words[lastWordIndex] = 0x40000001;
+			else if (isOneSequence(lastWord))
+				words[lastWordIndex]++;
+			else if (!simulateWAH && containsOnlyOneBit(~lastWord))
+				words[lastWordIndex] = 0x40000001 | ((1 + Integer.numberOfTrailingZeros(~lastWord)) << 25);
+			else
+				words[++lastWordIndex] = word;
+		} else {
+			words[++lastWordIndex] = word;
+		}
+	}
+
+	/**
+	 * Append a sequence word after the last word
+	 * 
+	 * @param length
+	 *            sequence length
+	 * @param fillType
+	 *            sequence word with a count that equals 0
+	 */
+	private void appendFill(int length, int fillType) {
+		assert length > 0;
+		assert lastWordIndex >= -1;
+		
+		fillType &= SEQUENCE_BIT;
+		
+		// it is actually a literal...
+		if (length == 1) {
+			appendLiteral(fillType == 0 ? ALL_ZEROS_LITERAL : ALL_ONES_LITERAL);
+			return;
+		} 
+
+		// empty set
+		if (lastWordIndex < 0) {
+			words[lastWordIndex = 0] = fillType | (length - 1);
+			return;
+		} 
+		
+		final int lastWord = words[lastWordIndex];
+		if (isLiteral(lastWord)) {
+			if (fillType == 0 && lastWord == ALL_ZEROS_LITERAL) {
+				words[lastWordIndex] = length;
+			} else if (fillType == SEQUENCE_BIT && lastWord == ALL_ONES_LITERAL) {
+				words[lastWordIndex] = SEQUENCE_BIT | length;
+			} else if (!simulateWAH) {
+				if (fillType == 0x00000000 && containsOnlyOneBit(getLiteralBits(lastWord))) {
+					words[lastWordIndex] = length | ((1 + Integer.numberOfTrailingZeros(lastWord)) << 25);
+				} else if (fillType == 0x40000000 && containsOnlyOneBit(~lastWord)) {
+					words[lastWordIndex] = SEQUENCE_BIT | length | ((1 + Integer.numberOfTrailingZeros(~lastWord)) << 25);
+				} else {
+					words[++lastWordIndex] = fillType | (length - 1);
+				}
+			} else {
+				words[++lastWordIndex] = fillType | (length - 1);
+			}
+		} else {
+			if ((lastWord & 0xC0000000) == fillType)
+				words[lastWordIndex] += length;
+			else
+				words[++lastWordIndex] = fillType | (length - 1);
+		}
+	}
+
+	/**
+	 * Iterates over words, from the rightmost (LSB) to the leftmost (MSB).
+	 * <p>
+	 * When {@link ConciseSet#simulateWAH} is <code>false</code>, mixed
+	 * sequences are "broken" into a literal (i.e., the first block is coded
+	 * with a literal in {@link #word}) and a "pure" sequence (i.e., the
+	 * remaining blocks are coded with a sequence with no bits in {@link #word})
+	 */
+	private class Run {
+		/** copy of the current word */
+		int word;
+		
+		/** current word index */
+		int index;
+		
+		/** <code>true</code> if {@link #word} is a literal */
+		boolean isLiteral;
+		
+		/** number of blocks in the current word (1 for literals, > 1 for sequences) */
+		int count;
+		
+		/**
+		 * Initialize data
+		 */
+		Run() {
+			isLiteral = false;
+			index = -1;
+			prepareNext();
+		}
+		
+		/**
+		 * @return <code>true</code> if there is no current word
+		 */
+		boolean exhausted() {
+			return index > lastWordIndex;
+		}
+
+		/**
+		 * Prepare the next value for {@link #word}
+		 * 
+		 * @param c
+		 *            number of blocks to skip
+		 * @return <code>false</code> if the next word does not exists
+		 */
+		boolean prepareNext(int c) {
+			assert c <= count;
+			count -= c;
+			if (count == 0)
+				return prepareNext();
+			return true;
+		}
+		
+		/**
+		 * Prepare the next value for {@link #word}
+		 * 
+		 * @return <code>false</code> if the next word does not exists
+		 */
+		boolean prepareNext() {
+			if (!simulateWAH && isLiteral && count > 1) {
+				count--;
+				isLiteral = false;
+				word = getSequenceWithNoBits(words[index]) - 1;
+				return true;
+			}
+			
+			index++;
+			if (index > lastWordIndex)
+				return false;
+			word = words[index];
+			isLiteral = isLiteral(word);
+			if (!isLiteral) {
+				count = getSequenceCount(word) + 1;
+				if (!simulateWAH && !isSequenceWithNoBits(word)) {
+					isLiteral = true;
+					int bit = (1 << (word >>> 25)) >>> 1;  
+					word = isZeroSequence(word) 
+							? (ALL_ZEROS_LITERAL | bit) 
+							: (ALL_ONES_LITERAL & ~bit);
+				} 
+			} else {
+				count = 1;
+			}
+			return true;
+		}
+
+		/**
+		 * @return the literal word corresponding to each block contained in the
+		 *         current sequence word
+		 */
+		int toLiteral()  {
+			assert !isLiteral;
+			return ALL_ZEROS_LITERAL | ((word << 1) >> MAX_LITERAL_LENGHT);
+		}
+		
+		/**
+		 * Copy all the remaining words in the given set
+		 * 
+		 * @param s
+		 *            set where the words must be copied
+		 * @return <code>false</code> if there are no word to copy
+		 */
+		private boolean flush(ConciseSet s) {
+			// nothing to flush
+			if (exhausted())
+				return false;
+			
+			// try to "compress" the first few words
+			do {
+				if (isLiteral) 
+					s.appendLiteral(word);
+				else 
+					s.appendFill(count, word);
+			} while (prepareNext() && s.words[s.lastWordIndex] != word);
+			
+			// copy remaining words "as-is"
+			int delta = lastWordIndex - index + 1;
+			System.arraycopy(words, index, s.words, s.lastWordIndex + 1, delta);
+			s.lastWordIndex += delta;
+			s.last = last;
+			return true;
+		}
+	}
+	
+	/**
+	 * Recalculate a fresh value for {@link ConciseSet#last}
+	 */
+	private void updateLast() {
+		last = 0;
+		for (int i = 0; i <= lastWordIndex; i++) {
+			int w = words[i];
+			if (isLiteral(w))
+				last += MAX_LITERAL_LENGHT;
+			else
+				last += maxLiteralLengthMultiplication(getSequenceCount(w) + 1);
+		}
+
+		int w = words[lastWordIndex];
+		if (isLiteral(w)) 
+			last -= Integer.numberOfLeadingZeros(getLiteralBits(w));
+		else 
+			last--;
+	}
 	
 	/**
 	 * Performs the given operation over the bit-sets
@@ -1161,57 +1303,76 @@ public class ConciseSet extends IntSet {
 		ConciseSet res = operator.combineDisjointSets(this, other);
 		if (res != null)
 			return res;
-		
-		// Allocate a sufficient number of words to contain all possible results.
-		// NOTE: "+3" means:
-		// - since lastWordIndex is the index of the last used word in "words",
-		//   we require "+2" to have the actual maximum required space
-		// - "+1" is required to allows for the addition of the last word before compacting
-		// In any case, we do not allocate more than the maximum space required
-		// for the uncompressed representation
-		res = new ConciseSet(simulateWAH);
-		res.words = new int[Math.min(
-				this.lastWordIndex + other.lastWordIndex + 3, 
-				maxLiteralLengthDivision(Math.max(this.last, other.last)) + 1)];
 
+		// Allocate a sufficient number of words to contain all possible results.
+		// NOTE: since lastWordIndex is the index of the last used word in "words",
+		// we require "+2" to have the actual maximum required space.
+		// In any case, we do not allocate more than the maximum space required
+		// for the uncompressed representation.
+		// Another "+1" is required to allows for the addition of the last word
+		// before compacting.
+		res = empty();
+		res.words = new int[1 + Math.min(
+				this.lastWordIndex + other.lastWordIndex + 2, 
+				maxLiteralLengthDivision(Math.max(this.last, other.last)) << (simulateWAH ? 1 : 0))];
+		
 		// scan "this" and "other"
-		WordIterator thisItr = this.new WordIterator();
-		WordIterator otherItr = other.new WordIterator();
-		res.last = 0;
-		while (!thisItr.endOfWords() && !otherItr.endOfWords()) {
-			// perform the operation
-			res.lastWordIndex++;
-			res.words[res.lastWordIndex] = operator.combineLiterals(thisItr.currentLiteral, otherItr.currentLiteral);
-			res.compress(); 
-			
-			// avoid loops when both are sequences and the result is a sequence
-			res.last += MAX_LITERAL_LENGHT;
-			if (!isLiteral(res.words[res.lastWordIndex])) {
-				int s = skipSequence(thisItr, otherItr);
-				if (s > 0) {
-					res.words[res.lastWordIndex] += s;
-					res.last += maxLiteralLengthMultiplication(s);
+		Run thisRun = new Run();
+		Run otherRun = other.new Run();
+		while (true) {
+			if (!thisRun.isLiteral) {
+				if (!otherRun.isLiteral) {
+					int minCount = Math.min(thisRun.count, otherRun.count);
+					res.appendFill(minCount, operator.combineLiterals(thisRun.word, otherRun.word));
+					if (!thisRun.prepareNext(minCount) | !otherRun.prepareNext(minCount)) // NOT ||
+						break;
+				} else {
+					res.appendLiteral(operator.combineLiterals(thisRun.toLiteral(), otherRun.word));
+					thisRun.word--;
+					if (!thisRun.prepareNext(1) | !otherRun.prepareNext()) // do NOT use "||"
+						break;
 				}
+			} else if (!otherRun.isLiteral) {
+				res.appendLiteral(operator.combineLiterals(thisRun.word, otherRun.toLiteral()));
+				otherRun.word--;
+				if (!thisRun.prepareNext() | !otherRun.prepareNext(1)) // do NOT use  "||"
+					break;
+			} else {
+				res.appendLiteral(operator.combineLiterals(thisRun.word, otherRun.word));
+				if (!thisRun.prepareNext() | !otherRun.prepareNext()) // do NOT use  "||"
+					break;
 			}
-			
-			// next literal
-			thisItr.prepareNextLiteral();
-			otherItr.prepareNextLiteral();
 		}
+
+		// invalidate the size
+		res.size = -1;
+		boolean invalidLast = true;
 
 		// if one bit string is greater than the other one, we add the remaining
 		// bits depending on the given operation. 
-		// NOTE: the iterators CANNOT be both non-empty
 		switch (operator) {
 		case AND:
 			break;
 		case OR:
+			res.last = Math.max(this.last, other.last);
+			invalidLast = false;
+			invalidLast |= thisRun.flush(res);
+			invalidLast |= otherRun.flush(res);
+			break;
 		case XOR:
-			// NOTE: one iterator does not have more elements!
-			res.appendRemainingWords(otherItr);
-			// no break;
+			if (this.last != other.last) {
+				res.last = Math.max(this.last, other.last);
+				invalidLast = false;
+			}
+			invalidLast |= thisRun.flush(res);
+			invalidLast |= otherRun.flush(res);
+			break;
 		case ANDNOT:
-			res.appendRemainingWords(thisItr);
+			if (this.last > other.last) {
+				res.last = this.last;
+				invalidLast = false;
+			}
+			invalidLast |= thisRun.flush(res);
 			break;
 		}
 
@@ -1220,19 +1381,15 @@ public class ConciseSet extends IntSet {
 		if (res.isEmpty())
 			return res;
 
+		// compute the greatest element
+		if (invalidLast) 
+			res.updateLast();
+
 		// compact the memory
 		res.compact();
-		
-		// update size and maximal element
-		res.size = -1;
-		int w = res.words[res.lastWordIndex];
-		if (isLiteral(w)) 
-			res.last -= Integer.numberOfLeadingZeros(getLiteralBits(w));
-		else 
-			res.last--;
+
 		return res;
 	}
-
 	
 	/**
 	 * {@inheritDoc}
@@ -1248,12 +1405,12 @@ public class ConciseSet extends IntSet {
 
 		// single-element intersection
 		if (size == 1)
-			return c.contains(last()) ? 1 : 0;
+			return c.contains(last) ? 1 : 0;
 
 		// convert the other set in order to perform a more complex intersection
 		final ConciseSet other = convert(c);
 		if (other.size == 1) 
-			return contains(other.last()) ? 1 : 0;
+			return contains(other.last) ? 1 : 0;
 		
 		// disjoint sets
 		if (isSequenceWithNoBits(this.words[0]) 
@@ -1425,69 +1582,6 @@ public class ConciseSet extends IntSet {
 	}
 
 	/**
-	 * Checks if the <i>literal</i> contained within
-	 * {@code #getLastWord()} can be merged with the previous word
-	 * sequences (i.e. {@code #words[lastWordIndex - 1]}), hence forming (or
-	 * updating) a sequence of 0's or 1's
-	 * 
-	 * @return <code>true</code> if the word have been merged
-	 * @see #compactLastWord()
-	 */
-	private boolean compress() {
-		// nothing to merge
-		if (lastWordIndex == 0)
-			return false;
-		
-		// current word type
-		final boolean isCurrentWordAllZeros = words[lastWordIndex] == ALL_ZEROS_LITERAL;
-		final boolean isCurrentWordAllOnes = words[lastWordIndex] == ALL_ONES_LITERAL;
-
-		// nothing to merge
-		if (!isCurrentWordAllZeros && !isCurrentWordAllOnes)
-			return false;
-		
-		// previous word to merge
-		int previousWord = words[lastWordIndex - 1];
-		
-		// the previous word is a sequence of the same kind --> add one block
-		final boolean isPreviousWordZeroSeq = isZeroSequence(previousWord);
-		final boolean isPreviousWordOneSeq = isOneSequence(previousWord);
-		if ((isCurrentWordAllOnes && isPreviousWordOneSeq) 
-				|| (isCurrentWordAllZeros && isPreviousWordZeroSeq)) {
-			lastWordIndex--;
-			words[lastWordIndex]++;
-			return true;
-		}
-
-		// the previous word is a sequence of a different kind --> cannot merge
-		if ((isCurrentWordAllOnes && isPreviousWordZeroSeq)
-				|| (isCurrentWordAllZeros && isPreviousWordOneSeq)) 
-			return false;
-		
-		// try to convert the previous literal word in a sequence and to merge 
-		// the current word with it
-		if (isCurrentWordAllOnes) {
-			// convert set bits to unset bits 
-			previousWord = ALL_ZEROS_LITERAL | ~previousWord;
-		}
-		int b = getLiteralBits(previousWord);
-		if (b == 0) {
-			lastWordIndex--;
-			words[lastWordIndex] = makeSequenceWord(0, isCurrentWordAllOnes, 1);
-			return true;
-		}
-		if (!simulateWAH && containsOnlyOneBit(b)) {
-			int setBit = 1 + Integer.numberOfTrailingZeros(previousWord);
-			lastWordIndex--;
-			words[lastWordIndex] = makeSequenceWord(setBit, isCurrentWordAllOnes, 1);
-			return true;
-		}
-
-		// both the current and the previous words still remains literals
-		return false;
-	}
-
-	/**
 	 * {@inheritDoc}
 	 */
 	@Override
@@ -1556,7 +1650,7 @@ public class ConciseSet extends IntSet {
 				words[i] = ALL_ZEROS_LITERAL | ~w;
 			} else {
 				// switch the sequence type
-				words[i] ^= 0x40000000;
+				words[i] ^= SEQUENCE_BIT;
 			}
 		}
 
@@ -1599,8 +1693,8 @@ public class ConciseSet extends IntSet {
 				lastWordIndex--;
 				last -= MAX_LITERAL_LENGHT;
 			} else if (isZeroSequence(w)) {
-				if (isSequenceWithNoBits(w)) {
-					last -= maxLiteralLengthMultiplication(getSequenceCount(w + 1));
+				if (simulateWAH || isSequenceWithNoBits(w)) {
+					last -= maxLiteralLengthMultiplication(getSequenceCount(w) + 1);
 					lastWordIndex--;
 				} else {
 					// convert the sequence in a 1-bit literal word
@@ -1943,9 +2037,9 @@ public class ConciseSet extends IntSet {
 		if (c instanceof ConciseSet)
 			return (ConciseSet) c;
 		if (c == null)
-			return new ConciseSet(simulateWAH);
+			return empty();
 
-		ConciseSet res = new ConciseSet(simulateWAH);
+		ConciseSet res = empty();
 		ExtendedIntIterator itr = c.intIterator();
 		while (itr.hasNext()) 
 			res.add(itr.next());
@@ -1957,12 +2051,12 @@ public class ConciseSet extends IntSet {
 	 */
 	@Override
 	public ConciseSet convert(int... a) {
-		ConciseSet res = new ConciseSet();
+		ConciseSet res = empty();
 		if (a != null) {
 			a = Arrays.copyOf(a, a.length);
 			Arrays.sort(a);
 			for (int i : a)
-				if (last != i)
+				if (res.last != i)
 					res.add(i);
 		}
 		return res;
@@ -2048,7 +2142,7 @@ public class ConciseSet extends IntSet {
 						if (bitCount >= MAX_LITERAL_LENGHT - 2)
 							break;
 					} else {
-						if (containsOnlyOneBit(~w))
+						if (containsOnlyOneBit(~w) || w == ALL_ONES_LITERAL)
 							break;
 					}
 						
@@ -2101,12 +2195,12 @@ public class ConciseSet extends IntSet {
 		// the element cannot exist
 		if (o > last) 
 			return false;
-
+		
 		// check if the element can be removed from a literal word
 		int blockIndex = maxLiteralLengthDivision(o);
 		int bitPosition = maxLiteralLengthModulus(o);
 		for (int i = 0; i <= lastWordIndex && blockIndex >= 0; i++) {
-			int w = words[i];
+			final int w = words[i];
 			if (isLiteral(w)) {
 				// check if the current literal word is the "right" one
 				if (blockIndex == 0) {
@@ -2129,7 +2223,8 @@ public class ConciseSet extends IntSet {
 						if (bitCount <= 2)
 							break;
 					} else {
-						if (containsOnlyOneBit(getLiteralBits(w)))
+						final int l = getLiteralBits(w);
+						if (l == 0 || containsOnlyOneBit(l))
 							break;
 					}
 						
@@ -2163,10 +2258,10 @@ public class ConciseSet extends IntSet {
 							&& blockIndex <= getSequenceCount(w) 
 							&& isZeroSequence(w))
 						return false;
-	
-					// next word
-					blockIndex -= getSequenceCount(w) + 1;
 				}
+				
+				// next word
+				blockIndex -= getSequenceCount(w) + 1;
 			}
 		}
 		
@@ -2237,7 +2332,7 @@ public class ConciseSet extends IntSet {
 		if (size >= 0 && other.size > size)
 			return false;
 		if (other.size == 1) 
-			return contains(other.last());
+			return contains(other.last);
 
 		// scan "this" and "other"
 		WordIterator thisItr = this.new WordIterator();
@@ -2331,9 +2426,9 @@ public class ConciseSet extends IntSet {
 		if (other.size >= 0 && other.size < minElements)
 			return false;
 		if (minElements == 1 && other.size == 1)
-			return contains(other.last());
+			return contains(other.last);
 		if (minElements == 1 && size == 1)
-			return other.contains(last());
+			return other.contains(last);
 		
 		// disjoint sets
 		if (isSequenceWithNoBits(this.words[0]) 
@@ -2398,7 +2493,7 @@ public class ConciseSet extends IntSet {
 		
 		ConciseSet other = convert(c);
 		if (other.size == 1) {
-			if (contains(other.last())) {
+			if (contains(other.last)) {
 				if (size == 1) 
 					return false;
 				return replaceWith(convert(other.last));
@@ -2421,7 +2516,7 @@ public class ConciseSet extends IntSet {
 
 		ConciseSet other = convert(c);
 		if (other.size == 1) 
-			return add(other.last());
+			return add(other.last);
 		
 		return replaceWith(performOperation(convert(c), Operator.OR));
 	}
@@ -2442,7 +2537,7 @@ public class ConciseSet extends IntSet {
 
 		ConciseSet other = convert(c);
 		if (other.size == 1) 
-			return remove(other.last());
+			return remove(other.last);
 		
 		return replaceWith(performOperation(convert(c), Operator.ANDNOT));
 	}
@@ -2549,6 +2644,44 @@ public class ConciseSet extends IntSet {
 			otherIterator.prepareNextLiteral();
 		}
 		return thisIterator.hasMoreLiterals() ? 1 : (otherIterator.hasMoreLiterals() ? -1 : 0);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void clear(int from, int to) {
+		ConciseSet toRemove = empty();
+		toRemove.fill(from, to);
+		this.removeAll(toRemove);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void fill(int from, int to) {
+		ConciseSet toAdd = empty();
+		toAdd.add(to);
+		toAdd.complement();
+		toAdd.add(to);
+
+		ConciseSet toRemove = empty();
+		toRemove.add(from);
+		toRemove.complement();
+		
+		toAdd.removeAll(toRemove);
+		
+		this.addAll(toAdd);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void flip(int e) {
+		if (!add(e))
+			remove(e);
 	}
 	
 	/**
@@ -2672,43 +2805,5 @@ public class ConciseSet extends IntSet {
 		f.format("collection compression: %.2f%%\n", 100D * collectionCompressionRatio());
 
 		return s.toString();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void clear(int from, int to) {
-		ConciseSet toRemove = empty();
-		toRemove.fill(from, to);
-		this.removeAll(toRemove);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void fill(int from, int to) {
-		ConciseSet toAdd = empty();
-		toAdd.add(to);
-		toAdd.complement();
-		toAdd.add(to);
-
-		ConciseSet toRemove = empty();
-		toRemove.add(from);
-		toRemove.complement();
-		
-		toAdd.removeAll(toRemove);
-		
-		this.addAll(toAdd);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void flip(int e) {
-		if (!add(e))
-			remove(e);
 	}
 }

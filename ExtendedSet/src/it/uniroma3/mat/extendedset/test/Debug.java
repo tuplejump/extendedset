@@ -1317,6 +1317,8 @@ public class Debug {
 	@SuppressWarnings("unused")
 	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new ConciseSet());}}
 //	@SuppressWarnings("unused")
+	private static class IntegerWAHSet extends IntegerSet {IntegerWAHSet() {super(new ConciseSet(true));}}
+	@SuppressWarnings("unused")
 	private static class IntegerConcisePlusSet extends IntegerSet {IntegerConcisePlusSet() {super(new ConcisePlusSet());}}
 
 	/**
@@ -1330,7 +1332,8 @@ public class Debug {
 //		TestCase testCase = TestCase.ADDITION_STRESS;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerFastSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConciseSet.class;
-		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcisePlusSet.class;
+		Class<? extends ExtendedSet<Integer>> classToTest = IntegerWAHSet.class;
+//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcisePlusSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = ListSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = LinkedSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = ArraySet.class;

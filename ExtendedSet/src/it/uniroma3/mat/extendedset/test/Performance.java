@@ -318,6 +318,7 @@ public class Performance {
 			classes = new Class[] { 
 				ArraySet.class,
 				IntegerFastSet.class, 
+				IntegerWAHSet.class, 
 				IntegerConciseSet.class,
 				IntegerConcisePlusSet.class};
 		else
