@@ -29,6 +29,7 @@ import it.uniroma3.mat.extendedset.IntegerSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Map;
@@ -146,7 +147,7 @@ public class Performance {
 			} 
 		}
 		
-		// ADDITION
+		// APPEND/ADDITION
 		startTimer();
 		for (int i = 0; i < REPETITIONS; i++) {
 			for (Integer x : leftOperand)
@@ -169,7 +170,7 @@ public class Performance {
 				cAddAndRemove[i].remove(x);
 		}
 		endTimer(classToTest, "2) remove()", rightOperand.size() * REPETITIONS);
-		
+/*		
 		// CONTAINS
 		startTimer();
 		for (int i = 0; i < REPETITIONS; i++) {
@@ -177,16 +178,6 @@ public class Performance {
 				cAddAll[i].contains(x);
 		}
 		endTimer(classToTest, "3) contains()", rightOperand.size() * REPETITIONS);
-		
-//		// BINARY SEARCH FOR SORTED LISTS
-//		if (classToTest.getSimpleName().endsWith("List")) {
-//			startTimer();
-//			for (int i = 0; i < REPETITIONS; i++) {
-//				for (Integer x : rightOperand)
-//					Collections.binarySearch((List) (cAddAll[i]), x);
-//			}
-//			endTimer(classToTest, "3) contains() - bin", rightOperand.size() * REPETITIONS);
-//		}
 		
 		// AND SIZE
 		startTimer();
@@ -208,7 +199,7 @@ public class Performance {
 			cRemoveAll[i].removeAll(cRighOperand[i]);
 		}
 		endTimer(classToTest, "6) removeAll()", REPETITIONS);
-		
+*/		
 		// INTERSECTION
 		startTimer();
 		for (int i = 0; i < REPETITIONS; i++) {
@@ -239,16 +230,17 @@ public class Performance {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		boolean onlyBitmaps = true;
+		boolean onlyBitmaps = false;
 
-		boolean calcMemory = true;
+		boolean calcMemory = false;
 		boolean calcTime = true;
 		
-		boolean calcUniform = true;
-		boolean calcMarkovian = true;
+		boolean calcUniform = false;
+		boolean calcMarkovian = false;
 		boolean calcZipfian = true;
 		
-		int maxCardinality = 10000;
+		int minCardinality = 100000;
+		int maxCardinality = 100000;
 		
 		/*
 		 * MEMORY
@@ -275,7 +267,7 @@ public class Performance {
 				throw new RuntimeException("unexpected");
 			}
 			System.out.println("#cardinality\tdensity\tFastSet\tConciseSet\tWAHSet\tConcisePlusSet");
-			for (int cardinality = 1000; cardinality <= maxCardinality; cardinality *= 10) {
+			for (int cardinality = minCardinality; cardinality <= maxCardinality; cardinality *= 10) {
 				for (double density = .0001; density < 1D; density *= 1.7) {
 					System.out.format(Locale.ENGLISH, "%7d\t%.4f\t", cardinality, density);
 					
@@ -288,7 +280,7 @@ public class Performance {
 						integers = new RandomNumbers.Markovian(cardinality, density, SHIFT).generate();
 						break;
 					case 2:
-						integers = new RandomNumbers.Zipfian(cardinality, density, SHIFT, 4).generate();
+						integers = new RandomNumbers.Zipfian(cardinality, density, SHIFT, 2).generate();
 						break;
 					default:
 						throw new RuntimeException("unexpected");
@@ -320,19 +312,22 @@ public class Performance {
 				IntegerFastSet.class, 
 				IntegerWAHSet.class, 
 				IntegerConciseSet.class,
-				IntegerConcisePlusSet.class};
+//				IntegerConcisePlusSet.class,
+				};
 		else
 			classes = new Class[] { 
-				ArrayList.class, 
-				LinkedList.class,
-				ArrayListSet.class, 
-				LinkedListSet.class, 
+//				ArrayList.class, 
+//				LinkedList.class,
+//				ArrayListSet.class, 
+//				LinkedListSet.class, 
+				HashSet.class,
 				TreeSet.class,
-				ArraySet.class, 
-				IntegerFastSet.class, 
-				IntegerConciseSet.class,
+//				ArraySet.class, 
+//				IntegerFastSet.class, 
 				IntegerWAHSet.class, 
-				IntegerConcisePlusSet.class};
+				IntegerConciseSet.class,
+//				IntegerConcisePlusSet.class,
+				};
 
 		/*
 		 * TIME
@@ -362,15 +357,42 @@ public class Performance {
 			for (Class<?> c : classes) 
 				System.out.print("\t" + c.getSimpleName());
 			System.out.println();
-			for (int cardinality = 1000; cardinality <= maxCardinality; cardinality *= 10) {
-				RandomNumbers r = new RandomNumbers.Uniform(cardinality, 0.5, SHIFT);
+			for (int cardinality = minCardinality; cardinality <= maxCardinality; cardinality *= 10) {
+				RandomNumbers r;
+				switch (i) {
+				case 0:
+					r = new RandomNumbers.Uniform(cardinality, 0.5, SHIFT);
+					break;
+				case 1:
+					r = new RandomNumbers.Markovian(cardinality, 0.5, SHIFT);
+					break;
+				case 2:
+					r = new RandomNumbers.Zipfian(cardinality, 0.5, SHIFT, 2);
+					break;
+				default:
+					throw new RuntimeException("unexpected");
+				}
 				Collection<Integer> x = r.generate(), y = r.generate();
 				for (Class<?> c : classes) { 
 					testClass(c, x, y);
 					testClass(c, x, y);
 				}
-				for (double density = .0001; density < 1D; density *= 1.7) {
-					r = new RandomNumbers.Uniform(cardinality, density, SHIFT);
+//				for (double density = .0001; density < 1D; density *= 1.7) {
+				for (double density = .0041; density < 1D; density *= 1.7) {
+//				for (double density = 0.8272; density > 0.00005; density /= 1.7) {
+					switch (i) {
+					case 0:
+						r = new RandomNumbers.Uniform(cardinality, density, SHIFT);
+						break;
+					case 1:
+						r = new RandomNumbers.Markovian(cardinality, density, SHIFT);
+						break;
+					case 2:
+						r = new RandomNumbers.Zipfian(cardinality, density, SHIFT, 2);
+						break;
+					default:
+						throw new RuntimeException("unexpected");
+					}
 					x = r.generate(); 
 					y = r.generate();
 					for (Class<?> c : classes) {

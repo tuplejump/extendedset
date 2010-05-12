@@ -55,7 +55,7 @@ import java.util.NoSuchElementException;
  * @see FastSet
  * @see IndexedSet
  */
-// TODO: REPLACE ALL "WordIterator" INSTANCES WITH "Run" !!!
+// TODO: REPLACE ALL "WordIterator_OLD" INSTANCES WITH "WordIterator" !!!
 public class ConciseSet extends IntSet {
 	/**
 	 * This is the compressed bitmap, that is a collection of words. For each
@@ -226,23 +226,23 @@ public class ConciseSet extends IntSet {
 	 * @return <code>n % 31</code>
 	 */
 	private static int maxLiteralLengthModulus(int n) {
-		int m = (n & 0xc1f07c1f) + ((n >>> 5) & 0xc1f07c1f);
-		m = (m >>> 15) + (m & 0x00007fff);
+		int m = (n & 0xC1F07C1F) + ((n >>> 5) & 0xC1F07C1F);
+		m = (m >>> 15) + (m & 0x00007FFF);
 		if (m <= 31)
 			return m == 31 ? 0 : m;
-		m = (m >>> 5) + (m & 0x0000001f);
+		m = (m >>> 5) + (m & 0x0000001F);
 		if (m <= 31)
 			return m == 31 ? 0 : m;
-		m = (m >>> 5) + (m & 0x0000001f);
+		m = (m >>> 5) + (m & 0x0000001F);
 		if (m <= 31)
 			return m == 31 ? 0 : m;
-		m = (m >>> 5) + (m & 0x0000001f);
+		m = (m >>> 5) + (m & 0x0000001F);
 		if (m <= 31)
 			return m == 31 ? 0 : m;
-		m = (m >>> 5) + (m & 0x0000001f);
+		m = (m >>> 5) + (m & 0x0000001F);
 		if (m <= 31)
 			return m == 31 ? 0 : m;
-		m = (m >>> 5) + (m & 0x0000001f);
+		m = (m >>> 5) + (m & 0x0000001F);
 		return m == 31 ? 0 : m;
 	}
 
@@ -290,7 +290,7 @@ public class ConciseSet extends IntSet {
 	 */
 	private static boolean isOneSequence(int word) {
 		// "word" must be 01*
-		return (word & 0xC0000000) == 0x40000000;
+		return (word & 0xC0000000) == SEQUENCE_BIT;
 	}
 
 	/**
@@ -302,7 +302,7 @@ public class ConciseSet extends IntSet {
 	 */
 	private static boolean isZeroSequence(int word) {
 		// "word" must be 00*
-		return (word & 0xC0000000) == 0x00000000;
+		return (word & 0xC0000000) == 0;
 	}
 
 	/**
@@ -475,7 +475,8 @@ public class ConciseSet extends IntSet {
 	 * a modified copy of the sequence that stores the number of the remaining
 	 * blocks to iterate.
 	 */
-	private class WordIterator {
+	//TODO: replace with WordIterator!!!
+	private class WordIterator_OLD {
 		private int currentWordIndex;	// index of the current word
 		private int currentWordCopy;	// copy of the current word
 		private int currentLiteral;		// literal contained within the current word
@@ -574,8 +575,9 @@ public class ConciseSet extends IntSet {
 	/**
 	 * Iterates over words, from MSB to LSB.
 	 * <p>
-	 * @see WordIterator
+	 * @see WordIterator_OLD
 	 */
+	//TODO: replace with ReverseWordIterator!!!
 	private class ReverseWordIterator {
 		private int currentWordIndex;	// index of the current word
 		private int currentWordCopy;	// copy of the current word
@@ -675,7 +677,7 @@ public class ConciseSet extends IntSet {
 
 		/**
 		 * Prepares the next literal, similar to
-		 * {@link WordIterator#prepareNextLiteral()}. <b>NOTE:</b> it supposes
+		 * {@link WordIterator_OLD#prepareNextLiteral()}. <b>NOTE:</b> it supposes
 		 * that {@link #hasMoreLiterals()} returns <code>true</code>.
 		 */ 
 		public final void prepareNextLiteral() {
@@ -705,9 +707,10 @@ public class ConciseSet extends IntSet {
 	 *            second word iterator
 	 * @return the least sequence count between the sequence word pointed by the
 	 *         given iterators
-	 * @see #skipSequence(WordIterator)
+	 * @see #skipSequence(WordIterator_OLD)
 	 */
-	private static int skipSequence(WordIterator itr1, WordIterator itr2) {
+	// TODO: REMOVE!!!
+	private static int skipSequence(WordIterator_OLD itr1, WordIterator_OLD itr2) {
 		int count = 0;
 		if (isSequenceWithNoBits(itr1.currentWordCopy) 
 				&& isSequenceWithNoBits(itr2.currentWordCopy)) {
@@ -724,9 +727,10 @@ public class ConciseSet extends IntSet {
 	}
 	
 	/**
-	 * The same as {@link #skipSequence(WordIterator, WordIterator)}, but for
+	 * The same as {@link #skipSequence(WordIterator_OLD, WordIterator_OLD)}, but for
 	 * {@link ReverseWordIterator} instances
 	 */
+	// TODO: REMOVE!!!
 	private /*static*/ int skipSequence(ReverseWordIterator itr1, ReverseWordIterator itr2) {
 		int count = 0;
 		if (!isLiteral(itr1.currentWordCopy) && !isLiteral(itr2.currentWordCopy)) {
@@ -827,9 +831,9 @@ public class ConciseSet extends IntSet {
 					System.arraycopy(op2.words, 0, res.words, 0, op2.lastWordIndex + 1);
 					
 					// ... finally, append op1
-					Run run = op1.new Run();
-					run.prepareNext(maxLiteralLengthDivision(op2.last) + 1);
-					run.flush(res);
+					WordIterator wordIterator = op1.new WordIterator();
+					wordIterator.prepareNext(maxLiteralLengthDivision(op2.last) + 1);
+					wordIterator.flush(res);
 					if (op1.size < 0 || op2.size < 0)
 						res.size = -1;
 					else
@@ -1032,12 +1036,11 @@ public class ConciseSet extends IntSet {
 			bit = maxLiteralLengthModulus(bit);
 			if (zeroBlocks == 0) {
 				ensureCapacity(lastWordIndex + 1);
-				appendLiteral(ALL_ZEROS_LITERAL | 1 << bit);
 			} else {
 				ensureCapacity(lastWordIndex + 2);
 				appendFill(zeroBlocks, 0);
-				appendLiteral(ALL_ZEROS_LITERAL | 1 << bit);
 			}
+			appendLiteral(ALL_ZEROS_LITERAL | 1 << bit);
 		} else {
 			words[lastWordIndex] |= 1 << bit;
 			if (words[lastWordIndex] == ALL_ONES_LITERAL) {
@@ -1069,20 +1072,20 @@ public class ConciseSet extends IntSet {
 		final int lastWord = words[lastWordIndex];
 		if (word == ALL_ZEROS_LITERAL) {
 			if (lastWord == ALL_ZEROS_LITERAL)
-				words[lastWordIndex] = 0x00000001;
+				words[lastWordIndex] = 1;
 			else if (isZeroSequence(lastWord))
 				words[lastWordIndex]++;
 			else if (!simulateWAH && containsOnlyOneBit(getLiteralBits(lastWord)))
-				words[lastWordIndex] = 0x00000001 | ((1 + Integer.numberOfTrailingZeros(lastWord)) << 25);
+				words[lastWordIndex] = 1 | ((1 + Integer.numberOfTrailingZeros(lastWord)) << 25);
 			else
 				words[++lastWordIndex] = word;
 		} else if (word == ALL_ONES_LITERAL) {
 			if (lastWord == ALL_ONES_LITERAL)
-				words[lastWordIndex] = 0x40000001;
+				words[lastWordIndex] = SEQUENCE_BIT | 1;
 			else if (isOneSequence(lastWord))
 				words[lastWordIndex]++;
 			else if (!simulateWAH && containsOnlyOneBit(~lastWord))
-				words[lastWordIndex] = 0x40000001 | ((1 + Integer.numberOfTrailingZeros(~lastWord)) << 25);
+				words[lastWordIndex] = SEQUENCE_BIT | 1 | ((1 + Integer.numberOfTrailingZeros(~lastWord)) << 25);
 			else
 				words[++lastWordIndex] = word;
 		} else {
@@ -1123,9 +1126,9 @@ public class ConciseSet extends IntSet {
 			} else if (fillType == SEQUENCE_BIT && lastWord == ALL_ONES_LITERAL) {
 				words[lastWordIndex] = SEQUENCE_BIT | length;
 			} else if (!simulateWAH) {
-				if (fillType == 0x00000000 && containsOnlyOneBit(getLiteralBits(lastWord))) {
+				if (fillType == 0 && containsOnlyOneBit(getLiteralBits(lastWord))) {
 					words[lastWordIndex] = length | ((1 + Integer.numberOfTrailingZeros(lastWord)) << 25);
-				} else if (fillType == 0x40000000 && containsOnlyOneBit(~lastWord)) {
+				} else if (fillType == SEQUENCE_BIT && containsOnlyOneBit(~lastWord)) {
 					words[lastWordIndex] = SEQUENCE_BIT | length | ((1 + Integer.numberOfTrailingZeros(~lastWord)) << 25);
 				} else {
 					words[++lastWordIndex] = fillType | (length - 1);
@@ -1149,7 +1152,7 @@ public class ConciseSet extends IntSet {
 	 * with a literal in {@link #word}) and a "pure" sequence (i.e., the
 	 * remaining blocks are coded with a sequence with no bits in {@link #word})
 	 */
-	private class Run {
+	private class WordIterator {
 		/** copy of the current word */
 		int word;
 		
@@ -1165,7 +1168,7 @@ public class ConciseSet extends IntSet {
 		/**
 		 * Initialize data
 		 */
-		Run() {
+		WordIterator() {
 			isLiteral = false;
 			index = -1;
 			prepareNext();
@@ -1317,29 +1320,29 @@ public class ConciseSet extends IntSet {
 				maxLiteralLengthDivision(Math.max(this.last, other.last)) << (simulateWAH ? 1 : 0))];
 		
 		// scan "this" and "other"
-		Run thisRun = new Run();
-		Run otherRun = other.new Run();
+		WordIterator thisItr = new WordIterator();
+		WordIterator otherItr = other.new WordIterator();
 		while (true) {
-			if (!thisRun.isLiteral) {
-				if (!otherRun.isLiteral) {
-					int minCount = Math.min(thisRun.count, otherRun.count);
-					res.appendFill(minCount, operator.combineLiterals(thisRun.word, otherRun.word));
-					if (!thisRun.prepareNext(minCount) | !otherRun.prepareNext(minCount)) // NOT ||
+			if (!thisItr.isLiteral) {
+				if (!otherItr.isLiteral) {
+					int minCount = Math.min(thisItr.count, otherItr.count);
+					res.appendFill(minCount, operator.combineLiterals(thisItr.word, otherItr.word));
+					if (!thisItr.prepareNext(minCount) | !otherItr.prepareNext(minCount)) // NOT ||
 						break;
 				} else {
-					res.appendLiteral(operator.combineLiterals(thisRun.toLiteral(), otherRun.word));
-					thisRun.word--;
-					if (!thisRun.prepareNext(1) | !otherRun.prepareNext()) // do NOT use "||"
+					res.appendLiteral(operator.combineLiterals(thisItr.toLiteral(), otherItr.word));
+					thisItr.word--;
+					if (!thisItr.prepareNext(1) | !otherItr.prepareNext()) // do NOT use "||"
 						break;
 				}
-			} else if (!otherRun.isLiteral) {
-				res.appendLiteral(operator.combineLiterals(thisRun.word, otherRun.toLiteral()));
-				otherRun.word--;
-				if (!thisRun.prepareNext() | !otherRun.prepareNext(1)) // do NOT use  "||"
+			} else if (!otherItr.isLiteral) {
+				res.appendLiteral(operator.combineLiterals(thisItr.word, otherItr.toLiteral()));
+				otherItr.word--;
+				if (!thisItr.prepareNext() | !otherItr.prepareNext(1)) // do NOT use  "||"
 					break;
 			} else {
-				res.appendLiteral(operator.combineLiterals(thisRun.word, otherRun.word));
-				if (!thisRun.prepareNext() | !otherRun.prepareNext()) // do NOT use  "||"
+				res.appendLiteral(operator.combineLiterals(thisItr.word, otherItr.word));
+				if (!thisItr.prepareNext() | !otherItr.prepareNext()) // do NOT use  "||"
 					break;
 			}
 		}
@@ -1356,23 +1359,23 @@ public class ConciseSet extends IntSet {
 		case OR:
 			res.last = Math.max(this.last, other.last);
 			invalidLast = false;
-			invalidLast |= thisRun.flush(res);
-			invalidLast |= otherRun.flush(res);
+			invalidLast |= thisItr.flush(res);
+			invalidLast |= otherItr.flush(res);
 			break;
 		case XOR:
 			if (this.last != other.last) {
 				res.last = Math.max(this.last, other.last);
 				invalidLast = false;
 			}
-			invalidLast |= thisRun.flush(res);
-			invalidLast |= otherRun.flush(res);
+			invalidLast |= thisItr.flush(res);
+			invalidLast |= otherItr.flush(res);
 			break;
 		case ANDNOT:
 			if (this.last > other.last) {
 				res.last = this.last;
 				invalidLast = false;
 			}
-			invalidLast |= thisRun.flush(res);
+			invalidLast |= thisItr.flush(res);
 			break;
 		}
 
@@ -1394,6 +1397,7 @@ public class ConciseSet extends IntSet {
 	/**
 	 * {@inheritDoc}
 	 */
+	// TODO: Update according to performOperation!!!
 	@Override
 	public int intersectionSize(IntSet c) {
 		if (c == null || c.isEmpty())
@@ -1430,8 +1434,8 @@ public class ConciseSet extends IntSet {
 		int res = 0;
 
 		// scan "this" and "other"
-		WordIterator thisItr = this.new WordIterator();
-		WordIterator otherItr = other.new WordIterator();
+		WordIterator_OLD thisItr = this.new WordIterator_OLD();
+		WordIterator_OLD otherItr = other.new WordIterator_OLD();
 		while (!thisItr.endOfWords() && !otherItr.endOfWords()) {
 			// perform the operation
 			int curRes = getLiteralBitCount(thisItr.currentLiteral & otherItr.currentLiteral);
@@ -1716,7 +1720,7 @@ public class ConciseSet extends IntSet {
 	 * Iterator for set bits of {@link ConciseSet}, from LSB to MSB
 	 */
 	private class BitIterator implements ExtendedIntIterator {
-		private WordIterator wordItr = new WordIterator();
+		private WordIterator_OLD wordItr = new WordIterator_OLD();
 		private int rightmostBitOfCurrentWord = 0;
 		private int nextBitToCheck = 0;
 		private int initialModCount = modCount;
@@ -2319,6 +2323,7 @@ public class ConciseSet extends IntSet {
 	/**
 	 * {@inheritDoc}
 	 */
+	// TODO: Update according to performOperation!!!
 	@Override
 	public boolean containsAll(IntSet c) {
 		if (c == null || c.isEmpty() || c == this)
@@ -2335,8 +2340,8 @@ public class ConciseSet extends IntSet {
 			return contains(other.last);
 
 		// scan "this" and "other"
-		WordIterator thisItr = this.new WordIterator();
-		WordIterator otherItr = other.new WordIterator();
+		WordIterator_OLD thisItr = this.new WordIterator_OLD();
+		WordIterator_OLD otherItr = other.new WordIterator_OLD();
 		while (!thisItr.endOfWords() && !otherItr.endOfWords()) {
 			// check shared elements between the two sets
 			int curRes = thisItr.currentLiteral & otherItr.currentLiteral;
@@ -2361,6 +2366,7 @@ public class ConciseSet extends IntSet {
 	/**
 	 * {@inheritDoc}
 	 */
+	// TODO: Update according to performOperation!!!
 	@Override
 	public boolean containsAny(IntSet c) {
 		if (c == null || c.isEmpty() || c == this)
@@ -2387,8 +2393,8 @@ public class ConciseSet extends IntSet {
 		}
 
 		// scan "this" and "other"
-		WordIterator thisItr = this.new WordIterator();
-		WordIterator otherItr = other.new WordIterator();
+		WordIterator_OLD thisItr = this.new WordIterator_OLD();
+		WordIterator_OLD otherItr = other.new WordIterator_OLD();
 		while (!thisItr.endOfWords() && !otherItr.endOfWords()) {
 			// check shared elements between the two sets
 			int curRes = thisItr.currentLiteral & otherItr.currentLiteral;
@@ -2412,6 +2418,7 @@ public class ConciseSet extends IntSet {
 	/**
 	 * {@inheritDoc}
 	 */
+	// TODO: Update according to performOperation!!!
 	@Override
 	public boolean containsAtLeast(IntSet c, int minElements) {
 		if (minElements < 1)
@@ -2448,8 +2455,8 @@ public class ConciseSet extends IntSet {
 		int res = 0;
 
 		// scan "this" and "other"
-		WordIterator thisItr = this.new WordIterator();
-		WordIterator otherItr = other.new WordIterator();
+		WordIterator_OLD thisItr = this.new WordIterator_OLD();
+		WordIterator_OLD otherItr = other.new WordIterator_OLD();
 		while (!thisItr.endOfWords() && !otherItr.endOfWords()) {
 			// perform the operation
 			int curRes = getLiteralBitCount(thisItr.currentLiteral & otherItr.currentLiteral);
@@ -2705,7 +2712,7 @@ public class ConciseSet extends IntSet {
 	}
 
 	/*
-	 * DEBUG METHODS
+	 * DEBUGGING METHODS
 	 */
 	
 	/**

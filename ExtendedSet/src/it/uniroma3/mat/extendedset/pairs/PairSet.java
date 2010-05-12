@@ -21,22 +21,21 @@ package it.uniroma3.mat.extendedset.pairs;
 
 import it.uniroma3.mat.extendedset.AbstractExtendedSet;
 import it.uniroma3.mat.extendedset.ConciseSet;
-import it.uniroma3.mat.extendedset.FastSet;
-import it.uniroma3.mat.extendedset.IntegerSet;
 import it.uniroma3.mat.extendedset.ExtendedSet;
+import it.uniroma3.mat.extendedset.FastSet;
 import it.uniroma3.mat.extendedset.IndexedSet;
+import it.uniroma3.mat.extendedset.IntegerSet;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.SortedSet;
 
 /**
  * A binary matrix internally represented by a bitmap.
@@ -70,7 +69,8 @@ import java.util.Set;
  * @see FastSet
  * 
  */
-//TODO: complete, make it compliant with ExtendedSet, and override methods of AbstractExtendedSet
+//TODO: siccome IndexedSet e PairSet sono molto simili, creare una classe astratta intermedia che gestisce gli indici
+//TODO: usare IntSet invece di ExtendedSet<Integer>
 public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cloneable {
 	/** transaction-item pair indices */
 	private final ExtendedSet<Integer> indices;
@@ -378,7 +378,10 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	public PairSet<T, I> clone() {
 		// NOTE: do not use super.clone() since it is 10 times slower!
 		return new PairSet<T, I>(
-				allTransactions, allItems, maxTransactionCount, maxItemCount, 
+				allTransactions, 
+				allItems, 
+				maxTransactionCount, 
+				maxItemCount, 
 				indices.clone());
 	}
 
@@ -406,8 +409,7 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 *            index calculated as <code>transaction * maxItemCount + item</code>
 	 * @return the pair corresponding to the given index
 	 */
-	//TODO rename, since it is conflicting with ExtendedSet methods
-	public final Pair<T, I> getPair(int index) {
+	public final Pair<T, I> indexToPair(int index) {
 		return new Pair<T, I>(allTransactions.absoluteGet(index / maxItemCount), allItems.absoluteGet(index % maxItemCount));
 	}
 
@@ -419,10 +421,9 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 * @param item
 	 *            the item of the pair
 	 * @return the index corresponding to the given pair
-	 * @see #indexOf(Pair) 
+	 * @see #pairToIndex(Pair) 
 	 */
-	//TODO rename, since it is conflicting with ExtendedSet methods
-	public final int indexOf(T transaction, I item) {
+	public final int pairToIndex(T transaction, I item) {
 		return allTransactions.absoluteIndexOf(transaction) * maxItemCount + allItems.absoluteIndexOf(item);
 	}
 	
@@ -432,12 +433,10 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 * @param p
 	 *            the transaction-item pair
 	 * @return the index corresponding to the given pair 
-	 * @see #indexOf(Object, Object) 
+	 * @see #pairToIndex(Object, Object) 
 	 */
-	//TODO rename, since it is conflicting with ExtendedSet methods
-	@Override
-	public final int indexOf(Pair<T, I> p) {
-		return indexOf(p.transaction, p.item);
+	public final int pairToIndex(Pair<T, I> p) {
+		return pairToIndex(p.transaction, p.item);
 	}
 	
 	/**
@@ -458,18 +457,15 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 * @return <code>true</code> if the set has been changed
 	 */
 	public boolean add(T transaction, I item) {
-		return indices.add(indexOf(transaction, item));
+		return indices.add(pairToIndex(transaction, item));
 	}
 	
 	/**
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public boolean addAll(Collection<? extends Pair<T, I>> c) {
-		if (hasSameIndices(c))
-			return indices.addAll(((PairSet) c).indices);
-		return super.addAll(c);
+		return c != null && !c.isEmpty() && indices.addAll(convert(c).indices);
 	}
 
 	/**
@@ -524,18 +520,15 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 *         within the set
 	 */
 	public boolean contains(T transaction, I item) {
-		return indices.contains(indexOf(transaction, item));
+		return indices.contains(pairToIndex(transaction, item));
 	}
 	
 	/**
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public boolean containsAll(Collection<?> c) {
-		if (hasSameIndices(c))
-			return indices.containsAll(((PairSet) c).indices);
-		return super.containsAll(c);
+		return c == null || indices.containsAll(convert(c).indices);
 	}
 
 	/**
@@ -575,31 +568,25 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	@Override
 	public ExtendedIterator<Pair<T, I>> iterator() {
 		return new ExtendedIterator<Pair<T, I>>() {
-			private final Iterator<Integer> itr = indices.iterator();
+			final ExtendedIterator<Integer> itr = indices.iterator();
+			@Override public boolean hasNext() {return itr.hasNext();}
+			@Override public Pair<T, I> next() {return indexToPair(itr.next());}
+			@Override public void skipAllBefore(Pair<T, I> element) {itr.skipAllBefore(pairToIndex(element));}
+			@Override public void remove() {itr.remove();}
+		};
+	}
 
-			/** {@inheritDoc} */
-			@Override
-			public boolean hasNext() {
-				return itr.hasNext();
-			}
-
-			/** {@inheritDoc} */
-			@Override
-			public Pair<T, I> next() {
-				return getPair(itr.next());
-			}
-
-			/** {@inheritDoc} */
-			@Override
-			public void remove() {
-				itr.remove();
-			}
-
-			@Override
-			public void skipAllBefore(Pair<T, I> element) {
-				// TODO Auto-generated method stub
-				throw new UnsupportedOperationException("TODO");
-			}
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public ExtendedIterator<Pair<T, I>> descendingIterator() {
+		return new ExtendedIterator<Pair<T, I>>() {
+			final ExtendedIterator<Integer> itr = indices.descendingIterator();
+			@Override public boolean hasNext() {return itr.hasNext();}
+			@Override public Pair<T, I> next() {return indexToPair(itr.next());}
+			@Override public void skipAllBefore(Pair<T, I> element) {itr.skipAllBefore(pairToIndex(element));}
+			@Override public void remove() {itr.remove();}
 		};
 	}
 
@@ -623,29 +610,29 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 * @return <code>true</code> if the pair set has been changed
 	 */
 	public boolean remove(T transacion, I item) {
-		return indices.remove(indexOf(transacion, item));
+		return indices.remove(pairToIndex(transacion, item));
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public boolean removeAll(Collection<?> c) {
-		if (hasSameIndices(c))
-			return indices.removeAll(((PairSet) c).indices);
-		return super.removeAll(c);
+		return c != null && !c.isEmpty() && indices.removeAll(convert(c).indices);
 	}
 	
 	/**
 	 * {@inheritDoc}
 	 */
-	@SuppressWarnings("unchecked")
 	@Override
 	public boolean retainAll(Collection<?> c) {
-		if (hasSameIndices(c))
-			return indices.retainAll(((PairSet) c).indices);
-		return super.retainAll(c);
+		if (isEmpty())
+			return false;
+		if (c == null || c.isEmpty()) {
+			indices.clear();
+			return true;
+		}
+		return indices.retainAll(convert(c).indices);
 	}
 	
 	/**
@@ -658,7 +645,6 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 *            collection of items
 	 * @return <code>true</code> if the set set has been changed
 	 */
-	//TODO do the same for retainAll...
 	public boolean removeAll(Collection<T> transactionSet, Collection<I> itemSet) {
 		if (transactionSet == null || transactionSet.isEmpty())
 			return false;
@@ -669,6 +655,35 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 		for (T u : transactionSet)
 			for (I p : itemSet)
 				m |= remove(u, p);
+		return m;
+	}
+
+	/**
+	 * Retains the pairs obtained from the Cartesian product of transactions and
+	 * items
+	 * 
+	 * @param transactionSet
+	 *            collection of transactions
+	 * @param itemSet
+	 *            collection of items
+	 * @return <code>true</code> if the set set has been changed
+	 */
+	public boolean retainAll(Collection<T> transactionSet, Collection<I> itemSet) {
+		if (transactionSet == null || transactionSet.isEmpty()) {
+			clear();
+			return false;
+		}
+		if (itemSet == null || itemSet.isEmpty()) {
+			clear();
+			return false;
+		}
+
+		boolean m = false;
+		for (Pair<T, I> p : this)
+			if (!transactionSet.contains(p.transaction) || !itemSet.contains(p.item)) {
+				remove(p);
+				m = true;
+			}
 		return m;
 	}
 
@@ -720,8 +735,7 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 		if (!(obj instanceof PairSet<?, ?>))
 			return false;
 		PairSet<?, ?> other = (PairSet<?, ?>) obj;
-		return allTransactions == other.allTransactions && allItems == other.allItems
-				&& indices.equals(other.indices);
+		return hasSameIndices(other) && indices.equals(other.indices);
 	}
 
 	/**
@@ -814,9 +828,17 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 */
 	@Override
 	public Pair<T, I> get(int index) {
-		return getPair(indices.get(index));
+		return indexToPair(indices.get(index));
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int indexOf(Pair<T, I> e) {
+		return indices.indexOf(pairToIndex(e));
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -882,9 +904,9 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 * exception.
 	 * 
 	 * @return the index set
-	 * @see #getPair(int)
-	 * @see #indexOf(Pair)
-	 * @see #indexOf(Object, Object)
+	 * @see #indexToPair(int)
+	 * @see #pairToIndex(Pair)
+	 * @see #pairToIndex(Object, Object)
 	 */
 	public ExtendedSet<Integer> indices() {
 //		return indices.headSet(maxTransactionCount * maxItemCount);
@@ -1013,8 +1035,7 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 */
 	@Override
 	public void complement() {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("TODO");
+		indices.complement();
 	}
 
 	/**
@@ -1022,37 +1043,277 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 */
 	@Override
 	public Comparator<? super Pair<T, I>> comparator() {
-		// TODO Auto-generated method stub
-		throw new UnsupportedOperationException("TODO");
+		return new Comparator<Pair<T, I>>() {
+			@Override
+			public int compare(Pair<T, I> o1, Pair<T, I> o2) {
+				return pairToIndex(o2) - pairToIndex(o1);
+			}
+		};
 	}
 
 	/**
-	 * Test procedure
-	 * 
-	 * @param args
+	 * {@inheritDoc}
 	 */
-	public static void main(String[] args) {
-		PairSet<String, Integer> m = new PairSet<String, Integer>(
-				Arrays.asList("T1", "T2", "T3", "T4", "T5", "T6"), 
-				Arrays.asList(100, 200, 300, 400, 500, 600), 
-				true);
-		m.add("T3", 200);
-		m.add("T6", 100);
-		m.add("T2", 100);
-		m.add("T2", 200);
-		m.add("T4", 300);
-		m.add("T4", 600);
-		System.out.println(m);
-		System.out.println(m.debugInfo());
+	@SuppressWarnings("unchecked")
+	@Override
+	public PairSet<T, I> convert(Collection<?> c) {
+		if (c == null)
+			return empty();
+
+		// useless to convert...
+		if (hasSameIndices(c))
+			return (PairSet<T, I>) c;
 		
-		System.out.println("Position 3: " + m.get(2));
-		System.out.println("Transaction T2: " + m.itemsOf("T2"));
-		System.out.println("Item 200: " + m.transactionsOf(200));
-		
-		System.out.println(m.subSet("T1", "T2", 100, 200).debugInfo());
-		System.out.println(m.subSet(Arrays.asList("T1", "T3"), Arrays.asList(100, 200)).debugInfo());
-		
-		System.out.println(m.involvedItems());
-		System.out.println(m.involvedTransactions());
+		// NOTE: cannot call super.convert(c) because of loop
+		PairSet<T, I> res = empty();
+		for (Pair<T, I> t : (Collection<Pair<T, I>>) c) 
+			res.add(t);
+		return res;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public PairSet<T, I> convert(Object... e) {
+		return (PairSet<T, I>) super.convert(e);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public boolean addFirstOf(SortedSet<Pair<T, I>> set) {
+		if (hasSameIndices(set)) 
+			return indices.add((Integer) ((PairSet) set).indices.first());
+		return super.addFirstOf(set);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public boolean addLastOf(SortedSet<Pair<T, I>> set) {
+		if (hasSameIndices(set)) 
+			return indices.add((Integer) ((PairSet) set).indices.last());
+		return super.addLastOf(set);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public boolean removeFirstOf(SortedSet<Pair<T, I>> set) {
+		if (hasSameIndices(set)) 
+			return indices.remove(((PairSet) set).indices.first());
+		return super.removeFirstOf(set);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public boolean removeLastOf(SortedSet<Pair<T, I>> set) {
+		if (hasSameIndices(set)) 
+			return indices.remove(((PairSet) set).indices.last());
+		return super.removeFirstOf(set);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void clear(Pair<T, I> from, Pair<T, I> to) {
+		indices.clear(pairToIndex(from), pairToIndex(to));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int complementSize() {
+		return indices.complementSize();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public PairSet<T, I> complemented() {
+		return new PairSet<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount, indices.complemented());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public PairSet<T, I> difference(Collection<? extends Pair<T, I>> other) {
+		return other == null ? clone() : new PairSet<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount, 
+				indices.difference(convert(other).indices));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean containsAny(Collection<? extends Pair<T, I>> other) {
+		return other == null || indices.containsAny(convert(other).indices);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public boolean containsAtLeast(Collection<? extends Pair<T, I>> other, int minElements) {
+		return other != null && !other.isEmpty() && indices.containsAtLeast(convert(other).indices, minElements);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int differenceSize(Collection<? extends Pair<T, I>> other) {
+		return other == null ? size() : indices.differenceSize(convert(other).indices);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void fill(Pair<T, I> from, Pair<T, I> to) {
+		indices.fill(pairToIndex(from), pairToIndex(to));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void flip(Pair<T, I> e) {
+		indices.flip(pairToIndex(e));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public PairSet<T, I> subSet(Pair<T, I> fromElement, Pair<T, I> toElement) {
+		return new PairSet<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount,  
+				indices.subSet(pairToIndex(fromElement), pairToIndex(toElement)));
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public PairSet<T, I> headSet(Pair<T, I> toElement) {
+		return new PairSet<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount, 
+				indices.headSet(pairToIndex(toElement)));
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public PairSet<T, I> tailSet(Pair<T, I> fromElement) {
+		return new PairSet<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount,  
+				indices.tailSet(pairToIndex(fromElement)));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public PairSet<T, I> intersection(Collection<? extends Pair<T, I>> other) {
+		return other == null ? empty() : new PairSet<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount,  
+				indices.intersection(convert(other).indices));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<? extends PairSet<T, I>> powerSet() {
+		return (List<? extends PairSet<T, I>>) super.powerSet();
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<? extends PairSet<T, I>> powerSet(int min, int max) {
+		return (List<? extends PairSet<T, I>>) super.powerSet(min, max);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public PairSet<T, I> symmetricDifference(Collection<? extends Pair<T, I>> other) {
+		return other == null ? clone() : new PairSet<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount,  
+				indices.symmetricDifference(convert(other).indices));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int symmetricDifferenceSize(Collection<? extends Pair<T, I>> other) {
+		return other == null ? size() : indices.symmetricDifferenceSize(convert(other).indices);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public PairSet<T, I> union(Collection<? extends Pair<T, I>> other) {
+		return other == null ? clone() : new PairSet<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount, 
+				indices.union(convert(other).indices));
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int unionSize(Collection<? extends Pair<T, I>> other) {
+		return other == null ? size() : indices.unionSize(convert(other).indices);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public PairSet<T, I> unmodifiable() {
+		return new PairSet<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount, indices.unmodifiable());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Pair<T, I> first() {
+		return indexToPair(indices.first());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public Pair<T, I> last() {
+		return indexToPair(indices.last());
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int compareTo(ExtendedSet<Pair<T, I>> o) {
+		return indices.compareTo(convert(o).indices);
 	}
 }

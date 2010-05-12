@@ -44,6 +44,7 @@ import java.util.SortedSet;
  * @see ConciseSet
  * @see FastSet
  */
+//TODO: usare IntSet invece di ExtendedSet<Integer>
 public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	// indices
 	private final ExtendedSet<Integer> indices;
@@ -292,7 +293,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public IndexedSet<T> clone() {
-		return new IndexedSet<T>(this.itemToIndex, this.indexToItem, this.indices.clone());
+		return new IndexedSet<T>(itemToIndex, indexToItem, indices.clone());
 	}
 
 	/**
@@ -375,7 +376,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public boolean addAll(Collection<? extends T> c) {
-		return c != null && !c.isEmpty() && this.indices.addAll(convert(c).indices);
+		return c != null && !c.isEmpty() && indices.addAll(convert(c).indices);
 	}
 
 	/**
@@ -410,7 +411,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public boolean containsAll(Collection<?> c) {
-		return c == null || this.indices.containsAll(convert(c).indices);
+		return c == null || indices.containsAll(convert(c).indices);
 	}
 
 	/**
@@ -418,7 +419,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public boolean containsAny(Collection<? extends T> other) {
-		return other == null || this.indices.containsAny(convert(other).indices);
+		return other == null || indices.containsAny(convert(other).indices);
 	}
 
 	/**
@@ -426,7 +427,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public boolean containsAtLeast(Collection<? extends T> other, int minElements) {
-		return other != null && !other.isEmpty() && this.indices.containsAtLeast(convert(other).indices, minElements);
+		return other != null && !other.isEmpty() && indices.containsAtLeast(convert(other).indices, minElements);
 	}
 
 	/**
@@ -481,7 +482,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public boolean removeAll(Collection<?> c) {
-		return c != null && !c.isEmpty() && this.indices.removeAll(convert(c).indices);
+		return c != null && !c.isEmpty() && indices.removeAll(convert(c).indices);
 	}
 
 	/**
@@ -495,7 +496,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 			indices.clear();
 			return true;
 		}
-		return this.indices.retainAll(convert(c).indices);
+		return indices.retainAll(convert(c).indices);
 	}
 
 	/**
@@ -512,7 +513,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@Override
 	public IndexedSet<T> intersection(Collection<? extends T> other) {
 		return other == null ? empty() : new IndexedSet<T>(itemToIndex, indexToItem, 
-				this.indices.intersection(convert(other).indices));
+				indices.intersection(convert(other).indices));
 	}
 
 	/**
@@ -521,7 +522,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@Override
 	public IndexedSet<T> union(Collection<? extends T> other) {
 		return other == null ? clone() : new IndexedSet<T>(itemToIndex, indexToItem, 
-				this.indices.union(convert(other).indices));
+				indices.union(convert(other).indices));
 	}
 
 	/**
@@ -530,7 +531,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@Override
 	public IndexedSet<T> difference(Collection<? extends T> other) {
 		return other == null ? clone() : new IndexedSet<T>(itemToIndex, indexToItem, 
-				this.indices.difference(convert(other).indices));
+				indices.difference(convert(other).indices));
 	}
 
 	/**
@@ -539,7 +540,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@Override
 	public IndexedSet<T> symmetricDifference(Collection<? extends T> other) {
 		return other == null ? clone() : new IndexedSet<T>(itemToIndex, indexToItem, 
-				this.indices.symmetricDifference(convert(other).indices));
+				indices.symmetricDifference(convert(other).indices));
 	}
 
 	/**
@@ -547,7 +548,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public IndexedSet<T> complemented() {
-		return new IndexedSet<T>(itemToIndex, indexToItem, this.indices.complemented());
+		return new IndexedSet<T>(itemToIndex, indexToItem, indices.complemented());
 	}
 
 	/**
@@ -555,7 +556,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public void complement() {
-		this.indices.complement();
+		indices.complement();
 	}
 
 	/**
@@ -563,7 +564,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public int intersectionSize(Collection<? extends T> other) {
-		return other == null ? 0 : this.indices.intersectionSize(convert(other).indices);
+		return other == null ? 0 : indices.intersectionSize(convert(other).indices);
 	}
 
 	/**
@@ -571,7 +572,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public int unionSize(Collection<? extends T> other) {
-		return other == null ? size() : this.indices.unionSize(convert(other).indices);
+		return other == null ? size() : indices.unionSize(convert(other).indices);
 	}
 
 	/**
@@ -579,7 +580,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public int symmetricDifferenceSize(Collection<? extends T> other) {
-		return other == null ? size() : this.indices.symmetricDifferenceSize(convert(other).indices);
+		return other == null ? size() : indices.symmetricDifferenceSize(convert(other).indices);
 	}
 
 	/**
@@ -587,7 +588,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public int differenceSize(Collection<? extends T> other) {
-		return other == null ? size() : this.indices.differenceSize(convert(other).indices);
+		return other == null ? size() : indices.differenceSize(convert(other).indices);
 	}
 
 	/**
@@ -595,7 +596,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public int complementSize() {
-		return this.indices.complementSize();
+		return indices.complementSize();
 	}
 
 	/**
