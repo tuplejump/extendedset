@@ -51,12 +51,14 @@ public class Performance {
 	private static class WAHSet extends ConciseSet {WAHSet() {super(true);}}
 	private static class IntegerFastSet extends IntegerSet {IntegerFastSet() {super(new FastSet());}}
 	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new ConciseSet());}}
+	@SuppressWarnings("unused")
 	private static class IntegerConcisePlusSet extends IntegerSet {IntegerConcisePlusSet() {super(new ConcisePlusSet());}}
 	private static class IntegerWAHSet extends IntegerSet {IntegerWAHSet() {super(new WAHSet());}}
 
 	/** 
 	 * Class to test the sorted array
 	 */
+	@SuppressWarnings("unused")
 	private static class ArrayListSet extends GenericExtendedSet<Integer> {
 		ArrayListSet() {
 			super(ArrayList.class, GenericExtendedSet.ALL_POSITIVE_INTEGERS);
@@ -66,6 +68,7 @@ public class Performance {
 	/** 
 	 * Class to test the sorted linked lists
 	 */
+	@SuppressWarnings("unused")
 	private static class LinkedListSet extends GenericExtendedSet<Integer> {
 		LinkedListSet() {
 			super(LinkedList.class, GenericExtendedSet.ALL_POSITIVE_INTEGERS);

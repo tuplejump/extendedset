@@ -1328,8 +1328,8 @@ public class Debug {
 	 */
 	public static void main(String[] args) {
 		// NOTE: the most complete test is TestCase.RANDOM_OPERATION_STRESS
-		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS;
-//		TestCase testCase = TestCase.ADDITION_STRESS;
+//		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS;
+		TestCase testCase = TestCase.SKIP;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerFastSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConciseSet.class;
 		Class<? extends ExtendedSet<Integer>> classToTest = IntegerWAHSet.class;

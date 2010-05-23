@@ -33,7 +33,7 @@ import java.util.NoSuchElementException;
  * This class is an instance of {@link IntSet} internally represented by
  * compressed bitmaps though a RLE (Run-Length Encoding) compression algorithm.
  * See <a
- * href="http://arxiv.org/abs/1004.0403">http://arxiv.org/abs/1004.0403</a> for
+ * href="http://ricerca.mat.uniroma3.it/users/colanton/docs/concise.pdf">http://ricerca.mat.uniroma3.it/users/colanton/docs/concise.pdf</a> for
  * more details.
  * <p>
  * Notice that the iterator by {@link #intIterator()} is <i>fail-fast</i>, similar
@@ -123,7 +123,7 @@ public class ConciseSet extends IntSet {
 	 * <tt>31 * (1 << 25)</tt>, followed by a literal with 30 0's and the
 	 * MSB (31<sup>st</sup> bit) equal to 1
 	 */
-	public final static int MAX_ALLOWED_INTEGER = 31 * (1 << 25) + 30;
+	public final static int MAX_ALLOWED_INTEGER = 31 * (1 << 25) + 30; // 1040187422
 
 	/** 
 	 * The lowest representable integer.
@@ -1063,6 +1063,9 @@ public class ConciseSet extends IntSet {
 	 *            be set to 1.
 	 */
 	private void appendLiteral(int word) {
+		// TODO se sto inserendo 0x80000000 e ho solo una sequence 0x01FFFFFF,
+		// allora il risultato è un insieme vuoto, mentre invece qui mi genera
+		// 0x02000000 che è una sequence con il primo bit a 1!!!
 		if (lastWordIndex < 0) {
 			// empty set
 			words[lastWordIndex = 0] = word;
@@ -1695,15 +1698,13 @@ public class ConciseSet extends IntSet {
 			w = words[lastWordIndex];
 			if (w == ALL_ZEROS_LITERAL) {
 				lastWordIndex--;
-				last -= MAX_LITERAL_LENGHT;
 			} else if (isZeroSequence(w)) {
 				if (simulateWAH || isSequenceWithNoBits(w)) {
-					last -= maxLiteralLengthMultiplication(getSequenceCount(w) + 1);
 					lastWordIndex--;
 				} else {
 					// convert the sequence in a 1-bit literal word
-					last -= maxLiteralLengthMultiplication(getSequenceCount(w));
 					words[lastWordIndex] = getLiteral(w);
+					return;
 				}
 			} else {
 				// one sequence or literal
