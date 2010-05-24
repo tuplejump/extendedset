@@ -78,7 +78,10 @@ import java.util.Map.Entry;
  * @see FastSet
  * 
  */
-public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cloneable {
+public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cloneable, java.io.Serializable {
+	/** generated serial ID */
+	private static final long serialVersionUID = 7902458899512666217L;
+
 	/* maximum cardinality of each subset */
 	private static int SUBSET_SIZE = ConciseSet.MAX_ALLOWED_INTEGER + 1;
 	
@@ -325,14 +328,16 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 		if (transactions instanceof IndexedSet<?>)
 			allTransactions = ((IndexedSet<XT>) transactions); //.unmodifiable();
 		else
-			allTransactions = new IndexedSet<XT>(transactions, compressed).universe(); //.unmodifiable();
+//			allTransactions = new IndexedSet<XT>(transactions, compressed).universe(); //.unmodifiable();
+			allTransactions = new IndexedSet<XT>(transactions, false).universe(); //.unmodifiable();
 
 		// all items
 		IndexedSet<XI> allItems; 
 		if (items instanceof IndexedSet<?>)
 			allItems = ((IndexedSet<XI>) items); //.unmodifiable();
 		else
-			allItems = new IndexedSet<XI>(items, compressed).universe(); //.unmodifiable();
+//			allItems = new IndexedSet<XI>(items, compressed).universe(); //.unmodifiable();
+			allItems = new IndexedSet<XI>(items, false).universe(); //.unmodifiable();
 		
 		// empty index set
 		IntSet firstIndices = compressed ? new ConciseSet() : new FastSet();
@@ -354,8 +359,10 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	private static PairSet<Integer, Integer> newEmptyPairSet(
 			int maxTransactionCount, int maxItemCount, boolean compressed) {
 		return newEmptyPairSet(
-				new IndexedSet<Integer>(0, maxTransactionCount - 1, compressed).universe(),
-				new IndexedSet<Integer>(0, maxItemCount - 1, compressed).universe(),
+//				new IndexedSet<Integer>(0, maxTransactionCount - 1, compressed).universe(),
+//				new IndexedSet<Integer>(0, maxItemCount - 1, compressed).universe(),
+				new IndexedSet<Integer>(0, maxTransactionCount - 1, false).universe(),
+				new IndexedSet<Integer>(0, maxItemCount - 1, false).universe(),
 				compressed);
 	}
 
@@ -933,16 +940,17 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 		// index range to scan
 		long indexOfFirst = (long) allTransactions.absoluteIndexOf(transaction) * maxItemCount;
 		long indexOfLast = indexOfFirst + maxItemCount - 1;
-		
+
 		// final result
 		IndexedSet<I> res = allItems.empty();
-
+		
 		// index iterator
 		LongIterator itr = new LongIterator();
-		itr.skipAllBefore(Long.valueOf(indexOfFirst));
+		itr.skipAllBefore(indexOfFirst);
 		Long next;
 		while (itr.hasNext() && ((next = itr.next()) <= indexOfLast)) 
 			res.indices().add((int) (next - indexOfFirst));
+
 		return res;
 	}
 
@@ -1103,6 +1111,7 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 		
 		s.append('\n');
 		s.append("firstIndices: " + firstIndices.debugInfo());
+		s.append("otherIndices: " + otherIndices.size());
 		for (Entry<Long, IntSet> e : otherIndices.entrySet())
 			s.append("first: " + e.getKey() + ", " + e.getValue().debugInfo());
 
@@ -1143,8 +1152,83 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	public IntSet indices() {
 //TODO
 //		return indices.headSet(maxTransactionCount * maxItemCount);
-
 		return new IntSet() {
+			@Override
+			public ExtendedIntIterator intIterator() {
+				return new ExtendedIntIterator() {
+					final LongIterator itr = new LongIterator();
+					@Override public boolean hasNext() {return itr.hasNext();}
+					@Override public int next() {return (int) itr.next();}
+					@Override public void remove() {itr.remove();}
+					@Override public void skipAllBefore(int element) {itr.skipAllBefore(element);}
+				};
+			}
+			
+			@Override
+			public ExtendedIntIterator descendingIntIterator() {
+				return new ExtendedIntIterator() {
+					final ReverseLongIterator itr = new ReverseLongIterator();
+					@Override public boolean hasNext() {return itr.hasNext();}
+					@Override public int next() {return (int) itr.next();}
+					@Override public void remove() {itr.remove();}
+					@Override public void skipAllBefore(int element) {itr.skipAllBefore(element);}
+				};
+			}
+			
+			@Override
+			public int size() {
+				return PairSet.this.size();
+			}
+			
+			@Override
+			public boolean isEmpty() {
+				return PairSet.this.isEmpty();
+			}
+			
+			@Override
+			public boolean add(int i) {
+				//TODO
+				throw new UnsupportedOperationException("TODO");
+//				if (i < SUBSET_SIZE)
+//					return firstIndices.add(i);
+//				Long first = Long.valueOf((i / SUBSET_SIZE) * SUBSET_SIZE);
+//				IntSet subset = otherIndices.get(first);
+//				if (subset == null)
+//					otherIndices.put(first, subset = firstIndices.empty());
+//				return subset.add(i - first.intValue());
+			}
+			
+			@Override
+			public void fill(int from, int to) {
+				//TODO
+				throw new UnsupportedOperationException("TODO");
+//				if (from < SUBSET_SIZE) {
+//					if (to < SUBSET_SIZE) {
+//						firstIndices.fill(from, to);
+//						return;
+//					}
+//					firstIndices.fill(from, SUBSET_SIZE - 1);
+//					from = SUBSET_SIZE;
+//				}
+//				for (Long first = Long.valueOf(from); first < to; first += SUBSET_SIZE) {
+//					IntSet subset = otherIndices.get(first);
+//					if (subset == null)
+//						otherIndices.put(first, subset = firstIndices.empty());
+//					if (to < first + SUBSET_SIZE) 
+//						subset.fill(0, SUBSET_SIZE - 1);
+//					else
+//						subset.fill(0, to % SUBSET_SIZE);
+//				}
+			}
+			
+			@Override
+			public boolean retainAll(IntSet c) {
+				//TODO
+				throw new UnsupportedOperationException("TODO");
+			}
+			
+			//FINIREEEEEEE
+			
 			@Override
 			public int compareTo(IntSet o) {
 				//TODO
@@ -1159,17 +1243,6 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 			
 			@Override
 			public IntSet symmetricDifference(IntSet other) {
-				//TODO
-				throw new UnsupportedOperationException("TODO");
-			}
-			
-			@Override
-			public int size() {
-				return size();
-			}
-			
-			@Override
-			public boolean retainAll(IntSet c) {
 				//TODO
 				throw new UnsupportedOperationException("TODO");
 			}
@@ -1193,11 +1266,6 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 			}
 			
 			@Override
-			public boolean isEmpty() {
-				return isEmpty();
-			}
-			
-			@Override
 			public int intersectionSize(IntSet other) {
 				//TODO
 				throw new UnsupportedOperationException("TODO");
@@ -1207,17 +1275,6 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 			public IntSet intersection(IntSet other) {
 				//TODO
 				throw new UnsupportedOperationException("TODO");
-			}
-			
-			@Override
-			public ExtendedIntIterator intIterator() {
-				return new ExtendedIntIterator() {
-					final LongIterator itr = new LongIterator();
-					@Override public boolean hasNext() {return itr.hasNext();}
-					@Override public int next() {return (int) itr.next();}
-					@Override public void remove() {itr.remove();}
-					@Override public void skipAllBefore(int element) {itr.skipAllBefore(element);}
-				};
 			}
 			
 			@Override
@@ -1239,12 +1296,6 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 			}
 			
 			@Override
-			public void fill(int from, int to) {
-				//TODO
-				throw new UnsupportedOperationException("TODO");
-			}
-			
-			@Override
 			public IntSet empty() {
 				//TODO
 				throw new UnsupportedOperationException("TODO");
@@ -1254,17 +1305,6 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 			public IntSet difference(IntSet other) {
 				//TODO
 				throw new UnsupportedOperationException("TODO");
-			}
-			
-			@Override
-			public ExtendedIntIterator descendingIntIterator() {
-				return new ExtendedIntIterator() {
-					final ReverseLongIterator itr = new ReverseLongIterator();
-					@Override public boolean hasNext() {return itr.hasNext();}
-					@Override public int next() {return (int) itr.next();}
-					@Override public void remove() {itr.remove();}
-					@Override public void skipAllBefore(int element) {itr.skipAllBefore(element);}
-				};
 			}
 			
 			@Override
@@ -1350,12 +1390,6 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 				//TODO
 				throw new UnsupportedOperationException("TODO");
 			}
-			
-			@Override
-			public boolean add(int i) {
-				//TODO
-				throw new UnsupportedOperationException("TODO");
-			}
 		};
 	}
 
@@ -1382,7 +1416,7 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 		//TODO
 		throw new UnsupportedOperationException("TODO");
 //		// final set
-//		PairSet2<T, I> res = empty();
+//		PairSet<T, I> res = empty();
 //		
 //		// trivial case
 //		if (fromTransaction == null && toTransaction == null && fromItem == null && toItem == null)
@@ -1435,7 +1469,7 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 		//TODO
 		throw new UnsupportedOperationException("TODO");
 //		// final set of pairs
-//		PairSet2<T, I> res = empty();
+//		PairSet<T, I> res = empty();
 //
 //		// trivial case
 //		if (involvedTransactions == null && involvedItems == null) 
@@ -1449,12 +1483,12 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 //				pis.add(allItems.absoluteIndexOf(p));
 //			for (int ui = 0; ui < maxTransactionCount; ui++) 
 //				for (Integer pi : pis)
-//					res.indices.add(ui * maxItemCount + pi);
+//					res.indices().add(ui * maxItemCount + pi);
 //		} else if (involvedItems == null) {
 //			// identify all potential indices
 //			for (T u : involvedTransactions) {
 //				int first = allTransactions.absoluteIndexOf(u) * maxItemCount;
-//				res.indices.fill(first, first + maxItemCount - 1);
+//				res.indices().fill(first, first + maxItemCount - 1);
 //			}
 //		} else {
 //			// identify all potential indices
@@ -1464,12 +1498,12 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 //			for (T u : involvedTransactions) {
 //				int ui = allTransactions.absoluteIndexOf(u);
 //				for (Integer pi : pis)
-//					res.indices.add(ui * maxItemCount + pi);
+//					res.indices().add(ui * maxItemCount + pi);
 //			}
 //		}
 //
 //		// remove out-of-range pairs
-//		res.indices.retainAll(indices);
+//		res.indices().retainAll(indices());
 //		return res;
 	}
 
@@ -1566,17 +1600,18 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	public PairSet<T, I> complemented() {
 		//TODO
 		throw new UnsupportedOperationException("TODO");
-//		return new PairSet2<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount, indices.complemented());
+//		return new PairSet<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount, indices.complemented());
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public PairSet<T, I> difference(Collection<? extends Pair<T, I>> other) {
 		//TODO
-		throw new UnsupportedOperationException("TODO");
-//		return other == null ? clone() : new PairSet2<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount, 
+		return (PairSet<T, I>) super.difference(other);
+//		return other == null ? clone() : new PairSet<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount, 
 //				indices.difference(convert(other).indices));
 	}
 
@@ -1637,7 +1672,7 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	public PairSet<T, I> subSet(Pair<T, I> fromElement, Pair<T, I> toElement) {
 		//TODO
 		throw new UnsupportedOperationException("TODO");
-//		return new PairSet2<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount,  
+//		return new PairSet<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount,  
 //				indices.subSet(pairToIndex(fromElement), pairToIndex(toElement)));
 	}
 	
@@ -1648,7 +1683,7 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	public PairSet<T, I> headSet(Pair<T, I> toElement) {
 		//TODO
 		throw new UnsupportedOperationException("TODO");
-//		return new PairSet2<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount, 
+//		return new PairSet<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount, 
 //				indices.headSet(pairToIndex(toElement)));
 	}
 	
@@ -1659,18 +1694,19 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	public PairSet<T, I> tailSet(Pair<T, I> fromElement) {
 		//TODO
 		throw new UnsupportedOperationException("TODO");
-//		return new PairSet2<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount,  
+//		return new PairSet<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount,  
 //				indices.tailSet(pairToIndex(fromElement)));
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
-	public PairSet<T, I> intersection(Collection<? extends Pair<T, I>> other) {
+	public PairSet<T, I> intersection(Collection<? extends Pair<T, I>> c) {
 		//TODO
-		throw new UnsupportedOperationException("TODO");
-//		return other == null ? empty() : new PairSet2<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount,  
+		return (PairSet<T, I>) super.intersection(c);
+//		return other == null ? empty() : new PairSet<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount,  
 //				indices.intersection(convert(other).indices));
 	}
 
@@ -1699,7 +1735,7 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	public PairSet<T, I> symmetricDifference(Collection<? extends Pair<T, I>> other) {
 		//TODO
 		throw new UnsupportedOperationException("TODO");
-//		return other == null ? clone() : new PairSet2<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount,  
+//		return other == null ? clone() : new PairSet<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount,  
 //				indices.symmetricDifference(convert(other).indices));
 	}
 
@@ -1716,11 +1752,12 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	/**
 	 * {@inheritDoc}
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public PairSet<T, I> union(Collection<? extends Pair<T, I>> other) {
 		//TODO
-		throw new UnsupportedOperationException("TODO");
-//		return other == null ? clone() : new PairSet2<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount, 
+		return (PairSet<T, I>) super.union(other);
+//		return other == null ? clone() : new PairSet<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount, 
 //				indices.union(convert(other).indices));
 	}
 
@@ -1741,7 +1778,7 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	public PairSet<T, I> unmodifiable() {
 		//TODO
 		throw new UnsupportedOperationException("TODO");
-//		return new PairSet2<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount, indices.unmodifiable());
+//		return new PairSet<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount, indices.unmodifiable());
 	}
 
 	/**
@@ -1796,10 +1833,10 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 		for (T i : items) 
 			if (!bits.contains(i)) 
 				return false;
-//		if (!bits.last().equals(items.last()))
-//			return false;
-//		if (!bits.first().equals(items.first()))
-//			return false;
+		if (!bits.last().equals(items.last()))
+			return false;
+		if (!bits.first().equals(items.first()))
+			return false;
 		return true;
 	}
 	
@@ -1849,6 +1886,7 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 //			throw new RuntimeException("errore");
 //		System.out.println(bitsLeft);
 //
+//		
 //		System.exit(0);
 		
 		final int maxCardinality = 1000;
@@ -1969,8 +2007,8 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 				for (Pair<Integer, Integer> y : itemsRight) 
 					if (!bitsRight.contains(y)) 
 						System.out.println("itemsRight does not contain " + y);
-//				System.out.println("bitsRight.last(): " + bitsRight.last() + " ?= itemsRight.last(): " + itemsRight.last());
-//				System.out.println("bitsRight.first(): " + bitsRight.first() + " ?= itemsRight.first(): " + itemsRight.first());
+				System.out.println("bitsRight.last(): " + bitsRight.last() + " ?= itemsRight.last(): " + itemsRight.last());
+				System.out.println("bitsRight.first(): " + bitsRight.first() + " ?= itemsRight.first(): " + itemsRight.first());
 
 				return;
 			}

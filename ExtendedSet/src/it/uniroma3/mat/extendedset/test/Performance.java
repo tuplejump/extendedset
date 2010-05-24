@@ -48,7 +48,10 @@ import java.util.Map.Entry;
  */
 public class Performance {
 	/* test classes */
-	private static class WAHSet extends ConciseSet {WAHSet() {super(true);}}
+	private static class WAHSet extends ConciseSet {
+		private static final long serialVersionUID = -5048707825606872979L;
+		WAHSet() {super(true);}
+	}
 	private static class IntegerFastSet extends IntegerSet {IntegerFastSet() {super(new FastSet());}}
 	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new ConciseSet());}}
 	@SuppressWarnings("unused")

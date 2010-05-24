@@ -19,6 +19,8 @@
 package it.uniroma3.mat.extendedset;
 
 
+import it.uniroma3.mat.extendedset.IntSet.ExtendedIntIterator;
+
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -44,10 +46,13 @@ import java.util.SortedSet;
  * @see ConciseSet
  * @see FastSet
  */
-//TODO: usare IntSet invece di ExtendedSet<Integer>
-public class IndexedSet<T> extends AbstractExtendedSet<T> {
+//TODO: usare IntSet invece di IntSet
+public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Serializable {
+	/** generated serial ID */
+	private static final long serialVersionUID = -2386771695765773453L;
+
 	// indices
-	private final ExtendedSet<Integer> indices;
+	private final IntSet indices;
 
 	// mapping to translate items to indices and vice-versa
 	private final Map<T, Integer> itemToIndex;
@@ -56,7 +61,10 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	/**
 	 * Used when the universe is a sequence of integral numbers
 	 */
-	private class CheckedFakeMap implements Map<Integer, Integer> {
+	private class CheckedFakeMap implements Map<Integer, Integer>, java.io.Serializable {
+		/** generated serial ID */
+		private static final long serialVersionUID = 9179931456581081163L;
+		
 		private final int size;
 		private final int shift;
 		private final boolean inverse;
@@ -102,7 +110,10 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	/**
 	 * Used when the universe is a sequence of integral numbers
 	 */
-	private class UncheckedFakeMap implements Map<Integer, Integer> {
+	private class UncheckedFakeMap implements Map<Integer, Integer>, java.io.Serializable {
+		/** generated serial ID */
+		private static final long serialVersionUID = 4383471467074220611L;
+
 		private final int shift;
 		
 		/**
@@ -189,7 +200,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 				itemToIndex.put(indexToItem.get(i), i);
 		}
 
-		indices = new IntegerSet(compressed ? new ConciseSet() : new FastSet());
+		indices = compressed ? new ConciseSet() : new FastSet();
 	}
 
 	/**
@@ -221,7 +232,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	public IndexedSet(int first, boolean compressed) {
 		indexToItem = (Map<Integer, T>) new UncheckedFakeMap(first);
 		itemToIndex = (Map<T, Integer>) new UncheckedFakeMap(-first);
-		indices = new IntegerSet(compressed ? new ConciseSet() : new FastSet());
+		indices = compressed ? new ConciseSet() : new FastSet();
 	}
 
 	/**
@@ -251,7 +262,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 			throw new IllegalArgumentException("first > last");
 		indexToItem = (Map<Integer, T>) new CheckedFakeMap(last - first + 1, first, false);
 		itemToIndex = (Map<T, Integer>) new CheckedFakeMap(last - first + 1, first, true);
-		indices = new IntegerSet(compressed ? new ConciseSet() : new FastSet());
+		indices = compressed ? new ConciseSet() : new FastSet();
 	}
 
 	/**
@@ -265,7 +276,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 * @param indices
 	 *            initial item set
 	 */
-	private IndexedSet(Map<T, Integer> itemToIndex, Map<Integer, T> indexToItem, ExtendedSet<Integer> indices) {
+	private IndexedSet(Map<T, Integer> itemToIndex, Map<Integer, T> indexToItem, IntSet indices) {
 		this.itemToIndex = itemToIndex;
 		this.indexToItem = indexToItem;
 		this.indices = indices;
@@ -444,7 +455,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@Override
 	public ExtendedIterator<T> iterator() {
 		return new ExtendedIterator<T>() {
-			final ExtendedIterator<Integer> itr = indices.iterator();
+			final ExtendedIntIterator itr = indices.intIterator();
 			@Override public boolean hasNext() {return itr.hasNext();}
 			@Override public T next() {return indexToItem.get(itr.next());}
 			@Override public void skipAllBefore(T element) {itr.skipAllBefore(itemToIndex.get(element));}
@@ -458,7 +469,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	@Override
 	public ExtendedIterator<T> descendingIterator() {
 		return new ExtendedIterator<T>() {
-			final ExtendedIterator<Integer> itr = indices.descendingIterator();
+			final ExtendedIntIterator itr = indices.descendingIntIterator();
 			@Override public boolean hasNext() {return itr.hasNext();}
 			@Override public T next() {return indexToItem.get(itr.next());}
 			@Override public void skipAllBefore(T element) {itr.skipAllBefore(itemToIndex.get(element));}
@@ -605,7 +616,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 * @return the collection of all possible elements
 	 */
 	public IndexedSet<T> universe() {
-		ExtendedSet<Integer> allItems = indices.empty();
+		IntSet allItems = indices.empty();
 		allItems.fill(0, indexToItem.size() - 1);
 		return new IndexedSet<T>(itemToIndex, indexToItem, allItems);
 	}
@@ -640,7 +651,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 	 * @see #absoluteGet(int)
 	 * @see #absoluteIndexOf(Object)
 	 */
-	public ExtendedSet<Integer> indices() {
+	public IntSet indices() {
 		//TODO: optimize indices.headSet
 //		if (indexToItem instanceof IndexedSet<?>.UncheckedFakeMap)
 //			return indices; 
@@ -767,40 +778,41 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> {
 				indices.debugInfo(), itemToIndex.toString(), indexToItem.toString());
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public IndexedSet<T> unmodifiable() {
-		return new IndexedSet<T>(itemToIndex, indexToItem, indices.unmodifiable());
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public IndexedSet<T> subSet(T fromElement, T toElement) {
-		return new IndexedSet<T>(itemToIndex, indexToItem, 
-				indices.subSet(itemToIndex.get(fromElement), itemToIndex.get(toElement)));
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public IndexedSet<T> headSet(T toElement) {
-		return new IndexedSet<T>(itemToIndex, indexToItem, 
-				indices.headSet(itemToIndex.get(toElement)));
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public IndexedSet<T> tailSet(T fromElement) {
-		return new IndexedSet<T>(itemToIndex, indexToItem, 
-				indices.tailSet(itemToIndex.get(fromElement)));
-	}
+	//TODO
+//	/**
+//	 * {@inheritDoc}
+//	 */
+//	@Override
+//	public IndexedSet<T> unmodifiable() {
+//		return new IndexedSet<T>(itemToIndex, indexToItem, indices.unmodifiable());
+//	}
+//	
+//	/**
+//	 * {@inheritDoc}
+//	 */
+//	@Override
+//	public IndexedSet<T> subSet(T fromElement, T toElement) {
+//		return new IndexedSet<T>(itemToIndex, indexToItem, 
+//				indices.subSet(itemToIndex.get(fromElement), itemToIndex.get(toElement)));
+//	}
+//	
+//	/**
+//	 * {@inheritDoc}
+//	 */
+//	@Override
+//	public IndexedSet<T> headSet(T toElement) {
+//		return new IndexedSet<T>(itemToIndex, indexToItem, 
+//				indices.headSet(itemToIndex.get(toElement)));
+//	}
+//	
+//	/**
+//	 * {@inheritDoc}
+//	 */
+//	@Override
+//	public IndexedSet<T> tailSet(T fromElement) {
+//		return new IndexedSet<T>(itemToIndex, indexToItem, 
+//				indices.tailSet(itemToIndex.get(fromElement)));
+//	}
 
 	/**
 	 * {@inheritDoc}

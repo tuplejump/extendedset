@@ -19,6 +19,8 @@
 
 package it.uniroma3.mat.extendedset;
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.ArrayList;
@@ -43,15 +45,18 @@ import java.util.Set;
  * @param <T>
  *            the type of elements represented by columns
  */
-public class ArrayMap<T> extends AbstractMap<Integer, T> {
+public class ArrayMap<T> extends AbstractMap<Integer, T> implements java.io.Serializable {
+	/** generated serial ID */
+	private static final long serialVersionUID = -578029467093308343L;
+
 	/** array backed by this map */
 	private final T[] array;
 	
 	/** {@link Set} instance to iterate over #array */
-	private Set<Entry<Integer, T>> entrySet;
+	private transient Set<Entry<Integer, T>> entrySet;
 	
 	/** first index of the map */
-	final int indexShift;
+	private final int indexShift;
 	
 	/**
 	 * Entry of the map
@@ -234,6 +239,14 @@ public class ArrayMap<T> extends AbstractMap<Integer, T> {
 	}
 	
 	/**
+	 * Reconstruct the instance from a stream 
+	 */
+	private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
+		s.defaultReadObject();
+		entrySet = null;
+    }
+
+    /**
 	 * Test
 	 * 
 	 * @param args

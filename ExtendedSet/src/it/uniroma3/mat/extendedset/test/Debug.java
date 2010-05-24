@@ -1293,6 +1293,7 @@ public class Debug {
 
 	@SuppressWarnings("unused")
 	private static class MyIndexedSet extends IndexedSet<Integer> {
+		private static final long serialVersionUID = 1L;
 		MyIndexedSet() {
 			super(0, 10000000, false);
 		}
@@ -1314,9 +1315,9 @@ public class Debug {
 
 	@SuppressWarnings("unused")
 	private static class IntegerFastSet extends IntegerSet {IntegerFastSet() {super(new FastSet());}}
-	@SuppressWarnings("unused")
-	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new ConciseSet());}}
 //	@SuppressWarnings("unused")
+	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new ConciseSet());}}
+	@SuppressWarnings("unused")
 	private static class IntegerWAHSet extends IntegerSet {IntegerWAHSet() {super(new ConciseSet(true));}}
 	@SuppressWarnings("unused")
 	private static class IntegerConcisePlusSet extends IntegerSet {IntegerConcisePlusSet() {super(new ConcisePlusSet());}}
@@ -1328,11 +1329,11 @@ public class Debug {
 	 */
 	public static void main(String[] args) {
 		// NOTE: the most complete test is TestCase.RANDOM_OPERATION_STRESS
-//		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS;
-		TestCase testCase = TestCase.SKIP;
+		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS;
+//		TestCase testCase = TestCase.SKIP;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerFastSet.class;
-//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConciseSet.class;
-		Class<? extends ExtendedSet<Integer>> classToTest = IntegerWAHSet.class;
+		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConciseSet.class;
+//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerWAHSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcisePlusSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = ListSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = LinkedSet.class;

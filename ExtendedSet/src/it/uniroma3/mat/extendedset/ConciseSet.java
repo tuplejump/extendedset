@@ -20,6 +20,9 @@
 package it.uniroma3.mat.extendedset;
 
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
@@ -33,16 +36,17 @@ import java.util.NoSuchElementException;
  * This class is an instance of {@link IntSet} internally represented by
  * compressed bitmaps though a RLE (Run-Length Encoding) compression algorithm.
  * See <a
- * href="http://ricerca.mat.uniroma3.it/users/colanton/docs/concise.pdf">http://ricerca.mat.uniroma3.it/users/colanton/docs/concise.pdf</a> for
- * more details.
+ * href="http://ricerca.mat.uniroma3.it/users/colanton/docs/concise.pdf">http
+ * ://ricerca.mat.uniroma3.it/users/colanton/docs/concise.pdf</a> for more
+ * details.
  * <p>
- * Notice that the iterator by {@link #intIterator()} is <i>fail-fast</i>, similar
- * to most {@link Collection}-derived classes. If the set is structurally
- * modified at any time after the iterator is created, the iterator will throw a
- * {@link ConcurrentModificationException}. Thus, in the face of concurrent
- * modification, the iterator fails quickly and cleanly, rather than risking
- * arbitrary, non-deterministic behavior at an undetermined time in the future.
- * The iterator throws a {@link ConcurrentModificationException} on a
+ * Notice that the iterator by {@link #intIterator()} is <i>fail-fast</i>,
+ * similar to most {@link Collection}-derived classes. If the set is
+ * structurally modified at any time after the iterator is created, the iterator
+ * will throw a {@link ConcurrentModificationException}. Thus, in the face of
+ * concurrent modification, the iterator fails quickly and cleanly, rather than
+ * risking arbitrary, non-deterministic behavior at an undetermined time in the
+ * future. The iterator throws a {@link ConcurrentModificationException} on a
  * best-effort basis. Therefore, it would be wrong to write a program that
  * depended on this exception for its correctness: <i>the fail-fast behavior of
  * iterators should be used only to detect bugs.</i>
@@ -56,7 +60,10 @@ import java.util.NoSuchElementException;
  * @see IndexedSet
  */
 // TODO: REPLACE ALL "WordIterator_OLD" INSTANCES WITH "WordIterator" !!!
-public class ConciseSet extends IntSet {
+public class ConciseSet extends IntSet implements java.io.Serializable {
+	/** generated serial ID */
+	private static final long serialVersionUID = 560068054685367266L;
+
 	/**
 	 * This is the compressed bitmap, that is a collection of words. For each
 	 * word:
@@ -81,18 +88,18 @@ public class ConciseSet extends IntSet {
 	/**
 	 * Most significant set bit within the uncompressed bit string.
 	 */
-	private int last;
+	private transient int last;
 
 	/**
 	 * Cached cardinality of the bit-set. Defined for efficient {@link #size()}
 	 * calls. When -1, the cache is invalid.
 	 */ 
-	private int size;
+	private transient int size;
 
 	/**
 	 * Index of the last word in {@link #words}
 	 */ 
-	private int lastWordIndex;
+	private transient int lastWordIndex;
 
 	/**
 	 * <code>true</code> if the class must simulate the behavior of WAH
@@ -103,8 +110,8 @@ public class ConciseSet extends IntSet {
 	 * User for <i>fail-fast</i> iterator. It counts the number of operations
 	 * that <i>do</i> modify {@link #words}
 	 */
-	protected int modCount = 0;
-
+	protected transient int modCount = 0;
+	
 	/**
 	 * The highest representable integer.
 	 * <p>
@@ -578,7 +585,7 @@ public class ConciseSet extends IntSet {
 	 * @see WordIterator_OLD
 	 */
 	//TODO: replace with ReverseWordIterator!!!
-	private class ReverseWordIterator {
+	private class ReverseWordIterator_OLD {
 		private int currentWordIndex;	// index of the current word
 		private int currentWordCopy;	// copy of the current word
 		private int currentLiteral;		// literal contained within the current word
@@ -728,10 +735,10 @@ public class ConciseSet extends IntSet {
 	
 	/**
 	 * The same as {@link #skipSequence(WordIterator_OLD, WordIterator_OLD)}, but for
-	 * {@link ReverseWordIterator} instances
+	 * {@link ReverseWordIterator_OLD} instances
 	 */
 	// TODO: REMOVE!!!
-	private /*static*/ int skipSequence(ReverseWordIterator itr1, ReverseWordIterator itr2) {
+	private /*static*/ int skipSequence(ReverseWordIterator_OLD itr1, ReverseWordIterator_OLD itr2) {
 		int count = 0;
 		if (!isLiteral(itr1.currentWordCopy) && !isLiteral(itr2.currentWordCopy)) {
 			if (simulateWAH)
@@ -1480,7 +1487,7 @@ public class ConciseSet extends IntSet {
 					int currSetBitInWord = -1;
 					for (; position >= 0; position--)
 						currSetBitInWord = Integer.numberOfTrailingZeros(w & (0xFFFFFFFF << (currSetBitInWord + 1)));
-					return new Integer(firstSetBitInWord + currSetBitInWord);
+					return firstSetBitInWord + currSetBitInWord;
 				}
 				
 				// skip the 31-bit block
@@ -1494,13 +1501,13 @@ public class ConciseSet extends IntSet {
 					if (simulateWAH || isSequenceWithNoBits(w)) {
 						setBitsInCurrentWord = sequenceLength;
 						if (position < setBitsInCurrentWord)
-							return new Integer(firstSetBitInWord + position);
+							return firstSetBitInWord + position;
 					} else {
 						setBitsInCurrentWord = sequenceLength - 1;
 						if (position < setBitsInCurrentWord)
 							// check whether the desired set bit is after the
 							// flipped bit (or after the first block)
-							return new Integer(firstSetBitInWord + position + (position < getFlippedBit(w) ? 0 : 1));
+							return firstSetBitInWord + position + (position < getFlippedBit(w) ? 0 : 1);
 					}
 				} else {
 					if (simulateWAH ||isSequenceWithNoBits(w)) {
@@ -1508,7 +1515,7 @@ public class ConciseSet extends IntSet {
 					} else {
 						setBitsInCurrentWord = 1;
 						if (position == 0)
-							return new Integer(firstSetBitInWord + getFlippedBit(w));
+							return firstSetBitInWord + getFlippedBit(w);
 					}
 				}
 
@@ -1652,13 +1659,12 @@ public class ConciseSet extends IntSet {
 		// complement each word
 		for (int i = 0; i <= lastWordIndex; i++) {
 			int w = words[i];
-			if (isLiteral(w)) {
+			if (isLiteral(w)) 
 				// negate the bits and set the most significant bit to 1
 				words[i] = ALL_ZEROS_LITERAL | ~w;
-			} else {
+			else
 				// switch the sequence type
 				words[i] ^= SEQUENCE_BIT;
-			}
 		}
 
 		// do not complement after the last element
@@ -1720,7 +1726,8 @@ public class ConciseSet extends IntSet {
 	/**
 	 * Iterator for set bits of {@link ConciseSet}, from LSB to MSB
 	 */
-	private class BitIterator implements ExtendedIntIterator {
+	//TODO: remove WordIterator_OLD...
+	private class BitIterator_OLD implements ExtendedIntIterator {
 		private WordIterator_OLD wordItr = new WordIterator_OLD();
 		private int rightmostBitOfCurrentWord = 0;
 		private int nextBitToCheck = 0;
@@ -1794,9 +1801,10 @@ public class ConciseSet extends IntSet {
 			
 			// the element is after the last one
 			if (element > last){
-				// makes hasNext() return "false"
+				// make hasNext() return "false"
 				wordItr.remainingWords = 0;
-				wordItr.currentWordCopy = ALL_ZEROS_LITERAL;
+				wordItr.currentWordCopy = 0x00000000;
+				wordItr.currentLiteral = ALL_ZEROS_LITERAL;
 				return;
 			}
 			
@@ -1859,7 +1867,7 @@ public class ConciseSet extends IntSet {
 	 * Iterator for set bits of {@link ConciseSet}, from MSB to LSB
 	 */
 	private class ReverseBitIterator implements ExtendedIntIterator {
-		private ReverseWordIterator wordItr = new ReverseWordIterator();
+		private ReverseWordIterator_OLD wordItr = new ReverseWordIterator_OLD();
 		private int rightmostBitOfCurrentWord = maxLiteralLengthMultiplication(maxLiteralLengthDivision(last));
 		private int nextBitToCheck = maxLiteralLengthModulus(last);
 		private int initialModCount = modCount;
@@ -1920,7 +1928,7 @@ public class ConciseSet extends IntSet {
 				}
 			}
 
-			return new Integer(rightmostBitOfCurrentWord + nextSetBit);
+			return rightmostBitOfCurrentWord + nextSetBit;
 		}
 		
 		/**
@@ -1998,7 +2006,7 @@ public class ConciseSet extends IntSet {
 				@Override public void remove() {throw new UnsupportedOperationException();}
 			};
 		}
-		return new BitIterator();
+		return new BitIterator_OLD();
 	}
 
 	/**
@@ -2284,40 +2292,39 @@ public class ConciseSet extends IntSet {
 			return false;
 
 		// check if the element is within a literal word
-		int blockIndex = maxLiteralLengthDivision(o);
-		int bitPosition = maxLiteralLengthModulus(o);
-		for (int i = 0; i <= lastWordIndex && blockIndex >= 0; i++) {
-			int w = words[i];
-			if (isLiteral(w)) {
+		int block = maxLiteralLengthDivision(o);
+		int bit = maxLiteralLengthModulus(o);
+		for (int i = 0; i <= lastWordIndex; i++) {
+			final int w = words[i];
+			final int t = w & 0xC0000000; // the first two bits...
+			switch (t) {
+			case 0x80000000:	// LITERAL
+			case 0xC0000000:	// LITERAL
 				// check if the current literal word is the "right" one
-				if (blockIndex == 0) {
-					// bit already set
-					return (w & (1 << bitPosition)) != 0;
-				} 
-				blockIndex--;
-			} else {
-				if (simulateWAH) {
-					if (isOneSequence(w) && blockIndex <= getSequenceCount(w))
+				if (block == 0) 
+					return (w & (1 << bit)) != 0;
+				block--;
+				break;
+			case 0x00000000:	// ZERO SEQUENCE
+				if (!simulateWAH)
+					if (block == 0 && ((w >> 25) - 1) == bit)
 						return true;
-				} else {
-					// if we are at the beginning of a sequence, and it is
-					// a set bit, the bit already exists
-					if (blockIndex == 0 
-							&& (getLiteral(w) & (1 << bitPosition)) != 0)
-						return true;
-					
-					// if we are in the middle of a sequence of 1's, the bit already exist
-					if (blockIndex > 0 
-							&& blockIndex <= getSequenceCount(w) 
-							&& isOneSequence(w))
-						return true;
-				}
-				
-				// next word
-				blockIndex -= getSequenceCount(w) + 1;
+				block -= getSequenceCount(w) + 1;
+				if (block < 0)
+					return false;
+				break;
+			case 0x40000000:	// ONE SEQUENCE
+				if (!simulateWAH)
+					if (block == 0 && (0x0000001F & (w >> 25) - 1) == bit)
+						return false;
+				block -= getSequenceCount(w) + 1;
+				if (block < 0)
+					return true;
+				break;
 			}
 		}
 		
+		// no more words
 		return false;
 	}
 
@@ -2636,8 +2643,8 @@ public class ConciseSet extends IntSet {
 			return res < 0 ? -1 : 1;
 		
 		// scan words from MSB to LSB
-		ReverseWordIterator thisIterator = this.new ReverseWordIterator();
-		ReverseWordIterator otherIterator = other.new ReverseWordIterator();
+		ReverseWordIterator_OLD thisIterator = this.new ReverseWordIterator_OLD();
+		ReverseWordIterator_OLD otherIterator = other.new ReverseWordIterator_OLD();
 		while (!thisIterator.endOfWords() && !otherIterator.endOfWords()) {
 			// compare current literals
 			res = getLiteralBits(thisIterator.currentLiteral) - getLiteralBits(otherIterator.currentLiteral);
@@ -2814,4 +2821,23 @@ public class ConciseSet extends IntSet {
 
 		return s.toString();
 	}
+
+	/**
+	 * Save the state of the instance to a stream 
+	 */
+    private void writeObject(ObjectOutputStream s) throws IOException {
+    	if (words != null && lastWordIndex < words.length - 1)
+    		words = Arrays.copyOf(words, lastWordIndex + 1);
+    	s.defaultWriteObject();
+    }
+
+	/**
+	 * Reconstruct the instance from a stream 
+	 */
+    private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
+		s.defaultReadObject();
+		lastWordIndex = words.length - 1;
+		updateLast();
+		size = -1;
+    }
 }

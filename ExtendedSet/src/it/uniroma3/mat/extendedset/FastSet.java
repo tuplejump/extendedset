@@ -20,6 +20,9 @@
 package it.uniroma3.mat.extendedset;
 
 
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.BitSet;
 import java.util.Formatter;
@@ -42,7 +45,10 @@ import java.util.NoSuchElementException;
  * @see ConciseSet
  * @see IndexedSet
  */
-public class FastSet extends IntSet {
+public class FastSet extends IntSet implements java.io.Serializable {
+	/** generated serial ID */
+	private static final long serialVersionUID = 6519808981110513440L;
+
 	/** number of bits within each word */
 	private final static int BITS_PER_WORD = 32;
 
@@ -53,10 +59,10 @@ public class FastSet extends IntSet {
 	private int[] words;
 
 	/** the number of words in the logical size of this {@link FastSet} */
-	private int wordsInUse;
+	private transient int wordsInUse;
 
 	/** cached set size (only for fast size() call). When -1, the cache is invalid */
-	private int size;
+	private transient int size;
 
 	/**
 	 * Creates a new set. All bits are initially <code>false</code>.
@@ -990,4 +996,22 @@ public class FastSet extends IntSet {
 		clone.addAll(other);
 		return clone;
 	}
+
+	/**
+	 * Save the state of the {@link ConciseSet}instance to a stream 
+	 */
+    private void writeObject(ObjectOutputStream s) throws IOException {
+    	if (words != null && wordsInUse < words.length)
+    		words = Arrays.copyOf(words, wordsInUse);
+    	s.defaultWriteObject();
+    }
+
+	/**
+	 * Reconstruct the {@link ConciseSet} instance from a stream 
+	 */
+    private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
+		s.defaultReadObject();
+		wordsInUse = words.length;
+		size = -1;
+    }
 }
