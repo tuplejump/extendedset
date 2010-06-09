@@ -23,12 +23,16 @@ package it.uniroma3.mat.extendedset;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.ConcurrentModificationException;
 import java.util.Formatter;
+import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
+import java.util.SortedSet;
 
 /**
  * This is CONCISE: COmpressed 'N' Composable Integer SEt.
@@ -2071,6 +2075,26 @@ public class ConciseSet extends IntSet implements java.io.Serializable {
 			for (int i : a)
 				if (res.last != i)
 					res.add(i);
+		}
+		return res;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public IntSet convert(Collection<Integer> c) {
+		ConciseSet res = empty();
+		Collection<Integer> sorted;
+		if (c != null) {
+			if (c instanceof SortedSet<?> && ((SortedSet<?>) c).comparator() == null) {
+				sorted = c;
+			} else {
+				sorted = new ArrayList<Integer>(c);
+				Collections.sort((List<Integer>) sorted);
+			}
+			for (int i : sorted)
+				res.add(i);
 		}
 		return res;
 	}

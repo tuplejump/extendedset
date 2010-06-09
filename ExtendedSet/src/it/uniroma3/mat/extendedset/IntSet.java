@@ -20,6 +20,7 @@ package it.uniroma3.mat.extendedset;
 
 import java.util.ArrayList;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
@@ -366,6 +367,15 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 */
 	public abstract IntSet convert(int... a);
 
+	/**
+	 * Converts a given collection into an instance of the current class.
+	 * 
+	 * @param c
+	 *            array to use to generate the new instance
+	 * @return the converted collection
+	 */
+	public abstract IntSet convert(Collection<Integer> c);
+	
 	/**
 	 * Returns the first (lowest) element currently in this set.
 	 * 

@@ -33,7 +33,10 @@ package it.uniroma3.mat.extendedset.pairs;
  *            item type
  * @see PairSet
  */
-public class Pair<T, I> {
+public class Pair<T, I> implements java.io.Serializable {
+	/** generated ID */
+	private static final long serialVersionUID = 328985131584539749L;
+
 	/** the transaction */
 	public final T transaction;
 	

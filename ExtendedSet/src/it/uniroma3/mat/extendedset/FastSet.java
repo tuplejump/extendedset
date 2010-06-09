@@ -25,6 +25,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Arrays;
 import java.util.BitSet;
+import java.util.Collection;
 import java.util.Formatter;
 import java.util.Locale;
 import java.util.NoSuchElementException;
@@ -720,6 +721,18 @@ public class FastSet extends IntSet implements java.io.Serializable {
 		ExtendedIntIterator itr = c.intIterator();
 		while (itr.hasNext()) 
 			res.add(itr.next());
+		return res;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public IntSet convert(Collection<Integer> c) {
+		FastSet res = empty();
+		if (c != null)
+			for (int i : c)
+				res.add(i);
 		return res;
 	}
 

@@ -1292,14 +1292,6 @@ public class Debug {
 	}
 
 	@SuppressWarnings("unused")
-	private static class MyIndexedSet extends IndexedSet<Integer> {
-		private static final long serialVersionUID = 1L;
-		MyIndexedSet() {
-			super(0, 10000000, false);
-		}
-	}
-	
-	@SuppressWarnings("unused")
 	private static class ListSet extends GenericExtendedSet<Integer> {
 		ListSet() {
 			super(ArrayList.class, GenericExtendedSet.ALL_POSITIVE_INTEGERS);
