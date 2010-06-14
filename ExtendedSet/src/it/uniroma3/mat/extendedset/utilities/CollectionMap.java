@@ -50,8 +50,13 @@ public class CollectionMap<K, I, C extends Collection<I>> extends LinkedHashMap<
 	@SuppressWarnings("unchecked")
 	@Override
 	public CollectionMap<K, I, C> clone() {
+		// result
 		CollectionMap<K, I, C> cloned = new CollectionMap<K, I, C>(emptySet);
+		
+		// clone all the entries
 		cloned.putAll(this);
+		
+		// clone all the values
 		if (emptySet instanceof Cloneable) {
 			for (Entry<K, C> e : cloned.entrySet()) {
 				try {
@@ -71,7 +76,10 @@ public class CollectionMap<K, I, C extends Collection<I>> extends LinkedHashMap<
 	}
 
 	/**
-	 * @return ?
+	 * Generates an empty {@link CollectionMap} instance with the same
+	 * collection type for values
+	 * 
+	 * @return the empty {@link CollectionMap} instance
 	 */
 	public CollectionMap<K, I, C> empty() {
 		return new CollectionMap<K, I, C>(emptySet);

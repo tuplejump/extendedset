@@ -519,7 +519,8 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	@SuppressWarnings("unchecked")
 	@Override
 	public boolean contains(Object o) {
-		return o instanceof Pair<?, ?>
+		return o != null 
+				&& o instanceof Pair<?, ?>
 				&& contains(((Pair<T, I>) o).transaction, ((Pair<T, I>) o).item);
 	}
 
