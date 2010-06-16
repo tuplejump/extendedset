@@ -2,7 +2,7 @@ package it.uniroma3.mat.extendedset.utilities;
 
 import it.uniroma3.mat.extendedset.ConciseSet;
 import it.uniroma3.mat.extendedset.ExtendedSet;
-import it.uniroma3.mat.extendedset.IntegerSet;
+import it.uniroma3.mat.extendedset.wrappers.IntegerSet;
 
 import java.util.Arrays;
 import java.util.Collection;

@@ -22,12 +22,12 @@ import it.uniroma3.mat.extendedset.ConcisePlusSet;
 import it.uniroma3.mat.extendedset.ConciseSet;
 import it.uniroma3.mat.extendedset.ExtendedSet;
 import it.uniroma3.mat.extendedset.FastSet;
-import it.uniroma3.mat.extendedset.GenericExtendedSet;
-import it.uniroma3.mat.extendedset.IndexedSet;
-import it.uniroma3.mat.extendedset.IntegerSet;
 import it.uniroma3.mat.extendedset.ExtendedSet.ExtendedIterator;
 import it.uniroma3.mat.extendedset.ExtendedSet.Statistics;
 import it.uniroma3.mat.extendedset.utilities.MersenneTwister;
+import it.uniroma3.mat.extendedset.wrappers.GenericExtendedSet;
+import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
+import it.uniroma3.mat.extendedset.wrappers.IntegerSet;
 
 import java.math.BigInteger;
 import java.util.ArrayList;

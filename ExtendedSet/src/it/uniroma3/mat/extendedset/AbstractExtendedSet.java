@@ -19,6 +19,8 @@
 package it.uniroma3.mat.extendedset;
 
 
+import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
+
 import java.util.AbstractCollection;
 import java.util.AbstractSet;
 import java.util.ArrayList;
@@ -56,11 +58,11 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 */
 	public ExtendedSet<T> intersection(Collection<? extends T> other) {
 		if (other == null) {
-			Statistics.intersectionCount++;
+			Statistics.incIntersectionCount();
 			return empty();
 		}
 		ExtendedSet<T> clone = clone();
-		// NOTE: it also performs Statistics.intersectionCount++;
+		// NOTE: it also performs Statistics.intersectionCount();
 		clone.retainAll(other);
 		return clone;
 	}
@@ -70,11 +72,11 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 */
 	public ExtendedSet<T> union(Collection<? extends T> other) {
 		if (other == null) {
-			Statistics.unionCount++;
+			Statistics.incUnionCount();
 			return clone();
 		}
 		ExtendedSet<T> clone = clone();
-		// NOTE: it also performs Statistics.unionCount++;
+		// NOTE: it also performs Statistics.unionCount();
 		clone.addAll(other);
 		return clone;
 	}
@@ -84,11 +86,11 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 */
 	public ExtendedSet<T> difference(Collection<? extends T> other) {
 		if (other == null) {
-			Statistics.differenceCount++;
+			Statistics.incDifferenceCount();
 			return clone();
 		}
 		ExtendedSet<T> clone = clone();
-		// NOTE: it also performs Statistics.differenceCount++;
+		// NOTE: it also performs Statistics.differenceCount();
 		clone.removeAll(other);
 		return clone;
 	}
@@ -97,15 +99,15 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 * {@inheritDoc}
 	 */
 	public ExtendedSet<T> symmetricDifference(Collection<? extends T> other) {
-		Statistics.symmetricDifferenceCount++;
+		Statistics.incSymmetricDifferenceCount();
 		if (other == null)
 			return clone();
 		ExtendedSet<T> res = union(other);
 		res.removeAll(intersection(other));
 		// undo the increments of union(), removeAll(), and intersection()
-		Statistics.intersectionCount--;
-		Statistics.unionCount--;
-		Statistics.differenceCount--;
+		Statistics.decIntersectionCount();
+		Statistics.decUnionCount();
+		Statistics.decDifferenceCount();
 		return res;
 	}
 	
@@ -114,7 +116,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 */
 	@Override
 	public boolean addAll(Collection<? extends T> c) {
-		Statistics.unionCount++;
+		Statistics.incUnionCount();
 		return super.addAll(c);
 	}
 	
@@ -123,7 +125,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 */
 	@Override
 	public boolean removeAll(Collection<?> c) {
-		Statistics.differenceCount++;
+		Statistics.incDifferenceCount();
 		return super.removeAll(c);
 	}
 	
@@ -132,7 +134,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 */
 	@Override
 	public boolean retainAll(Collection<?> c) {
-		Statistics.intersectionCount++;
+		Statistics.incIntersectionCount();
 		return super.retainAll(c);
 	}
 
@@ -165,13 +167,13 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 * {@inheritDoc}
 	 */
 	public int intersectionSize(Collection<? extends T> other) {
-		Statistics.sizeCheckCount++;
+		Statistics.incSizeCheckCount();
 		if (other == null || other.isEmpty())
 			return 0;
 		ExtendedSet<T> clone = clone();
 		clone.retainAll(other);
 		// undo increment
-		Statistics.unionCount--;
+		Statistics.decUnionCount();
 		return clone.size();
 	}
 
@@ -208,7 +210,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 */
 	@Override
 	public boolean equals(Object o) {
-		Statistics.equalsCount++;
+		Statistics.incEqualsCount();
 		return super.equals(o);
 	}
 	
@@ -520,7 +522,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	@SuppressWarnings("unchecked")
 	@Override
 	public int compareTo(ExtendedSet<T> o) {
-		Statistics.equalsCount++;
+		Statistics.incEqualsCount();
 		Iterator<T> thisIterator = this.descendingIterator();
 		Iterator<T> otherIterator = o.descendingIterator();
 		while (thisIterator.hasNext() && otherIterator.hasNext()) {
@@ -548,7 +550,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		
 		toAdd.removeAll(toRemove);
 		// undo increment
-		Statistics.differenceCount--;
+		Statistics.decDifferenceCount();
 		
 		this.addAll(toAdd);
 	}
@@ -561,7 +563,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		toRemove.fill(from, to);
 		this.removeAll(toRemove);
 		// undo increment
-		Statistics.differenceCount--;
+		Statistics.decDifferenceCount();
 	}
 	
 	/**

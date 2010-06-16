@@ -16,8 +16,11 @@
  * limitations under the License.
  */ 
 
-package it.uniroma3.mat.extendedset;
+package it.uniroma3.mat.extendedset.wrappers;
 
+import it.uniroma3.mat.extendedset.AbstractExtendedSet;
+import it.uniroma3.mat.extendedset.ExtendedSet;
+import it.uniroma3.mat.extendedset.IntSet;
 import it.uniroma3.mat.extendedset.IntSet.ExtendedIntIterator;
 
 import java.util.ArrayList;
@@ -100,7 +103,7 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public boolean addAll(Collection<? extends Integer> c) {
-		Statistics.unionCount++;
+		Statistics.incUnionCount();
 		return items.addAll(toExtendedIntSet(c));
 	}
 
@@ -144,7 +147,7 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public int compareTo(ExtendedSet<Integer> o) {
-		Statistics.equalsCount++;
+		Statistics.incEqualsCount();
 		return items.compareTo(toExtendedIntSet(o));
 	}
 
@@ -163,14 +166,14 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public boolean containsAny(Collection<? extends Integer> other) {
-		Statistics.sizeCheckCount++;
+		Statistics.incSizeCheckCount();
 		return items.containsAny(toExtendedIntSet(other));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public boolean containsAtLeast(Collection<? extends Integer> other, int minElements) {
-		Statistics.sizeCheckCount++;
+		Statistics.incSizeCheckCount();
 		return items.containsAtLeast(toExtendedIntSet(other), minElements);
 	}
 
@@ -209,14 +212,14 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public IntegerSet difference(Collection<? extends Integer> other) {
-		Statistics.differenceCount++;
+		Statistics.incDifferenceCount();
 		return new IntegerSet(items.difference(toExtendedIntSet(other)));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public int differenceSize(Collection<? extends Integer> other) {
-		Statistics.sizeCheckCount++;
+		Statistics.incSizeCheckCount();
 		return items.differenceSize(toExtendedIntSet(other));
 	}
 
@@ -229,7 +232,7 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public boolean equals(Object o) {
-		Statistics.equalsCount++;
+		Statistics.incEqualsCount();
 		if (this == o)
 			return true;
 		if (!(o instanceof IntegerSet))
@@ -274,14 +277,14 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public IntegerSet intersection(Collection<? extends Integer> other) {
-		Statistics.intersectionCount++;
+		Statistics.incIntersectionCount();
 		return new IntegerSet(items.intersection(toExtendedIntSet(other)));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public int intersectionSize(Collection<? extends Integer> other) {
-		Statistics.sizeCheckCount++;
+		Statistics.incSizeCheckCount();
 		return items.intersectionSize(toExtendedIntSet(other));
 	}
 
@@ -324,7 +327,7 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public boolean removeAll(Collection<?> c) {
-		Statistics.differenceCount++;
+		Statistics.incDifferenceCount();
 		return items.removeAll(toExtendedIntSet(c));
 	}
 
@@ -343,35 +346,35 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public boolean retainAll(Collection<?> c) {
-		Statistics.intersectionCount++;
+		Statistics.incIntersectionCount();
 		return items.retainAll(toExtendedIntSet(c));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public IntegerSet symmetricDifference(Collection<? extends Integer> other) {
-		Statistics.symmetricDifferenceCount++;
+		Statistics.incSymmetricDifferenceCount();
 		return new IntegerSet(items.symmetricDifference(toExtendedIntSet(other)));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public int symmetricDifferenceSize(Collection<? extends Integer> other) {
-		Statistics.sizeCheckCount++;
+		Statistics.incSizeCheckCount();
 		return items.symmetricDifferenceSize(toExtendedIntSet(other));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public IntegerSet union(Collection<? extends Integer> other) {
-		Statistics.unionCount++;
+		Statistics.incUnionCount();
 		return new IntegerSet(items.union(toExtendedIntSet(other)));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public int unionSize(Collection<? extends Integer> other) {
-		Statistics.sizeCheckCount++;
+		Statistics.incSizeCheckCount();
 		return items.unionSize(toExtendedIntSet(other));
 	}
 
@@ -414,7 +417,7 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public boolean containsAll(Collection<?> c) {
-		Statistics.sizeCheckCount++;
+		Statistics.incSizeCheckCount();
 		return items.containsAll(toExtendedIntSet(c));
 	}
 

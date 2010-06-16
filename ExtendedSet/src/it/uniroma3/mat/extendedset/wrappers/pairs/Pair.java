@@ -17,7 +17,7 @@
  */ 
 
 
-package it.uniroma3.mat.extendedset.pairs;
+package it.uniroma3.mat.extendedset.wrappers.pairs;
 
 /**
  * A class for representing a single transaction-item relationship. This class

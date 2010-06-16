@@ -20,6 +20,8 @@
 package it.uniroma3.mat.extendedset;
 
 
+import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
+
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
@@ -75,12 +77,12 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * {@link AbstractExtendedSet#complementSize()} since they are very fast.
 	 */
 	public static class Statistics {
-		/*private*/ static long intersectionCount = 0;
-		/*private*/ static long unionCount = 0;
-		/*private*/ static long symmetricDifferenceCount = 0;
-		/*private*/ static long differenceCount = 0;
-		/*private*/ static long sizeCheckCount = 0;
-		/*private*/ static long equalsCount = 0;
+		private static long intersectionCount = 0;
+		private static long unionCount = 0;
+		private static long symmetricDifferenceCount = 0;
+		private static long differenceCount = 0;
+		private static long sizeCheckCount = 0;
+		private static long equalsCount = 0;
 
 
 		/*
@@ -108,6 +110,46 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 		/** Resets the counter of performed equals */
 		public static void resetEqualsCount() {equalsCount = 0;}
 
+
+		/*
+		 * Setters
+		 */
+		
+		/** Increments the counter of performed intersections */
+		public static void incIntersectionCount() {intersectionCount++;}
+
+		/** Increments the counter of performed unions */
+		public static void incUnionCount() {unionCount++;}
+
+		/** Increments the counter of performed symmetric differences */
+		public static void incSymmetricDifferenceCount() {symmetricDifferenceCount++;}
+
+		/** Increments the counter of performed differences */
+		public static void incDifferenceCount() {differenceCount++;}
+
+		/** Increments the counter of performed size checks (<code>complementSize()</code> excluded) */
+		public static void incSizeCheckCount() {sizeCheckCount++;}
+
+		/** Increments the counter of performed equals */
+		public static void incEqualsCount() {equalsCount++;}
+
+		/** Decrements the counter of performed intersections */
+		public static void decIntersectionCount() {intersectionCount--;}
+
+		/** Decrements the counter of performed unions */
+		public static void decUnionCount() {unionCount--;}
+
+		/** Decrements the counter of performed symmetric differences */
+		public static void decSymmetricDifferenceCount() {symmetricDifferenceCount--;}
+
+		/** Decrements the counter of performed differences */
+		public static void decDifferenceCount() {differenceCount--;}
+
+		/** Decrements the counter of performed size checks (<code>complementSize()</code> excluded) */
+		public static void decSizeCheckCount() {sizeCheckCount--;}
+
+		/** Decrements the counter of performed equals */
+		public static void decEqualsCount() {equalsCount--;}
 
 		/*
 		 * Getters

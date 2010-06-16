@@ -17,7 +17,7 @@
  */ 
 
 
-package it.uniroma3.mat.extendedset;
+package it.uniroma3.mat.extendedset.utilities;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

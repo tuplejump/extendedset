@@ -16,8 +16,11 @@
  * limitations under the License.
  */ 
 
-package it.uniroma3.mat.extendedset;
+package it.uniroma3.mat.extendedset.wrappers;
 
+
+import it.uniroma3.mat.extendedset.AbstractExtendedSet;
+import it.uniroma3.mat.extendedset.ExtendedSet;
 
 import java.util.AbstractSet;
 import java.util.ArrayList;
@@ -214,7 +217,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 				c.elements = (Collection<T>) elements.getClass().getMethod("clone").invoke(elements);
 			} else {
 				c.elements = setClass.newInstance();
-				Statistics.intersectionCount--;
+				Statistics.decIntersectionCount();
 				c.elements.addAll(elements);
 			}
 		} catch (Exception e) {
@@ -296,7 +299,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	@SuppressWarnings("unchecked")
 	@Override 
 	public boolean containsAll(Collection<?> c) {
-		Statistics.sizeCheckCount++;
+		Statistics.incSizeCheckCount();
 		if (isEmpty() || c == null || c.isEmpty())
 			return false;
 		if (this == c)
@@ -335,7 +338,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 			elements = res;
 			return r;
 		}
-		Statistics.unionCount++;
+		Statistics.incUnionCount();
 		return elements.addAll(c);
 	}
 
@@ -355,7 +358,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 				return false;
 			}
 		}
-		Statistics.intersectionCount++;
+		Statistics.incIntersectionCount();
 		return elements.retainAll(c);
 	}
 
@@ -375,7 +378,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 				return false;
 			}
 		}
-		Statistics.differenceCount++;
+		Statistics.incDifferenceCount();
 		return elements.removeAll(c);
 	}
 
@@ -476,7 +479,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 */
 	@Override
 	public int intersectionSize(Collection<? extends T> other) {
-		Statistics.sizeCheckCount++;
+		Statistics.incSizeCheckCount();
 		if (isEmpty() || other == null || other.isEmpty())
 			return 0;
 		if (this == other)
@@ -512,7 +515,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 			return res;
 		}
 
-		Statistics.sizeCheckCount--;
+		Statistics.decSizeCheckCount();
 		return super.intersectionSize(other);
 	}
 	
@@ -521,7 +524,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 */
 	@Override
 	public GenericExtendedSet<T> intersection(Collection<? extends T> other) {
-		Statistics.intersectionCount++;
+		Statistics.incIntersectionCount();
 		if (isEmpty() || other == null || other.isEmpty())
 			return empty();
 		if (this == other)
@@ -567,7 +570,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 */
 	@Override
 	public GenericExtendedSet<T> union(Collection<? extends T> other) {
-		Statistics.unionCount++;
+		Statistics.incUnionCount();
 		if (this == other || other == null || other.isEmpty())
 			return clone();
 		if (isEmpty()) {
@@ -628,7 +631,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 */
 	@Override
 	public GenericExtendedSet<T> difference(Collection<? extends T> other) {
-		Statistics.differenceCount++;
+		Statistics.incDifferenceCount();
 		if (isEmpty() || this == other)
 			return empty();
 		if (other == null || other.isEmpty()) 
@@ -678,7 +681,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 */
 	@Override
 	public GenericExtendedSet<T> symmetricDifference(Collection<? extends T> other) {
-		Statistics.symmetricDifferenceCount++;
+		Statistics.incSymmetricDifferenceCount();
 		if (this == other || other == null || other.isEmpty())
 			return clone();
 		if (isEmpty()) {
@@ -785,7 +788,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 		if (universe == null)
 			throw new UnsupportedOperationException("missing universe");
 		if (universe instanceof SortedSet<?>) { 
-			Statistics.differenceCount--;
+			Statistics.decDifferenceCount();
 			removeAll(((SortedSet<T>) universe).subSet(from, to));
 		} else {
 			Iterator<T> uniItr = universe.iterator();

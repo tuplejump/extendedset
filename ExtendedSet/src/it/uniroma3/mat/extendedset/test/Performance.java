@@ -23,8 +23,8 @@ import it.uniroma3.mat.extendedset.ArraySet;
 import it.uniroma3.mat.extendedset.ConcisePlusSet;
 import it.uniroma3.mat.extendedset.ConciseSet;
 import it.uniroma3.mat.extendedset.FastSet;
-import it.uniroma3.mat.extendedset.GenericExtendedSet;
-import it.uniroma3.mat.extendedset.IntegerSet;
+import it.uniroma3.mat.extendedset.wrappers.GenericExtendedSet;
+import it.uniroma3.mat.extendedset.wrappers.IntegerSet;
 
 import java.util.ArrayList;
 import java.util.Collection;

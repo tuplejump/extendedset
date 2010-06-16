@@ -18,6 +18,9 @@
 
 package it.uniroma3.mat.extendedset;
 
+
+import it.uniroma3.mat.extendedset.wrappers.IntegerSet;
+
 import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;

@@ -17,16 +17,16 @@
  */ 
 
 
-package it.uniroma3.mat.extendedset.pairs;
+package it.uniroma3.mat.extendedset.wrappers.pairs;
 
 import it.uniroma3.mat.extendedset.AbstractExtendedSet;
 import it.uniroma3.mat.extendedset.ConciseSet;
 import it.uniroma3.mat.extendedset.ExtendedSet;
 import it.uniroma3.mat.extendedset.FastSet;
-import it.uniroma3.mat.extendedset.IndexedSet;
 import it.uniroma3.mat.extendedset.IntSet;
-import it.uniroma3.mat.extendedset.LongSet;
-import it.uniroma3.mat.extendedset.LongSet.ExtendedLongIterator;
+import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
+import it.uniroma3.mat.extendedset.wrappers.LongSet;
+import it.uniroma3.mat.extendedset.wrappers.LongSet.ExtendedLongIterator;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;

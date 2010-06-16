@@ -214,7 +214,7 @@ public class ArraySet extends AbstractExtendedSet<Integer> {
 	 */ 
 	@Override 
 	public boolean containsAll(Collection<?> c) {
-		Statistics.sizeCheckCount++;
+		Statistics.incSizeCheckCount();
 		if (isEmpty() || c == null || c.isEmpty())
 			return false;
 		if (this == c)
@@ -384,7 +384,7 @@ public class ArraySet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public int intersectionSize(Collection<? extends Integer> other) {
-		Statistics.sizeCheckCount++;
+		Statistics.incSizeCheckCount();
 		if (isEmpty() || other == null || other.isEmpty())
 			return 0;
 		if (this == other)
@@ -418,7 +418,7 @@ public class ArraySet extends AbstractExtendedSet<Integer> {
 			return res;
 		}
 
-		Statistics.sizeCheckCount--;
+		Statistics.decSizeCheckCount();
 		return super.intersectionSize(other);
 	}
 	
@@ -427,7 +427,7 @@ public class ArraySet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public ArraySet intersection(Collection<? extends Integer> other) {
-		Statistics.intersectionCount++;
+		Statistics.incIntersectionCount();
 		if (isEmpty() || other == null || other.isEmpty())
 			return empty();
 		if (this == other)
@@ -471,7 +471,7 @@ public class ArraySet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public ArraySet union(Collection<? extends Integer> other) {
-		Statistics.unionCount++;
+		Statistics.incUnionCount();
 		if (this == other || other == null || other.isEmpty())
 			return clone();
 		if (isEmpty()) {
@@ -534,7 +534,7 @@ public class ArraySet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public ArraySet difference(Collection<? extends Integer> other) {
-		Statistics.differenceCount++;
+		Statistics.incDifferenceCount();
 		if (isEmpty() || this == other)
 			return empty();
 		if (other == null || other.isEmpty()) 
@@ -585,7 +585,7 @@ public class ArraySet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public ArraySet symmetricDifference(Collection<? extends Integer> other) {
-		Statistics.symmetricDifferenceCount++;
+		Statistics.incSymmetricDifferenceCount();
 		if (this == other || other == null || other.isEmpty())
 			return clone();
 		if (isEmpty()) {
