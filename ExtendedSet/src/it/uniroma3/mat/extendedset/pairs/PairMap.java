@@ -1,30 +1,55 @@
-package it.uniroma3.mat.extendedset.pairs;
+/* 
+ * (c) 2010 Alessandro Colantonio
+ * <mailto:colanton@mat.uniroma3.it>
+ * <http://ricerca.mat.uniroma3.it/users/colanton>
+ *  
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */ 
 
-import it.uniroma3.mat.extendedset.LongSet.ExtendedLongIterator;
+package it.uniroma3.mat.extendedset.pairs;
 
 import java.io.Serializable;
 import java.util.AbstractCollection;
 import java.util.AbstractMap;
 import java.util.AbstractSet;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.Map;
 import java.util.Set;
 
 /**
- * @author colantonio
+ * An class that associates a value to each pair within a {@link PairSet}
+ * instance.
+ * 
+ * @author Alessandro Colantonio
  * 
  * @param <T>
+ *            transaction type
  * @param <I>
+ *            item type
  * @param <V>
+ *            type of the value to associate
+ * @see PairSet
  */
-public class PairMap<T, I, V> extends AbstractMap<Pair<T, I>, V> implements Serializable {
+public class PairMap<T, I, V> extends AbstractMap<Pair<T, I>, V> implements Serializable, Cloneable {
 	/** generated serial ID */
 	private static final long serialVersionUID = 4699094886888004702L;
 
+	/** all existing keys */
 	private final PairSet<T, I> keys;
-	private final Map<Long, V> values;
+	
+	/** values related to existing keys, according to the ordering provided by {@link #keys} */
+	private final ArrayList<V> values;
 
 	/**
 	 * Creates an empty map
@@ -36,7 +61,9 @@ public class PairMap<T, I, V> extends AbstractMap<Pair<T, I>, V> implements Seri
 	 */
 	public PairMap(PairSet<T, I> keySet) {
 		keys = keySet;
-		values = new HashMap<Long, V>();
+		values = new ArrayList<V>(keySet.size());
+		for (int i = 0; i < keys.size(); i++)
+			values.add(null);
 	}
 
 	/**
@@ -61,7 +88,7 @@ public class PairMap<T, I, V> extends AbstractMap<Pair<T, I>, V> implements Seri
 	 */
 	@Override
 	public boolean containsValue(Object value) {
-		return values.containsValue(value);
+		return values.contains(value);
 	}
 
 	/**
@@ -72,7 +99,7 @@ public class PairMap<T, I, V> extends AbstractMap<Pair<T, I>, V> implements Seri
 	public V get(Object key) {
 		if (key == null || !(key instanceof Pair<?, ?>))
 			return null;
-		return values.get(Long.valueOf(keys.pairToIndex((Pair<T, I>) key)));
+		return values.get(keys.indexOf((Pair<T, I>) key));
 	}
 
 	/**
@@ -86,10 +113,20 @@ public class PairMap<T, I, V> extends AbstractMap<Pair<T, I>, V> implements Seri
 	/**
 	 * {@inheritDoc}
 	 */
+	@SuppressWarnings("unchecked")
 	@Override
 	public V put(Pair<T, I> key, V value) {
-		keys.add(key);
-		return values.put(Long.valueOf(keys.pairToIndex(key)), value);
+		boolean isNew = keys.add(key);
+		int index = keys.indexOf(key);
+		Object old;
+		if (isNew) {
+			old = null;
+			values.add(index, value);
+		} else {
+			old = values.get(index);
+			values.set(index, value);
+		}
+		return (V) old;
 	}
 
 	/**
@@ -100,8 +137,11 @@ public class PairMap<T, I, V> extends AbstractMap<Pair<T, I>, V> implements Seri
 	public V remove(Object key) {
 		if (key == null || !(key instanceof Pair<?, ?>))
 			return null;
+		int index = keys.indexOf((Pair<T, I>) key);
+		if (index < 0)
+			return null;
 		keys.remove(key);
-		return values.remove(Long.valueOf(keys.pairToIndex((Pair<T, I>) key)));
+		return values.remove(index);
 	}
 
 	/**
@@ -112,6 +152,17 @@ public class PairMap<T, I, V> extends AbstractMap<Pair<T, I>, V> implements Seri
 		return keys.size();
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public PairMap<T, I, V> clone() {
+		// NOTE: do not use super.clone() since it is 10 times slower!
+		PairMap<T, I, V> cloned = new PairMap<T, I, V>(keys.clone());
+		cloned.values.addAll(values);
+		return cloned;
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -166,15 +217,7 @@ public class PairMap<T, I, V> extends AbstractMap<Pair<T, I>, V> implements Seri
 
 			@Override
 			public boolean remove(Object o) {
-				if (o == null || !(o instanceof Pair<?, ?>))
-					return false;
-				@SuppressWarnings("unchecked")
-				Pair<T, I> p = (Pair<T, I>) o;
-				if (keys.remove(o)) {
-					values.remove(Long.valueOf(keys.pairToIndex(p)));
-					return true;
-				}
-				return false;
+				throw new UnsupportedOperationException();
 			}
 
 			@Override
@@ -203,7 +246,7 @@ public class PairMap<T, I, V> extends AbstractMap<Pair<T, I>, V> implements Seri
 
 			@Override
 			public boolean contains(Object o) {
-				return values.containsValue(o);
+				return values.contains(o);
 			}
 
 			@Override
@@ -214,7 +257,7 @@ public class PairMap<T, I, V> extends AbstractMap<Pair<T, I>, V> implements Seri
 			@Override
 			public Iterator<V> iterator() {
 				return new Iterator<V>() {
-					Iterator<V> itr = values.values().iterator();
+					Iterator<V> itr = values.iterator();
 
 					@Override
 					public boolean hasNext() {
@@ -235,7 +278,7 @@ public class PairMap<T, I, V> extends AbstractMap<Pair<T, I>, V> implements Seri
 
 			@Override
 			public boolean remove(Object o) {
-				throw new UnsupportedOperationException("TODO");
+				throw new UnsupportedOperationException();
 			}
 
 			@Override
@@ -278,18 +321,18 @@ public class PairMap<T, I, V> extends AbstractMap<Pair<T, I>, V> implements Seri
 			@Override
 			public Iterator<Entry<Pair<T, I>, V>> iterator() {
 				return new Iterator<Entry<Pair<T, I>, V>>() {
-					final ExtendedLongIterator itr = keys.indices().longIterator();
+					final Iterator<Pair<T, I>> keyItr = keys.iterator();
+					int valueIndex = -1;
 
 					@Override
 					public boolean hasNext() {
-						return itr.hasNext();
+						return keyItr.hasNext();
 					}
 
 					@Override
 					public Entry<Pair<T, I>, V> next() {
-						final long index = itr.next();
-						final Pair<T, I> key = keys.indexToPair(index);
-						final V value = values.get(Long.valueOf(index));
+						final Pair<T, I> key = keyItr.next();
+						valueIndex++;
 
 						return new Entry<Pair<T, I>, V>() {
 							@Override
@@ -299,17 +342,17 @@ public class PairMap<T, I, V> extends AbstractMap<Pair<T, I>, V> implements Seri
 
 							@Override
 							public V getValue() {
-								return value;
+								return values.get(valueIndex);
 							}
 
 							@Override
-							public V setValue(@SuppressWarnings("hiding") V value) {
-								return values.put(Long.valueOf(index), value);
+							public V setValue(V value) {
+								return values.set(valueIndex, value);
 							}
 							
 							@Override
 							public String toString() {
-								return "{" + key + "=" + value + "}";
+								return "{" + getKey() + "=" + getValue() + "}";
 							}
 						};
 					}
@@ -323,17 +366,7 @@ public class PairMap<T, I, V> extends AbstractMap<Pair<T, I>, V> implements Seri
 
 			@Override
 			public boolean remove(Object o) {
-				if (o == null || !(o instanceof Entry<?, ?>))
-					return false;
-				@SuppressWarnings("unchecked")
-				Entry<Pair<T, I>, V> e = (Entry<Pair<T, I>, V>) o;
-				boolean res = keys.contains(e.getKey())
-						&& values.values().contains(e.getValue());
-				if (res) {
-					keys.remove(e.getKey());
-					values.remove(Long.valueOf(keys.pairToIndex(e.getKey())));
-				}
-				return res;
+				throw new UnsupportedOperationException();
 			}
 
 			@Override

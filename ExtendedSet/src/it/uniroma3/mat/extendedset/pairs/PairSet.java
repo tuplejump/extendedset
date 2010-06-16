@@ -233,6 +233,11 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 */
 	@SuppressWarnings("unchecked")
 	public static <XT, XI> PairSet<XT, XI> newPairSet(Collection<? extends Pair<XT, XI>> ps, boolean compressed) {
+		if (ps == null)
+			throw new RuntimeException("null pair set");
+		if (ps.isEmpty())
+			throw new RuntimeException("empty pair set");
+		
 		if (ps instanceof PairSet)
 			return (PairSet<XT, XI>) ps;
 
@@ -360,7 +365,7 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	/**
 	 * Shallow-copy constructor
 	 */
-	private PairSet(PairSet<T, I> as) {
+	protected PairSet(PairSet<T, I> as) {
 		allTransactions = as.allTransactions;
 		allItems = as.allItems;
 		maxTransactionCount = as.maxTransactionCount;
@@ -371,7 +376,7 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	/**
 	 * Shallow-copy constructor
 	 */
-	private PairSet(
+	protected PairSet(
 			IndexedSet<T> allTransactions, 
 			IndexedSet<I> allItems,
 			int maxTransactionCount,
@@ -389,6 +394,7 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 */
 	@Override
 	public PairSet<T, I> clone() {
+		// NOTE: do not use super.clone() since it is 10 times slower!
 		return new PairSet<T, I>(
 				allTransactions, 
 				allItems, 
