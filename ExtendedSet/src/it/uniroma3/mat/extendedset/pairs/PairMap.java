@@ -159,6 +159,7 @@ public class PairMap<T, I, V> extends AbstractMap<Pair<T, I>, V> implements Seri
 	public PairMap<T, I, V> clone() {
 		// NOTE: do not use super.clone() since it is 10 times slower!
 		PairMap<T, I, V> cloned = new PairMap<T, I, V>(keys.clone());
+		cloned.values.clear();
 		cloned.values.addAll(values);
 		return cloned;
 	}
