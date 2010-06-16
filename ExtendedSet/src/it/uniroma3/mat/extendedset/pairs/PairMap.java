@@ -24,12 +24,13 @@ import java.util.AbstractMap;
 import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Set;
 
 /**
  * An class that associates a value to each pair within a {@link PairSet}
- * instance.
+ * instance. It is not as fast as {@link HashMap}, but requires much less memory.
  * 
  * @author Alessandro Colantonio
  * 
