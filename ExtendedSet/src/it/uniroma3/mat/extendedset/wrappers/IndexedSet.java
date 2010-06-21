@@ -29,8 +29,10 @@ import it.uniroma3.mat.extendedset.IntSet.ExtendedIntIterator;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.SortedSet;
 
 /**
@@ -203,7 +205,8 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 //			for (int i = 0; i < indexToItem.size(); i++)
 //				itemToIndex.put(indexToItem.get(i), i);
 
-			indexToItem = (T[]) universe.toArray();
+			// NOTE: it removes duplicates and keeps the order
+			indexToItem = universe instanceof Set ? (T[]) universe.toArray() : (T[]) (new LinkedHashSet<T>(universe)).toArray();
 			itemToIndex = new HashMap<T, Integer>(Math.max((int) (indexToItem.length / .75f) + 1, 16));
 			for (int i = 0; i < indexToItem.length; i++)
 				itemToIndex.put(indexToItem[i], Integer.valueOf(i));

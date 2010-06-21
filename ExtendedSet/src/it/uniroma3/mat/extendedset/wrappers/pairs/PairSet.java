@@ -33,6 +33,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectStreamException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
@@ -1033,8 +1034,9 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 		// final set of pairs
 		PairSet<T, I> res = empty();
 
-		// trivial case
-		if (involvedTransactions == null && involvedItems == null) 
+		// trivial cases
+		if ((involvedTransactions == null || involvedTransactions == allTransactions)
+				&& (involvedItems == null || involvedItems == allItems)) 
 			return clone();
 		
 		// identify indices
@@ -1116,10 +1118,15 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 		if (hasSameIndices(c))
 			return (PairSet<T, I>) c;
 		
-		// NOTE: cannot call super.convert(c) because of loop
+		long[] indxs = new long[c.size()];
+		int i = 0;
+		for (Pair<T, I> p : (Collection<Pair<T,I>>) c)
+			indxs[i++] = pairToIndex(p);
+		Arrays.sort(indxs);	
+
 		PairSet<T, I> res = empty();
-		for (Pair<T, I> t : (Collection<Pair<T, I>>) c) 
-			res.add(t);
+		for (long l : indxs) 
+			res.indices.add(l);
 		return res;
 	}
 	

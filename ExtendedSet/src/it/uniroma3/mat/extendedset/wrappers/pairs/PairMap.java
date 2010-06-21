@@ -100,7 +100,10 @@ public class PairMap<T, I, V> extends AbstractMap<Pair<T, I>, V> implements Seri
 	public V get(Object key) {
 		if (key == null || !(key instanceof Pair<?, ?>))
 			return null;
-		return values.get(keys.indexOf((Pair<T, I>) key));
+		int index = keys.indexOf((Pair<T, I>) key);
+		if (index < 0)
+			return null;
+		return values.get(index);
 	}
 
 	/**
