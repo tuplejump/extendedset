@@ -18,6 +18,7 @@
 
 package it.uniroma3.mat.extendedset.test;
 
+import it.uniroma3.mat.extendedset.Concise2Set;
 import it.uniroma3.mat.extendedset.ConcisePlusSet;
 import it.uniroma3.mat.extendedset.ConciseSet;
 import it.uniroma3.mat.extendedset.ExtendedSet;
@@ -80,83 +81,6 @@ public class Debug {
 		return true;
 	}
 	
-	/**
-	 * Populates a set with random values
-	 * 
-	 * @param set
-	 *            the set to populate
-	 * @param rnd
-	 *            random number generator
-	 * @param size
-	 *            number of elements
-	 * @param min
-	 *            smallest element
-	 * @param max
-	 *            greatest element
-	 */
-	//TODO: cancellare
-	private static void populate(ExtendedSet<Integer> set, Random rnd, int size, int min, int max) {
-		if (min > max) 
-			throw new IllegalArgumentException("min > max");
-		if ((max - min + 1) < size) 
-			throw new IllegalArgumentException("(max - min + 1) < size");
-		
-		// add elements
-		while (set.size() < size) {
-			if (rnd.nextDouble() < 0.8D) {
-				set.complement();
-				set.add(min + rnd.nextInt(max - min + 1));
-			} else {
-				if (rnd.nextDouble() < 0.2D) {
-					// sequence
-					int minSeq = min + rnd.nextInt(max - min + 1);
-					int maxSeq = min + rnd.nextInt(max - min + 1);
-					minSeq = Math.max(min, (minSeq / 31) * 31);
-					maxSeq = Math.max(min, (maxSeq / 31) * 31);
-					if (minSeq > maxSeq) {
-						int tmp = maxSeq;
-						maxSeq = minSeq;
-						minSeq = tmp;
-					}
-					set.fill(minSeq, maxSeq);
-				} else {
-					// singleton
-					set.add(min + rnd.nextInt(max - min + 1));
-				}
-			}
-		}
-		
-		// remove elements when the set is too large
-		while (set.size() > size) {
-			int toClear = set.size() - size;
-			int first;
-			int last;
-			if (rnd.nextBoolean()) {
-				first = set.last() - toClear + 1;
-				last = set.last();
-			} else {
-				first = set.first();
-				last = set.first() + toClear - 1;
-			}
-			set.clear(first, last);
-		}
-	}
-	
-	/**
-	 * Populates a set with random values, from 0 to the specified greatest element
-	 * 
-	 * @param set
-	 *            the set to populate
-	 * @param rnd
-	 *            random number generator
-	 * @param max
-	 *            greatest elements
-	 */
-	//TODO: cancellare
-	private static void populate(ExtendedSet<Integer> set, Random rnd, int max) {
-		populate(set, rnd, (int) (rnd.nextDouble() * max), 0, max);
-	}
-
 	/**
 	 * Generates an empty set of the specified class
 	 * 
@@ -281,6 +205,8 @@ public class Debug {
 		currentItems.addAll(currentBits);
 		if (currentItems.size() != 10001) {
 			System.out.println("Unexpected error!");
+			System.out.println(currentBits.size());
+			System.out.println(currentItems.size());
 			return;
 		}
 		
@@ -380,12 +306,6 @@ public class Debug {
 		for (int i = 0; i < 1000000; i++) {
 			System.out.print("Test " + i + ": ");
 			
-			//TODO:
-			// clear(x,x)
-			// fill(x,x)
-			// equals()
-			// unire gli altri test qui, in modo tale che ne faccio uno solo... Magari mantenere separato add e remove...
-			
 			RandomNumbers rn;
 			switch (r.nextInt(3)) {
 			case 0:
@@ -401,12 +321,78 @@ public class Debug {
 				throw new RuntimeException("unexpected");
 			}
 			
+//			/*
+//			 * fill() and clear()
+//			 */
+//			bitsRight.clear();
+//			itemsRight.clear();
+//			Iterator<Integer> itr1 = rn.generate().iterator();
+//			Iterator<Integer> itr2 = rn.generate().iterator();
+//			while (itr1.hasNext() && itr2.hasNext()) {
+//				ExtendedSet<Integer> clone = bitsRight.clone();
+//				Integer from = itr1.next();
+//				Integer to = itr2.next();
+//				if (from.compareTo(to) > 0) {
+//					Integer s = from;
+//					from = to;
+//					to = s;
+//				}
+//				
+//				boolean fill = r.nextBoolean();
+//				if (fill) {
+//					for (int j = from; j <= to; j++) 
+//						itemsRight.add(j);
+//					bitsRight.fill(from, to);
+//				} else {
+//					for (int j = from; j <= to; j++) 
+//						itemsRight.remove(j);
+//					bitsRight.clear(from, to);
+//				}
+//				
+//				if (!checkContent(bitsLeft, itemsLeft)) {
+//					System.out.println("FILL/CLEAR ERROR!");
+//					System.out.println("Same elements: " + (itemsLeft.toString().equals(bitsLeft.toString())));
+//					System.out.println("itemsLeft:");
+//					System.out.println(itemsLeft);
+//					System.out.println("bitsLeft:");
+//					System.out.println(bitsLeft.debugInfo());
+//
+//					System.out.println("itemsLeft.size(): "  + itemsLeft.size() + " ?= bitsLeft.size(): " + bitsLeft.size());
+//					for (Integer x : bitsLeft) 
+//						if (!itemsLeft.contains(x)) 
+//							System.out.println("itemsLeft does not contain " + x);
+//					for (Integer x : itemsLeft) 
+//						if (!bitsLeft.contains(x)) 
+//							System.out.println("itemsLeft does not contain " + x);
+//					System.out.println("bitsLeft.last(): " + bitsLeft.last() + " ?= itemsLeft.last(): " + itemsLeft.last());
+//					System.out.println("bitsLeft.first(): " + bitsLeft.first() + " ?= itemsLeft.first(): " + itemsLeft.first());
+//					
+//					return;
+//				}
+//				ExtendedSet<Integer> app = empty(c);
+//				app.addAll(itemsRight);
+//				if (bitsRight.hashCode() != app.hashCode()) {
+//					System.out.println("FILL/CLEAR FORMAT ERROR!");
+//					System.out.println("fill: " + fill);
+//					System.out.println("from " + from + " to " + to);
+//					System.out.println("itemsRight:");
+//					System.out.println(itemsRight);
+//					System.out.println("bitsRight:");
+//					System.out.println(bitsRight.debugInfo());
+//					System.out.println("Append:");
+//					System.out.println(app.debugInfo());
+//					System.out.println("Clone:");
+//					System.out.println(clone.debugInfo());
+//					return;
+//				}
+//			}
+			
+			
 			/*
 			 * contains(), add(), and remove()
 			 */
 			bitsRight.clear();
 			itemsRight.clear();
-			ExtendedSet<Integer> clone; 
 			for (Integer e : rn.generate()) {
 				if (itemsRight.contains(e) ^ bitsRight.contains(e)) {
 					System.out.println("CONTAINS ERROR!");
@@ -418,7 +404,7 @@ public class Debug {
 					System.out.println(bitsRight.debugInfo());
 					return;
 				}
-				clone = bitsRight.clone();
+				ExtendedSet<Integer> clone = bitsRight.clone();
 				boolean resItems = itemsRight.add(e);
 				boolean resBits = bitsRight.add(e);
 				ExtendedSet<Integer> app = empty(c);
@@ -449,7 +435,7 @@ public class Debug {
 				}
 			}
 			for (Integer e : rn.generate()) {
-				clone = bitsRight.clone();
+				ExtendedSet<Integer> clone = bitsRight.clone();
 				boolean resItems = itemsRight.remove(e);
 				boolean resBits = bitsRight.remove(e);
 				ExtendedSet<Integer> app = empty(c);
@@ -482,7 +468,7 @@ public class Debug {
 				}
 			}
 			for (Integer e : rn.generate()) {
-				clone = bitsRight.clone();
+				ExtendedSet<Integer> clone = bitsRight.clone();
 				if (!itemsRight.remove(e))
 					itemsRight.add(e);
 				bitsRight.flip(e);
@@ -1238,9 +1224,8 @@ public class Debug {
 		Random rnd = new MersenneTwister(31);
 		for (int i = 0; i < 10000; i++) {
 			int max = rnd.nextInt(10000);
-			bits.clear();
-			populate(bits, rnd, max);
-
+			bits = bits.convert(new RandomNumbers.Uniform(rnd.nextInt(1000), rnd.nextDouble() * 0.999, rnd.nextInt(100)).generate());
+			
 			for (int j = 0; j < 100; j++) {
 				int skip = rnd.nextInt(max + 1);
 				boolean reverse = rnd.nextBoolean();
@@ -1310,6 +1295,8 @@ public class Debug {
 //	@SuppressWarnings("unused")
 	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new ConciseSet());}}
 	@SuppressWarnings("unused")
+	private static class IntegerConcise2Set extends IntegerSet {IntegerConcise2Set() {super(new Concise2Set());}}
+	@SuppressWarnings("unused")
 	private static class IntegerWAHSet extends IntegerSet {IntegerWAHSet() {super(new ConciseSet(true));}}
 	@SuppressWarnings("unused")
 	private static class IntegerConcisePlusSet extends IntegerSet {IntegerConcisePlusSet() {super(new ConcisePlusSet());}}
@@ -1321,12 +1308,19 @@ public class Debug {
 	 */
 	public static void main(String[] args) {
 		// NOTE: the most complete test is TestCase.RANDOM_OPERATION_STRESS
+//		TestCase testCase = TestCase.ADDITION_STRESS;
+//		TestCase testCase = TestCase.REMOVAL_STRESS;
 		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS;
+//		TestCase testCase = TestCase.DESCENDING_ITERATOR;
 //		TestCase testCase = TestCase.SKIP;
+//		TestCase testCase = TestCase.POSITION;
+//		TestCase testCase = TestCase.COMPARATOR_COMPLEX;
+		
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerFastSet.class;
 		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConciseSet.class;
-//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerWAHSet.class;
+//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcise2Set.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcisePlusSet.class;
+//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerWAHSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = ListSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = LinkedSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = ArraySet.class;

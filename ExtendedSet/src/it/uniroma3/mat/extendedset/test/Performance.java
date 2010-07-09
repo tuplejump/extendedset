@@ -20,6 +20,7 @@
 package it.uniroma3.mat.extendedset.test;
 
 import it.uniroma3.mat.extendedset.ArraySet;
+import it.uniroma3.mat.extendedset.Concise2Set;
 import it.uniroma3.mat.extendedset.ConcisePlusSet;
 import it.uniroma3.mat.extendedset.ConciseSet;
 import it.uniroma3.mat.extendedset.FastSet;
@@ -56,6 +57,7 @@ public class Performance {
 	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new ConciseSet());}}
 	@SuppressWarnings("unused")
 	private static class IntegerConcisePlusSet extends IntegerSet {IntegerConcisePlusSet() {super(new ConcisePlusSet());}}
+	private static class IntegerConcise2Set extends IntegerSet {IntegerConcise2Set() {super(new Concise2Set());}}
 	private static class IntegerWAHSet extends IntegerSet {IntegerWAHSet() {super(new WAHSet());}}
 
 	/** 
@@ -176,7 +178,7 @@ public class Performance {
 				cAddAndRemove[i].remove(x);
 		}
 		endTimer(classToTest, "2) remove()", rightOperand.size() * REPETITIONS);
-/*		
+		
 		// CONTAINS
 		startTimer();
 		for (int i = 0; i < REPETITIONS; i++) {
@@ -205,7 +207,7 @@ public class Performance {
 			cRemoveAll[i].removeAll(cRighOperand[i]);
 		}
 		endTimer(classToTest, "6) removeAll()", REPETITIONS);
-*/		
+		
 		// INTERSECTION
 		startTimer();
 		for (int i = 0; i < REPETITIONS; i++) {
@@ -236,16 +238,14 @@ public class Performance {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		boolean onlyBitmaps = false;
-
-		boolean calcMemory = false;
+		boolean calcMemory = true;
 		boolean calcTime = true;
 		
-		boolean calcUniform = false;
+		boolean calcUniform = true;
 		boolean calcMarkovian = false;
-		boolean calcZipfian = true;
+		boolean calcZipfian = false;
 		
-		int minCardinality = 100000;
+		int minCardinality = 10000;
 		int maxCardinality = 100000;
 		
 		/*
@@ -272,7 +272,7 @@ public class Performance {
 			default:
 				throw new RuntimeException("unexpected");
 			}
-			System.out.println("#cardinality\tdensity\tFastSet\tConciseSet\tWAHSet\tConcisePlusSet");
+			System.out.println("#cardinality\tdensity\tFastSet\tConciseSet\tWAHSet\tConcise2Set");
 			for (int cardinality = minCardinality; cardinality <= maxCardinality; cardinality *= 10) {
 				for (double density = .0001; density < 1D; density *= 1.7) {
 					System.out.format(Locale.ENGLISH, "%7d\t%.4f\t", cardinality, density);
@@ -304,35 +304,26 @@ public class Performance {
 					s2.addAll(integers);
 					System.out.format("%7d\t", (int) (s2.collectionCompressionRatio() * cardinality));
 
-					IntegerSet s3 = new IntegerSet(new ConcisePlusSet());
+					IntegerSet s3 = new IntegerSet(new Concise2Set());
 					s3.addAll(integers);
 					System.out.format("%7d\n", (int) (s3.collectionCompressionRatio() * cardinality));
 				}
 			}
 		}
 		
-		Class<?>[] classes;
-		if (onlyBitmaps)
-			classes = new Class[] { 
-				ArraySet.class,
-				IntegerFastSet.class, 
-				IntegerWAHSet.class, 
-				IntegerConciseSet.class,
-//				IntegerConcisePlusSet.class,
-				};
-		else
-			classes = new Class[] { 
+		Class<?>[] classes = new Class[] { 
 //				ArrayList.class, 
 //				LinkedList.class,
 //				ArrayListSet.class, 
 //				LinkedListSet.class, 
 				HashSet.class,
 				TreeSet.class,
-//				ArraySet.class, 
-//				IntegerFastSet.class, 
+				ArraySet.class, 
+				IntegerFastSet.class, 
 				IntegerWAHSet.class, 
 				IntegerConciseSet.class,
-//				IntegerConcisePlusSet.class,
+				IntegerConcisePlusSet.class,
+				IntegerConcise2Set.class,
 				};
 
 		/*
@@ -383,8 +374,8 @@ public class Performance {
 					testClass(c, x, y);
 					testClass(c, x, y);
 				}
-//				for (double density = .0001; density < 1D; density *= 1.7) {
-				for (double density = .0041; density < 1D; density *= 1.7) {
+				for (double density = .0001; density < 1D; density *= 1.7) {
+//				for (double density = .0041; density < 1D; density *= 1.7) {
 //				for (double density = 0.8272; density > 0.00005; density /= 1.7) {
 					switch (i) {
 					case 0:

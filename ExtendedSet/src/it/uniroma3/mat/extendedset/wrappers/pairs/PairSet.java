@@ -542,7 +542,14 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 *         within the set
 	 */
 	public boolean contains(T transaction, I item) {
-		return indices.contains(pairToIndex(transaction, item));
+		Integer t = allTransactions.absoluteIndexOf(transaction);
+		if (t == null)
+			return false;
+		Integer i = allItems.absoluteIndexOf(item);
+		if (i == null)
+			return false;
+		long index = t.longValue() * maxItemCount + i.longValue();
+		return indices.contains(index);
 	}
 	
 	/**

@@ -164,11 +164,6 @@ public class ConciseSet extends IntSet implements java.io.Serializable {
 	private final static int ALL_ONES_WITHOUT_MSB = 0x7FFFFFFF;
 	
 	/**
-	 * All bits set to 0 and MSB = 0
-	 */
-	private final static int ALL_ZEROS_WITHOUT_MSB = 0x00000000;
-
-	/**
 	 * Sequence bit
 	 */
 	private final static int SEQUENCE_BIT = 0x40000000;
@@ -534,15 +529,15 @@ public class ConciseSet extends IntSet implements java.io.Serializable {
 			return (currentWordCopy & 0x81FFFFFF) > 0;
 		}
 		
-		/**
-		 * Checks whether other literals to analyze exist
-		 * 
-		 * @return <code>true</code> if {@link #currentWordIndex} is out of
-		 *         the bounds of {@link #words}
-		 */
-		public final boolean endOfWords() {
-			return remainingWords < 0;
-		}
+//		/**
+//		 * Checks whether other literals to analyze exist
+//		 * 
+//		 * @return <code>true</code> if {@link #currentWordIndex} is out of
+//		 *         the bounds of {@link #words}
+//		 */
+//		public final boolean endOfWords() {
+//			return remainingWords < 0;
+//		}
 
 		/**
 		 * Checks whether other literals to analyze exist
@@ -690,7 +685,7 @@ public class ConciseSet extends IntSet implements java.io.Serializable {
 
 		/**
 		 * Prepares the next literal, similar to
-		 * {@link WordIterator_OLD#prepareNextLiteral()}. <b>NOTE:</b> it supposes
+		 * {@link ReverseWordIterator_OLD#prepareNextLiteral()}. <b>NOTE:</b> it supposes
 		 * that {@link #hasMoreLiterals()} returns <code>true</code>.
 		 */ 
 		public final void prepareNextLiteral() {
@@ -704,39 +699,6 @@ public class ConciseSet extends IntSet implements java.io.Serializable {
 			}
 			currentLiteral = getReverseLiteral(currentWordCopy);
 		}
-	}
-	
-	/**
-	 * When both word iterators currently point to sequence words, it decreases
-	 * these sequences by the least sequence count between them and return such
-	 * a count.
-	 * <p>
-	 * Conversely, when one of the word iterators does <i>not</i> point to a
-	 * sequence word, it returns 0 and does not change the iterator.
-	 * 
-	 * @param itr1
-	 *            first word iterator
-	 * @param itr2
-	 *            second word iterator
-	 * @return the least sequence count between the sequence word pointed by the
-	 *         given iterators
-	 * @see #skipSequence(WordIterator_OLD)
-	 */
-	// TODO: REMOVE!!!
-	private static int skipSequence(WordIterator_OLD itr1, WordIterator_OLD itr2) {
-		int count = 0;
-		if (isSequenceWithNoBits(itr1.currentWordCopy) 
-				&& isSequenceWithNoBits(itr2.currentWordCopy)) {
-			count = Math.min(
-					getSequenceCount(itr1.currentWordCopy),
-					getSequenceCount(itr2.currentWordCopy));
-			if (count > 0) {
-				// increase sequence counter
-				itr1.currentWordCopy -= count;
-				itr2.currentWordCopy -= count;
-			}
-		} 
-		return count;
 	}
 	
 	/**
@@ -1198,10 +1160,16 @@ public class ConciseSet extends IntSet implements java.io.Serializable {
 		}
 
 		/**
-		 * Prepare the next value for {@link #word}
+		 * Prepare the next value for {@link #word} after skipping a given
+		 * number of 31-bit blocks in the current sequence.
+		 * <p>
+		 * <b>NOTE:</b> it works only when the current word is within a
+		 * sequence, namely a literal cannot be skipped. Moreover, the number of
+		 * blocks to skip must be less than the remaining blocks in the current
+		 * sequence.
 		 * 
 		 * @param c
-		 *            number of blocks to skip
+		 *            number of 31-bit "blocks" to skip
 		 * @return <code>false</code> if the next word does not exists
 		 */
 		boolean prepareNext(int c) {
@@ -1247,7 +1215,7 @@ public class ConciseSet extends IntSet implements java.io.Serializable {
 
 		/**
 		 * @return the literal word corresponding to each block contained in the
-		 *         current sequence word
+		 *         current sequence word. Not to be used with literal words!
 		 */
 		int toLiteral()  {
 			assert !isLiteral;
@@ -1255,11 +1223,11 @@ public class ConciseSet extends IntSet implements java.io.Serializable {
 		}
 		
 		/**
-		 * Copy all the remaining words in the given set
+		 * Copies all the remaining words in the given set
 		 * 
 		 * @param s
 		 *            set where the words must be copied
-		 * @return <code>false</code> if there are no word to copy
+		 * @return <code>false</code> if there are no words to copy
 		 */
 		private boolean flush(ConciseSet s) {
 			// nothing to flush
@@ -1413,26 +1381,18 @@ public class ConciseSet extends IntSet implements java.io.Serializable {
 	/**
 	 * {@inheritDoc}
 	 */
-	// TODO: Update according to performOperation!!!
 	@Override
-	public int intersectionSize(IntSet c) {
-		if (c == null || c.isEmpty())
+	public int intersectionSize(IntSet o) {
+		// special cases
+		if (isEmpty() || o == null || o.isEmpty()) 
 			return 0;
-		if (c == this)
+		if (this == o)
 			return size();
-		if (isEmpty())
-			return 0;
 
-		// single-element intersection
-		if (size == 1)
-			return c.contains(last) ? 1 : 0;
-
-		// convert the other set in order to perform a more complex intersection
-		final ConciseSet other = convert(c);
-		if (other.size == 1) 
-			return contains(other.last) ? 1 : 0;
+		final ConciseSet other = convert(o);
 		
-		// disjoint sets
+		// check whether the first operator starts with a sequence that
+		// completely "covers" the second operator
 		if (isSequenceWithNoBits(this.words[0]) 
 				&& maxLiteralLengthMultiplication(getSequenceCount(this.words[0]) + 1) > other.last) {
 			if (isZeroSequence(this.words[0]))
@@ -1446,30 +1406,40 @@ public class ConciseSet extends IntSet implements java.io.Serializable {
 			return this.size();
 		}
 		
-		// resulting size
 		int res = 0;
-
+		
 		// scan "this" and "other"
-		WordIterator_OLD thisItr = this.new WordIterator_OLD();
-		WordIterator_OLD otherItr = other.new WordIterator_OLD();
-		while (!thisItr.endOfWords() && !otherItr.endOfWords()) {
-			// perform the operation
-			int curRes = getLiteralBitCount(thisItr.currentLiteral & otherItr.currentLiteral);
-			res += curRes;
-
-			// avoid loops when both are sequences and the result is a sequence
-			if (curRes == ALL_ZEROS_WITHOUT_MSB || curRes == ALL_ONES_WITHOUT_MSB) 
-				res += curRes * skipSequence(thisItr, otherItr);
-
-			// next literals
-			thisItr.prepareNextLiteral();
-			otherItr.prepareNextLiteral();
+		WordIterator thisItr = new WordIterator();
+		WordIterator otherItr = other.new WordIterator();
+		while (true) {
+			if (!thisItr.isLiteral) {
+				if (!otherItr.isLiteral) {
+					int minCount = Math.min(thisItr.count, otherItr.count);
+					if ((SEQUENCE_BIT & thisItr.word & otherItr.word) != 0)
+						res += maxLiteralLengthMultiplication(minCount);
+					if (!thisItr.prepareNext(minCount) | !otherItr.prepareNext(minCount)) // NOT ||
+						break;
+				} else {
+					res += getLiteralBitCount(thisItr.toLiteral() & otherItr.word);
+					thisItr.word--;
+					if (!thisItr.prepareNext(1) | !otherItr.prepareNext()) // do NOT use "||"
+						break;
+				}
+			} else if (!otherItr.isLiteral) {
+				res += getLiteralBitCount(thisItr.word & otherItr.toLiteral());
+				otherItr.word--;
+				if (!thisItr.prepareNext() | !otherItr.prepareNext(1)) // do NOT use  "||"
+					break;
+			} else {
+				res += getLiteralBitCount(thisItr.word & otherItr.word);
+				if (!thisItr.prepareNext() | !otherItr.prepareNext()) // do NOT use  "||"
+					break;
+			}
 		}
 
-		// return the intersection size
 		return res;
-	}
-
+	} 
+	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -2085,7 +2055,7 @@ public class ConciseSet extends IntSet implements java.io.Serializable {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public IntSet convert(Collection<Integer> c) {
+	public ConciseSet convert(Collection<Integer> c) {
 		ConciseSet res = empty();
 		Collection<Integer> sorted;
 		if (c != null) {
@@ -2096,7 +2066,8 @@ public class ConciseSet extends IntSet implements java.io.Serializable {
 				Collections.sort((List<Integer>) sorted);
 			}
 			for (int i : sorted)
-				res.add(i);
+				if (res.last != i)
+					res.add(i);
 		}
 		return res;
 	}
@@ -2357,7 +2328,6 @@ public class ConciseSet extends IntSet implements java.io.Serializable {
 	/**
 	 * {@inheritDoc}
 	 */
-	// TODO: Update according to performOperation!!!
 	@Override
 	public boolean containsAll(IntSet c) {
 		if (c == null || c.isEmpty() || c == this)
@@ -2373,34 +2343,63 @@ public class ConciseSet extends IntSet implements java.io.Serializable {
 		if (other.size == 1) 
 			return contains(other.last);
 
-		// scan "this" and "other"
-		WordIterator_OLD thisItr = this.new WordIterator_OLD();
-		WordIterator_OLD otherItr = other.new WordIterator_OLD();
-		while (!thisItr.endOfWords() && !otherItr.endOfWords()) {
-			// check shared elements between the two sets
-			int curRes = thisItr.currentLiteral & otherItr.currentLiteral;
-			
-			// check if this set does not completely contains the other set
-			if (otherItr.currentLiteral != curRes)
+		// check whether the first operator starts with a sequence that
+		// completely "covers" the second operator
+		if (isSequenceWithNoBits(this.words[0]) 
+				&& maxLiteralLengthMultiplication(getSequenceCount(this.words[0]) + 1) > other.last) {
+			if (isZeroSequence(this.words[0]))
 				return false;
-
-			// Avoid loops when both are sequence and the result is a sequence
-			if (curRes == ALL_ZEROS_WITHOUT_MSB || curRes == ALL_ONES_WITHOUT_MSB) 
-				skipSequence(thisItr, otherItr);
-
-			// next literals
-			thisItr.prepareNextLiteral();
-			otherItr.prepareNextLiteral();
+			return true;
 		}
-
-		// the intersection is equal to the other set
-		return otherItr.endOfWords();
+		if (isSequenceWithNoBits(other.words[0]) 
+				&& maxLiteralLengthMultiplication(getSequenceCount(other.words[0]) + 1) > this.last)
+			return false;
+		
+		// scan "this" and "other"
+		WordIterator thisItr = new WordIterator();
+		WordIterator otherItr = other.new WordIterator();
+		while (true) {
+			if (!thisItr.isLiteral) {
+				if (!otherItr.isLiteral) {
+					int minCount = Math.min(thisItr.count, otherItr.count);
+					if ((SEQUENCE_BIT & thisItr.word) == 0 && (SEQUENCE_BIT & otherItr.word) != 0)
+						return false;
+					if (!otherItr.prepareNext(minCount))
+						return true;
+					if (!thisItr.prepareNext(minCount))
+						return false;
+				} else {
+					if ((thisItr.toLiteral() & otherItr.word) != otherItr.word)
+						return false;
+					thisItr.word--;
+					if (!otherItr.prepareNext())
+						return true;
+					if (!thisItr.prepareNext(1)) 
+						return false;
+				}
+			} else if (!otherItr.isLiteral) {
+				int o = otherItr.toLiteral();
+				if ((thisItr.word & otherItr.toLiteral()) != o)
+					return false;
+				otherItr.word--;
+				if (!otherItr.prepareNext(1))
+					return true;
+				if (!thisItr.prepareNext())
+					return false;
+			} else {
+				if ((thisItr.word & otherItr.word) != otherItr.word)
+					return false;
+				if (!otherItr.prepareNext())
+					return true;
+				if (!thisItr.prepareNext())
+					return false;
+			}
+		}
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	// TODO: Update according to performOperation!!!
 	@Override
 	public boolean containsAny(IntSet c) {
 		if (c == null || c.isEmpty() || c == this)
@@ -2427,32 +2426,41 @@ public class ConciseSet extends IntSet implements java.io.Serializable {
 		}
 
 		// scan "this" and "other"
-		WordIterator_OLD thisItr = this.new WordIterator_OLD();
-		WordIterator_OLD otherItr = other.new WordIterator_OLD();
-		while (!thisItr.endOfWords() && !otherItr.endOfWords()) {
-			// check shared elements between the two sets
-			int curRes = thisItr.currentLiteral & otherItr.currentLiteral;
-			
-			// check if this set contains some bit of the other set
-			if (curRes != ALL_ZEROS_LITERAL)
-				return true;
-
-			// Avoid loops when both are sequence and the result is a sequence
-			skipSequence(thisItr, otherItr);
-
-			// next literals
-			thisItr.prepareNextLiteral();
-			otherItr.prepareNextLiteral();
+		WordIterator thisItr = new WordIterator();
+		WordIterator otherItr = other.new WordIterator();
+		while (true) {
+			if (!thisItr.isLiteral) {
+				if (!otherItr.isLiteral) {
+					int minCount = Math.min(thisItr.count, otherItr.count);
+					if ((SEQUENCE_BIT & thisItr.word & otherItr.word) != 0)
+						return true;
+					if (!thisItr.prepareNext(minCount) | !otherItr.prepareNext(minCount)) // NOT ||
+						return false;
+				} else {
+					if ((thisItr.toLiteral() & otherItr.word) != ALL_ZEROS_LITERAL)
+						return true;
+					thisItr.word--;
+					if (!thisItr.prepareNext(1) | !otherItr.prepareNext()) // do NOT use "||"
+						return false;
+				}
+			} else if (!otherItr.isLiteral) {
+				if ((thisItr.word & otherItr.toLiteral()) != ALL_ZEROS_LITERAL)
+					return true;
+				otherItr.word--;
+				if (!thisItr.prepareNext() | !otherItr.prepareNext(1)) // do NOT use  "||"
+					return false;
+			} else {
+				if ((thisItr.word & otherItr.word) != ALL_ZEROS_LITERAL)
+					return true;
+				if (!thisItr.prepareNext() | !otherItr.prepareNext()) // do NOT use  "||"
+					return false;
+			}
 		}
-
-		// the intersection is equal to the empty set
-		return false;
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
-	// TODO: Update according to performOperation!!!
 	@Override
 	public boolean containsAtLeast(IntSet c, int minElements) {
 		if (minElements < 1)
@@ -2489,25 +2497,42 @@ public class ConciseSet extends IntSet implements java.io.Serializable {
 		int res = 0;
 
 		// scan "this" and "other"
-		WordIterator_OLD thisItr = this.new WordIterator_OLD();
-		WordIterator_OLD otherItr = other.new WordIterator_OLD();
-		while (!thisItr.endOfWords() && !otherItr.endOfWords()) {
-			// perform the operation
-			int curRes = getLiteralBitCount(thisItr.currentLiteral & otherItr.currentLiteral);
-			res += curRes;
-			if (res >= minElements)
-				return true;
-
-			// Avoid loops when both are sequence and the result is a sequence
-			if (curRes == ALL_ZEROS_WITHOUT_MSB || curRes == ALL_ONES_WITHOUT_MSB) 
-				res += curRes * skipSequence(thisItr, otherItr);
-
-			// next literals
-			thisItr.prepareNextLiteral();
-			otherItr.prepareNextLiteral();
+		WordIterator thisItr = new WordIterator();
+		WordIterator otherItr = other.new WordIterator();
+		while (true) {
+			if (!thisItr.isLiteral) {
+				if (!otherItr.isLiteral) {
+					int minCount = Math.min(thisItr.count, otherItr.count);
+					if ((SEQUENCE_BIT & thisItr.word & otherItr.word) != 0) {
+						res += maxLiteralLengthMultiplication(minCount);
+						if (res >= minElements)
+							return true;
+					}
+					if (!thisItr.prepareNext(minCount) | !otherItr.prepareNext(minCount)) // NOT ||
+						return false;
+				} else {
+					res += getLiteralBitCount(thisItr.toLiteral() & otherItr.word);
+					if (res >= minElements)
+						return true;
+					thisItr.word--;
+					if (!thisItr.prepareNext(1) | !otherItr.prepareNext()) // do NOT use "||"
+						return false;
+				}
+			} else if (!otherItr.isLiteral) {
+				res += getLiteralBitCount(thisItr.word & otherItr.toLiteral());
+				if (res >= minElements)
+					return true;
+				otherItr.word--;
+				if (!thisItr.prepareNext() | !otherItr.prepareNext(1)) // do NOT use  "||"
+					return false;
+			} else {
+				res += getLiteralBitCount(thisItr.word & otherItr.word);
+				if (res >= minElements)
+					return true;
+				if (!thisItr.prepareNext() | !otherItr.prepareNext()) // do NOT use  "||"
+					return false;
+			}
 		}
-
-		return false;
 	}
 	
 	/**
@@ -2639,12 +2664,15 @@ public class ConciseSet extends IntSet implements java.io.Serializable {
 			return false;
 		
 		final ConciseSet other = (ConciseSet) obj;
+		if (size() != other.size())
+			return false;
+		if (isEmpty())
+			return true;
 		if (last != other.last)
 			return false;
-		if (!isEmpty())
-	        for (int i = 0; i <= lastWordIndex; i++)
-	            if (words[i] != other.words[i])
-	                return false;
+        for (int i = 0; i <= lastWordIndex; i++)
+            if (words[i] != other.words[i])
+                return false;
 		return true;
 	}
 

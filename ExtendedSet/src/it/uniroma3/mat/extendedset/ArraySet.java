@@ -215,10 +215,10 @@ public class ArraySet extends AbstractExtendedSet<Integer> {
 	@Override 
 	public boolean containsAll(Collection<?> c) {
 		Statistics.incSizeCheckCount();
-		if (isEmpty() || c == null || c.isEmpty())
-			return false;
-		if (this == c)
+		if (c == null || c.isEmpty() || c == this)
 			return true;
+		if (isEmpty())
+			return false;
 		
 		if (c instanceof ArraySet) {
 			int[] otherElements = ((ArraySet) c).elements;

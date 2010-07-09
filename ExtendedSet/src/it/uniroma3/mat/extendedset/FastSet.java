@@ -730,7 +730,7 @@ public class FastSet extends IntSet implements java.io.Serializable {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public IntSet convert(Collection<Integer> c) {
+	public FastSet convert(Collection<Integer> c) {
 		FastSet res = empty();
 		if (c != null)
 			for (int i : c)
@@ -1016,7 +1016,8 @@ public class FastSet extends IntSet implements java.io.Serializable {
 	 * Save the state of the {@link ConciseSet}instance to a stream 
 	 */
     private void writeObject(ObjectOutputStream s) throws IOException {
-    	if (words != null && wordsInUse < words.length)
+    	assert words != null;
+    	if (wordsInUse < words.length)
     		words = Arrays.copyOf(words, wordsInUse);
     	s.defaultWriteObject();
     }
