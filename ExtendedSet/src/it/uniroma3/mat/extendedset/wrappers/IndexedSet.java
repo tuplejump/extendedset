@@ -20,11 +20,11 @@ package it.uniroma3.mat.extendedset.wrappers;
 
 
 import it.uniroma3.mat.extendedset.AbstractExtendedSet;
-import it.uniroma3.mat.extendedset.ConciseSet;
 import it.uniroma3.mat.extendedset.ExtendedSet;
-import it.uniroma3.mat.extendedset.FastSet;
-import it.uniroma3.mat.extendedset.IntSet;
-import it.uniroma3.mat.extendedset.IntSet.ExtendedIntIterator;
+import it.uniroma3.mat.extendedset.intset.ConciseSet;
+import it.uniroma3.mat.extendedset.intset.FastSet;
+import it.uniroma3.mat.extendedset.intset.IntSet;
+import it.uniroma3.mat.extendedset.intset.IntSet.IntIterator;
 
 import java.util.Collection;
 import java.util.Comparator;
@@ -470,7 +470,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	@Override
 	public ExtendedIterator<T> iterator() {
 		return new ExtendedIterator<T>() {
-			final ExtendedIntIterator itr = indices.intIterator();
+			final IntIterator itr = indices.iterator();
 			@Override public boolean hasNext() {return itr.hasNext();}
 //			@Override public T next() {return indexToItem.get(itr.next());}
 			@Override public T next() {return indexToItem[itr.next()];}
@@ -485,7 +485,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	@Override
 	public ExtendedIterator<T> descendingIterator() {
 		return new ExtendedIterator<T>() {
-			final ExtendedIntIterator itr = indices.descendingIntIterator();
+			final IntIterator itr = indices.descendingIterator();
 			@Override public boolean hasNext() {return itr.hasNext();}
 //			@Override public T next() {return indexToItem.get(itr.next());}
 			@Override public T next() {return indexToItem[itr.next()];}

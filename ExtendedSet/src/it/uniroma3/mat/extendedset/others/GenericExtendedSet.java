@@ -16,7 +16,7 @@
  * limitations under the License.
  */ 
 
-package it.uniroma3.mat.extendedset.wrappers;
+package it.uniroma3.mat.extendedset.others;
 
 
 import it.uniroma3.mat.extendedset.AbstractExtendedSet;

@@ -17,9 +17,11 @@
  */ 
 
 
-package it.uniroma3.mat.extendedset;
+package it.uniroma3.mat.extendedset.intset;
 
 
+import it.uniroma3.mat.extendedset.AbstractExtendedSet;
+import it.uniroma3.mat.extendedset.ExtendedSet;
 import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
 
 import java.io.IOException;
@@ -48,7 +50,7 @@ import java.util.NoSuchElementException;
  * @see ConciseSet
  * @see IndexedSet
  */
-public class FastSet extends IntSet implements java.io.Serializable {
+public class FastSet extends AbstractIntSet implements java.io.Serializable {
 	/** generated serial ID */
 	private static final long serialVersionUID = 6519808981110513440L;
 
@@ -434,7 +436,7 @@ public class FastSet extends IntSet implements java.io.Serializable {
 	/**
 	 * Iterates over bits
 	 */
-	private class BitIterator implements ExtendedIntIterator {
+	private class BitIterator implements IntIterator {
 		// current bit
 		private int curr;
 		
@@ -513,7 +515,7 @@ public class FastSet extends IntSet implements java.io.Serializable {
 	/**
 	 * Iterates over bits
 	 */
-	private class ReverseBitIterator implements ExtendedIntIterator {
+	private class ReverseBitIterator implements IntIterator {
 		// current bit
 		private int curr;
 		
@@ -595,7 +597,7 @@ public class FastSet extends IntSet implements java.io.Serializable {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ExtendedIntIterator intIterator() {
+	public IntIterator iterator() {
 		return new BitIterator();
 	}
 
@@ -603,7 +605,7 @@ public class FastSet extends IntSet implements java.io.Serializable {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ExtendedIntIterator descendingIntIterator() {
+	public IntIterator descendingIterator() {
 		return new ReverseBitIterator();
 	}
 	
@@ -720,7 +722,7 @@ public class FastSet extends IntSet implements java.io.Serializable {
 			return new FastSet();
 
 		FastSet res = new FastSet();
-		ExtendedIntIterator itr = c.intIterator();
+		IntIterator itr = c.iterator();
 		while (itr.hasNext()) 
 			res.add(itr.next());
 		return res;

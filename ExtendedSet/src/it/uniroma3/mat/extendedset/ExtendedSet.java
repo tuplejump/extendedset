@@ -20,6 +20,8 @@
 package it.uniroma3.mat.extendedset;
 
 
+import it.uniroma3.mat.extendedset.intset.ConciseSet;
+import it.uniroma3.mat.extendedset.intset.FastSet;
 import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
 
 import java.util.ArrayList;

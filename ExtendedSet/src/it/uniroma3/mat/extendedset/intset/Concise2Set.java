@@ -1,7 +1,4 @@
-package it.uniroma3.mat.extendedset;
-
-import it.uniroma3.mat.extendedset.test.RandomNumbers;
-import it.uniroma3.mat.extendedset.utilities.MersenneTwister;
+package it.uniroma3.mat.extendedset.intset;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -15,14 +12,13 @@ import java.util.Formatter;
 import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
-import java.util.Random;
 import java.util.SortedSet;
 
 /**
  * @author colantonio
  *
  */
-public class Concise2Set extends IntSet implements java.io.Serializable {
+public class Concise2Set extends AbstractIntSet implements java.io.Serializable {
 	/** generated serial ID */
 	private static final long serialVersionUID = -6035357097384971493L;
 
@@ -205,7 +201,7 @@ public class Concise2Set extends IntSet implements java.io.Serializable {
 			return empty();
 
 		Concise2Set res = empty();
-		ExtendedIntIterator itr = c.intIterator();
+		IntIterator itr = c.iterator();
 		while (itr.hasNext()) 
 			res.add(itr.next());
 		return res;
@@ -462,9 +458,9 @@ public class Concise2Set extends IntSet implements java.io.Serializable {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ExtendedIntIterator intIterator() {
+	public IntIterator iterator() {
 		if (isEmpty()) {
-			return new ExtendedIntIterator() {
+			return new IntIterator() {
 				@Override public void skipAllBefore(int element) {/*empty*/}
 				@Override public boolean hasNext() {return false;}
 				@Override public int next() {throw new NoSuchElementException();}
@@ -472,7 +468,7 @@ public class Concise2Set extends IntSet implements java.io.Serializable {
 			};
 		}
 
-		return new ExtendedIntIterator() {
+		return new IntIterator() {
 			final int initialModCount = modCount;
 			int blockIndex = 0;
 			int[] intBuffer = new int[32];
@@ -532,9 +528,9 @@ public class Concise2Set extends IntSet implements java.io.Serializable {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ExtendedIntIterator descendingIntIterator() {
+	public IntIterator descendingIterator() {
 		if (isEmpty()) {
-			return new ExtendedIntIterator() {
+			return new IntIterator() {
 				@Override public void skipAllBefore(int element) {/*empty*/}
 				@Override public boolean hasNext() {return false;}
 				@Override public int next() {throw new NoSuchElementException();}
@@ -542,7 +538,7 @@ public class Concise2Set extends IntSet implements java.io.Serializable {
 			};
 		}
 
-		return new ExtendedIntIterator() {
+		return new IntIterator() {
 			final int initialModCount = modCount;
 			int blockIndex = lastBlockIndex;
 			int[] intBuffer = new int[32];
@@ -1601,41 +1597,41 @@ public class Concise2Set extends IntSet implements java.io.Serializable {
 		return s.toString();
 	}
 	
-	public static void main(String[] args) {
-		int maxCardinality = 100;
-		Random r = new MersenneTwister(31);
-		RandomNumbers rn = new RandomNumbers.Uniform(r.nextInt(maxCardinality), r.nextDouble() * 0.999, r.nextInt(maxCardinality / 10));
-
-		for (int i = 0; i < 1000000; i++) {
-			System.out.println("Test " + i);
-			Collection<Integer> ints = rn.generate();
-			Concise2Set x = new Concise2Set().convert(ints);
-			FastSet y = new FastSet().convert(ints);
-			
-			if (!x.toString().equals(y.toString())) {
-				System.out.println("Errore!");
-				System.out.println(x);
-				System.out.println(y);
-				System.out.println(x.debugInfo());
-			}
-			
-			int from = r.nextInt(maxCardinality);
-			int to = r.nextInt(maxCardinality);
-			if (from > to) {
-				int s = from;
-				from = to;
-				to = s;
-			}
-			Concise2Set c = x.clone();
-			x.fill(from, to);
-			y.fill(from, to);
-			if (!x.toString().equals(y.toString())) {
-				System.out.println("from: " + from + " to: " + to);
-				System.out.println(x);
-				System.out.println(y);
-				System.out.println(c.debugInfo());
-				System.out.println(x.debugInfo());
-			}
-		}
-	}
+//	public static void main(String[] args) {
+//		int maxCardinality = 100;
+//		Random r = new MersenneTwister(31);
+//		RandomNumbers rn = new RandomNumbers.Uniform(r.nextInt(maxCardinality), r.nextDouble() * 0.999, r.nextInt(maxCardinality / 10));
+//
+//		for (int i = 0; i < 1000000; i++) {
+//			System.out.println("Test " + i);
+//			Collection<Integer> ints = rn.generate();
+//			Concise2Set x = new Concise2Set().convert(ints);
+//			FastSet y = new FastSet().convert(ints);
+//			
+//			if (!x.toString().equals(y.toString())) {
+//				System.out.println("Error!");
+//				System.out.println(x);
+//				System.out.println(y);
+//				System.out.println(x.debugInfo());
+//			}
+//			
+//			int from = r.nextInt(maxCardinality);
+//			int to = r.nextInt(maxCardinality);
+//			if (from > to) {
+//				int s = from;
+//				from = to;
+//				to = s;
+//			}
+//			Concise2Set c = x.clone();
+//			x.fill(from, to);
+//			y.fill(from, to);
+//			if (!x.toString().equals(y.toString())) {
+//				System.out.println("from: " + from + " to: " + to);
+//				System.out.println(x);
+//				System.out.println(y);
+//				System.out.println(c.debugInfo());
+//				System.out.println(x.debugInfo());
+//			}
+//		}
+//	}
 }

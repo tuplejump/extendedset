@@ -18,15 +18,15 @@
 
 package it.uniroma3.mat.extendedset.test;
 
-import it.uniroma3.mat.extendedset.Concise2Set;
-import it.uniroma3.mat.extendedset.ConcisePlusSet;
-import it.uniroma3.mat.extendedset.ConciseSet;
 import it.uniroma3.mat.extendedset.ExtendedSet;
-import it.uniroma3.mat.extendedset.FastSet;
 import it.uniroma3.mat.extendedset.ExtendedSet.ExtendedIterator;
 import it.uniroma3.mat.extendedset.ExtendedSet.Statistics;
+import it.uniroma3.mat.extendedset.intset.Concise2Set;
+import it.uniroma3.mat.extendedset.intset.ConcisePlusSet;
+import it.uniroma3.mat.extendedset.intset.ConciseSet;
+import it.uniroma3.mat.extendedset.intset.FastSet;
+import it.uniroma3.mat.extendedset.others.GenericExtendedSet;
 import it.uniroma3.mat.extendedset.utilities.MersenneTwister;
-import it.uniroma3.mat.extendedset.wrappers.GenericExtendedSet;
 import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
 import it.uniroma3.mat.extendedset.wrappers.IntegerSet;
 
@@ -321,71 +321,71 @@ public class Debug {
 				throw new RuntimeException("unexpected");
 			}
 			
-//			/*
-//			 * fill() and clear()
-//			 */
-//			bitsRight.clear();
-//			itemsRight.clear();
-//			Iterator<Integer> itr1 = rn.generate().iterator();
-//			Iterator<Integer> itr2 = rn.generate().iterator();
-//			while (itr1.hasNext() && itr2.hasNext()) {
-//				ExtendedSet<Integer> clone = bitsRight.clone();
-//				Integer from = itr1.next();
-//				Integer to = itr2.next();
-//				if (from.compareTo(to) > 0) {
-//					Integer s = from;
-//					from = to;
-//					to = s;
-//				}
-//				
-//				boolean fill = r.nextBoolean();
-//				if (fill) {
-//					for (int j = from; j <= to; j++) 
-//						itemsRight.add(j);
-//					bitsRight.fill(from, to);
-//				} else {
-//					for (int j = from; j <= to; j++) 
-//						itemsRight.remove(j);
-//					bitsRight.clear(from, to);
-//				}
-//				
-//				if (!checkContent(bitsLeft, itemsLeft)) {
-//					System.out.println("FILL/CLEAR ERROR!");
-//					System.out.println("Same elements: " + (itemsLeft.toString().equals(bitsLeft.toString())));
-//					System.out.println("itemsLeft:");
-//					System.out.println(itemsLeft);
-//					System.out.println("bitsLeft:");
-//					System.out.println(bitsLeft.debugInfo());
-//
-//					System.out.println("itemsLeft.size(): "  + itemsLeft.size() + " ?= bitsLeft.size(): " + bitsLeft.size());
-//					for (Integer x : bitsLeft) 
-//						if (!itemsLeft.contains(x)) 
-//							System.out.println("itemsLeft does not contain " + x);
-//					for (Integer x : itemsLeft) 
-//						if (!bitsLeft.contains(x)) 
-//							System.out.println("itemsLeft does not contain " + x);
-//					System.out.println("bitsLeft.last(): " + bitsLeft.last() + " ?= itemsLeft.last(): " + itemsLeft.last());
-//					System.out.println("bitsLeft.first(): " + bitsLeft.first() + " ?= itemsLeft.first(): " + itemsLeft.first());
-//					
-//					return;
-//				}
-//				ExtendedSet<Integer> app = empty(c);
-//				app.addAll(itemsRight);
-//				if (bitsRight.hashCode() != app.hashCode()) {
-//					System.out.println("FILL/CLEAR FORMAT ERROR!");
-//					System.out.println("fill: " + fill);
-//					System.out.println("from " + from + " to " + to);
-//					System.out.println("itemsRight:");
-//					System.out.println(itemsRight);
-//					System.out.println("bitsRight:");
-//					System.out.println(bitsRight.debugInfo());
-//					System.out.println("Append:");
-//					System.out.println(app.debugInfo());
-//					System.out.println("Clone:");
-//					System.out.println(clone.debugInfo());
-//					return;
-//				}
-//			}
+			/*
+			 * fill() and clear()
+			 */
+			bitsRight.clear();
+			itemsRight.clear();
+			Iterator<Integer> itr1 = rn.generate().iterator();
+			Iterator<Integer> itr2 = rn.generate().iterator();
+			while (itr1.hasNext() && itr2.hasNext()) {
+				ExtendedSet<Integer> clone = bitsRight.clone();
+				Integer from = itr1.next();
+				Integer to = itr2.next();
+				if (from.compareTo(to) > 0) {
+					Integer s = from;
+					from = to;
+					to = s;
+				}
+				
+				boolean fill = r.nextBoolean();
+				if (fill) {
+					for (int j = from; j <= to; j++) 
+						itemsRight.add(j);
+					bitsRight.fill(from, to);
+				} else {
+					for (int j = from; j <= to; j++) 
+						itemsRight.remove(j);
+					bitsRight.clear(from, to);
+				}
+				
+				if (!checkContent(bitsLeft, itemsLeft)) {
+					System.out.println("FILL/CLEAR ERROR!");
+					System.out.println("Same elements: " + (itemsLeft.toString().equals(bitsLeft.toString())));
+					System.out.println("itemsLeft:");
+					System.out.println(itemsLeft);
+					System.out.println("bitsLeft:");
+					System.out.println(bitsLeft.debugInfo());
+
+					System.out.println("itemsLeft.size(): "  + itemsLeft.size() + " ?= bitsLeft.size(): " + bitsLeft.size());
+					for (Integer x : bitsLeft) 
+						if (!itemsLeft.contains(x)) 
+							System.out.println("itemsLeft does not contain " + x);
+					for (Integer x : itemsLeft) 
+						if (!bitsLeft.contains(x)) 
+							System.out.println("itemsLeft does not contain " + x);
+					System.out.println("bitsLeft.last(): " + bitsLeft.last() + " ?= itemsLeft.last(): " + itemsLeft.last());
+					System.out.println("bitsLeft.first(): " + bitsLeft.first() + " ?= itemsLeft.first(): " + itemsLeft.first());
+					
+					return;
+				}
+				ExtendedSet<Integer> app = empty(c);
+				app.addAll(itemsRight);
+				if (bitsRight.hashCode() != app.hashCode()) {
+					System.out.println("FILL/CLEAR FORMAT ERROR!");
+					System.out.println("fill: " + fill);
+					System.out.println("from " + from + " to " + to);
+					System.out.println("itemsRight:");
+					System.out.println(itemsRight);
+					System.out.println("bitsRight:");
+					System.out.println(bitsRight.debugInfo());
+					System.out.println("Append:");
+					System.out.println(app.debugInfo());
+					System.out.println("Clone:");
+					System.out.println(clone.debugInfo());
+					return;
+				}
+			}
 			
 			
 			/*

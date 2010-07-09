@@ -17,9 +17,11 @@
  */ 
 
 
-package it.uniroma3.mat.extendedset;
+package it.uniroma3.mat.extendedset.intset;
 
 
+import it.uniroma3.mat.extendedset.AbstractExtendedSet;
+import it.uniroma3.mat.extendedset.ExtendedSet;
 import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
 
 import java.io.IOException;
@@ -46,7 +48,7 @@ import java.util.SortedSet;
  * ://ricerca.mat.uniroma3.it/users/colanton/docs/concise.pdf</a> for more
  * details.
  * <p>
- * Notice that the iterator by {@link #intIterator()} is <i>fail-fast</i>,
+ * Notice that the iterator by {@link #iterator()} is <i>fail-fast</i>,
  * similar to most {@link Collection}-derived classes. If the set is
  * structurally modified at any time after the iterator is created, the iterator
  * will throw a {@link ConcurrentModificationException}. Thus, in the face of
@@ -66,7 +68,7 @@ import java.util.SortedSet;
  * @see IndexedSet
  */
 // TODO: REPLACE ALL "WordIterator_OLD" INSTANCES WITH "WordIterator" !!!
-public class ConciseSet extends IntSet implements java.io.Serializable {
+public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 	/** generated serial ID */
 	private static final long serialVersionUID = 560068054685367266L;
 
@@ -483,7 +485,7 @@ public class ConciseSet extends IntSet implements java.io.Serializable {
 	 * a modified copy of the sequence that stores the number of the remaining
 	 * blocks to iterate.
 	 */
-	//TODO: replace with WordIterator!!!
+	//TODO: REMOVE!!!
 	private class WordIterator_OLD {
 		private int currentWordIndex;	// index of the current word
 		private int currentWordCopy;	// copy of the current word
@@ -706,7 +708,7 @@ public class ConciseSet extends IntSet implements java.io.Serializable {
 	 * {@link ReverseWordIterator_OLD} instances
 	 */
 	// TODO: REMOVE!!!
-	private /*static*/ int skipSequence(ReverseWordIterator_OLD itr1, ReverseWordIterator_OLD itr2) {
+	private int skipSequence(ReverseWordIterator_OLD itr1, ReverseWordIterator_OLD itr2) {
 		int count = 0;
 		if (!isLiteral(itr1.currentWordCopy) && !isLiteral(itr2.currentWordCopy)) {
 			if (simulateWAH)
@@ -1702,8 +1704,8 @@ public class ConciseSet extends IntSet implements java.io.Serializable {
 	/**
 	 * Iterator for set bits of {@link ConciseSet}, from LSB to MSB
 	 */
-	//TODO: remove WordIterator_OLD...
-	private class BitIterator_OLD implements ExtendedIntIterator {
+	private class BitIterator implements IntIterator {
+		//TODO: use WordIterator instead of WordIterator_OLD...
 		private WordIterator_OLD wordItr = new WordIterator_OLD();
 		private int rightmostBitOfCurrentWord = 0;
 		private int nextBitToCheck = 0;
@@ -1842,7 +1844,8 @@ public class ConciseSet extends IntSet implements java.io.Serializable {
 	/**
 	 * Iterator for set bits of {@link ConciseSet}, from MSB to LSB
 	 */
-	private class ReverseBitIterator implements ExtendedIntIterator {
+	private class ReverseBitIterator implements IntIterator {
+		//TODO use ReverseWordIterator instead of ReverseWordIterator_OLD
 		private ReverseWordIterator_OLD wordItr = new ReverseWordIterator_OLD();
 		private int rightmostBitOfCurrentWord = maxLiteralLengthMultiplication(maxLiteralLengthDivision(last));
 		private int nextBitToCheck = maxLiteralLengthModulus(last);
@@ -1973,25 +1976,25 @@ public class ConciseSet extends IntSet implements java.io.Serializable {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ExtendedIntIterator intIterator() {
+	public IntIterator iterator() {
 		if (isEmpty()) {
-			return new ExtendedIntIterator() {
+			return new IntIterator() {
 				@Override public void skipAllBefore(int element) {/*empty*/}
 				@Override public boolean hasNext() {return false;}
 				@Override public int next() {throw new NoSuchElementException();}
 				@Override public void remove() {throw new UnsupportedOperationException();}
 			};
 		}
-		return new BitIterator_OLD();
+		return new BitIterator();
 	}
 
 	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public ExtendedIntIterator descendingIntIterator() {
+	public IntIterator descendingIterator() {
 		if (isEmpty()) {
-			return new ExtendedIntIterator() {
+			return new IntIterator() {
 				@Override public void skipAllBefore(int element) {/*empty*/}
 				@Override public boolean hasNext() {return false;}
 				@Override public int next() {throw new NoSuchElementException();}
@@ -2029,7 +2032,7 @@ public class ConciseSet extends IntSet implements java.io.Serializable {
 			return empty();
 
 		ConciseSet res = empty();
-		ExtendedIntIterator itr = c.intIterator();
+		IntIterator itr = c.iterator();
 		while (itr.hasNext()) 
 			res.add(itr.next());
 		return res;

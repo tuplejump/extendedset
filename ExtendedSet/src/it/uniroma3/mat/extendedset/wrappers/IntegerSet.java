@@ -20,8 +20,8 @@ package it.uniroma3.mat.extendedset.wrappers;
 
 import it.uniroma3.mat.extendedset.AbstractExtendedSet;
 import it.uniroma3.mat.extendedset.ExtendedSet;
-import it.uniroma3.mat.extendedset.IntSet;
-import it.uniroma3.mat.extendedset.IntSet.ExtendedIntIterator;
+import it.uniroma3.mat.extendedset.intset.IntSet;
+import it.uniroma3.mat.extendedset.intset.IntSet.IntIterator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -201,7 +201,7 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	@Override
 	public ExtendedIterator<Integer> descendingIterator() {
 		return new ExtendedIterator<Integer>() {
-			final ExtendedIntIterator itr = items.descendingIntIterator();
+			final IntIterator itr = items.descendingIterator();
 			@Override public void remove() {itr.remove();}
 			@Override public Integer next() {return toInteger(itr.next());}
 			@Override public boolean hasNext() {return itr.hasNext();}
@@ -294,7 +294,7 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	@Override
 	public ExtendedIterator<Integer> iterator() {
 		return new ExtendedIterator<Integer>() {
-			final ExtendedIntIterator itr = items.intIterator();
+			final IntIterator itr = items.iterator();
 			@Override public void remove() {itr.remove();}
 			@Override public Integer next() {return toInteger(itr.next());}
 			@Override public boolean hasNext() {return itr.hasNext();}

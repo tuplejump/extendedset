@@ -17,8 +17,11 @@
  */ 
 
 
-package it.uniroma3.mat.extendedset;
+package it.uniroma3.mat.extendedset.others;
 
+
+import it.uniroma3.mat.extendedset.AbstractExtendedSet;
+import it.uniroma3.mat.extendedset.ExtendedSet;
 
 import java.util.ArrayList;
 import java.util.Arrays;

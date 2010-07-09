@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 
-package it.uniroma3.mat.extendedset;
+package it.uniroma3.mat.extendedset.intset;
 
 
-import it.uniroma3.mat.extendedset.wrappers.IntegerSet;
+import it.uniroma3.mat.extendedset.ExtendedSet;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -34,7 +34,7 @@ import java.util.NoSuchElementException;
  * @author Alessandro Colantonio
  * @version $Id$
  */
-public abstract class IntSet implements Cloneable, Comparable<IntSet> {
+public interface IntSet extends Cloneable, Comparable<IntSet> {
 	/**
 	 * Generates the intersection set
 	 * 
@@ -45,7 +45,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 * 
 	 * @see #retainAll(IntSet)
 	 */
-	public abstract IntSet intersection(IntSet other);
+	public IntSet intersection(IntSet other);
 
 	/**
 	 * Generates the union set
@@ -57,7 +57,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 * 
 	 * @see #addAll(IntSet)
 	 */
-	public abstract IntSet union(IntSet other);
+	public IntSet union(IntSet other);
 
 	/**
 	 * Generates the difference set
@@ -69,7 +69,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 * 
 	 * @see #removeAll(IntSet)
 	 */
-	public abstract IntSet difference(IntSet other);
+	public IntSet difference(IntSet other);
 
 	/**
 	 * Generates the symmetric difference set
@@ -81,7 +81,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 * 
 	 * @see #flip(int)
 	 */
-	public abstract IntSet symmetricDifference(IntSet other);
+	public IntSet symmetricDifference(IntSet other);
 
 	/**
 	 * Generates the complement set. The returned set is represented by all the
@@ -92,7 +92,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 * 
 	 * @see IntSet#complement()
 	 */
-	public abstract IntSet complemented();
+	public IntSet complemented();
 
 	/**
 	 * Complements the current set. The modified set is represented by all the
@@ -101,7 +101,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 * 
 	 * @see IntSet#complemented()
 	 */
-	public abstract void complement();
+	public void complement();
 
 	/**
 	 * Returns <code>true</code> if the specified {@link IntSet}
@@ -113,7 +113,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 * @return a boolean indicating whether this {@link IntSet}
 	 *         intersects the specified {@link IntSet}.
 	 */
-	public abstract boolean containsAny(IntSet other);
+	public boolean containsAny(IntSet other);
 
 	/**
 	 * Returns <code>true</code> if the specified {@link IntSet}
@@ -130,7 +130,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 * @throws IllegalArgumentException
 	 *             if <code>minElements &lt; 1</code>
 	 */
-	public abstract boolean containsAtLeast(IntSet other, int minElements);
+	public boolean containsAtLeast(IntSet other, int minElements);
 
 	/**
 	 * Computes the intersection set size.
@@ -143,7 +143,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 *            operand
 	 * @return the size
 	 */
-	public abstract int intersectionSize(IntSet other);
+	public int intersectionSize(IntSet other);
 
 	/**
 	 * Computes the union set size.
@@ -156,9 +156,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 *            operand
 	 * @return the size
 	 */
-	public int unionSize(IntSet other) {
-		return other == null ? size() : size() + other.size() - intersectionSize(other);
-	}
+	public int unionSize(IntSet other);
 
 	/**
 	 * Computes the symmetric difference set size.
@@ -171,9 +169,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 *            operand
 	 * @return the size
 	 */
-	public int symmetricDifferenceSize(IntSet other) {
-		return other == null ? size() : size() + other.size() - 2 * intersectionSize(other);
-	}
+	public int symmetricDifferenceSize(IntSet other);
 
 	/**
 	 * Computes the difference set size.
@@ -186,9 +182,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 *            operand
 	 * @return the size
 	 */
-	public int differenceSize(IntSet other) {
-		return other == null ? size() : size() - intersectionSize(other);
-	}
+	public int differenceSize(IntSet other);
 
 	/**
 	 * Computes the complement set size.
@@ -198,26 +192,21 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 * 
 	 * @return the size
 	 */
-	public int complementSize() {
-		if (isEmpty())
-			return 0;
-		return last() - size() + 1;
-	}
+	public int complementSize();
 
 	/**
 	 * Generates an empty set
 	 * 
 	 * @return the empty set
 	 */
-	public abstract IntSet empty();
+	public IntSet empty();
 
 	/**
 	 * See the <code>clone()</code> of {@link Object}
 	 * 
 	 * @return cloned object
 	 */
-	@Override
-	public abstract IntSet clone();
+	public IntSet clone();
 
 	/**
 	 * Computes the compression factor of the equivalent bitmap representation
@@ -226,7 +215,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 * 
 	 * @return the compression factor
 	 */
-	public abstract double bitmapCompressionRatio();
+	public double bitmapCompressionRatio();
 
 	/**
 	 * Computes the compression factor of the equivalent integer collection (1
@@ -235,13 +224,13 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 * 
 	 * @return the compression factor
 	 */
-	public abstract double collectionCompressionRatio();
+	public double collectionCompressionRatio();
 
 	/**
 	 * A {@link Iterator}-like interface that allows to "skip" some elements of
 	 * the set
 	 */
-	public abstract interface ExtendedIntIterator {
+	public interface IntIterator {
 		/**
 		 * @return <tt>true</tt> if the iterator has more elements.
 		 */
@@ -285,19 +274,19 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 		 * @param element
 		 *            first element to not skip
 		 */
-		public abstract void skipAllBefore(int element);
+		public void skipAllBefore(int element);
 	}
 
 	/**
-	 * @return a {@link ExtendedIntIterator} instance to iterate over the set
+	 * @return a {@link IntIterator} instance to iterate over the set
 	 */
-	public abstract ExtendedIntIterator intIterator();
+	public IntIterator iterator();
 
 	/**
-	 * @return a {@link ExtendedIntIterator} instance to iterate over the set in
+	 * @return a {@link IntIterator} instance to iterate over the set in
 	 *         descending order
 	 */
-	public abstract ExtendedIntIterator descendingIntIterator();
+	public IntIterator descendingIterator();
 
 	/**
 	 * Prints debug info about the given {@link IntSet} implementation
@@ -305,7 +294,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 * @return a string that describes the internal representation of the
 	 *         instance
 	 */
-	public abstract String debugInfo();
+	public String debugInfo();
 
 	/**
 	 * Adds to the set all the elements between <code>first</code> and
@@ -316,7 +305,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 * @param to
 	 *            last element
 	 */
-	public abstract void fill(int from, int to);
+	public void fill(int from, int to);
 
 	/**
 	 * Removes from the set all the elements between <code>first</code> and
@@ -327,7 +316,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 * @param to
 	 *            last element
 	 */
-	public abstract void clear(int from, int to);
+	public void clear(int from, int to);
 
 	/**
 	 * Adds the element if it not existing, or removes it if existing
@@ -336,7 +325,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 *            element to flip
 	 * @see #symmetricDifference(IntSet)
 	 */
-	public abstract void flip(int e);
+	public void flip(int e);
 
 	/**
 	 * Gets the <code>i</code><sup>th</sup> element of the set
@@ -348,7 +337,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 *             if <code>i</code> is less than zero, or greater or equal to
 	 *             {@link #size()}
 	 */
-	public abstract int get(int i);
+	public int get(int i);
 
 	/**
 	 * Provides position of element within the set.
@@ -359,7 +348,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 *            element of the set
 	 * @return the element position
 	 */
-	public abstract int indexOf(int e);
+	public int indexOf(int e);
 
 	/**
 	 * Converts a given array into an instance of the current class.
@@ -368,7 +357,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 *            array to use to generate the new instance
 	 * @return the converted collection
 	 */
-	public abstract IntSet convert(int... a);
+	public IntSet convert(int... a);
 
 	/**
 	 * Converts a given collection into an instance of the current class.
@@ -377,7 +366,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 *            array to use to generate the new instance
 	 * @return the converted collection
 	 */
-	public abstract IntSet convert(Collection<Integer> c);
+	public IntSet convert(Collection<Integer> c);
 	
 	/**
 	 * Returns the first (lowest) element currently in this set.
@@ -386,12 +375,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 * @throws NoSuchElementException
 	 *             if this set is empty
 	 */
-	public int first() {
-		if (isEmpty())
-			throw new NoSuchElementException();
-		return intIterator().next();
-	}
-
+	public int first();
 
 	/**
 	 * Returns the last (highest) element currently in this set.
@@ -400,17 +384,17 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 * @throws NoSuchElementException
 	 *             if this set is empty
 	 */
-	public abstract int last();
+	public int last();
 
 	/**
 	 * @return the number of elements in this set (its cardinality)
 	 */
-	public abstract int size();
+	public int size();
 
 	/**
 	 * @return <tt>true</tt> if this set contains no elements
 	 */
-	public abstract boolean isEmpty();
+	public boolean isEmpty();
 
 	/**
 	 * Returns <tt>true</tt> if this set contains the specified element.
@@ -419,7 +403,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 *            element whose presence in this set is to be tested
 	 * @return <tt>true</tt> if this set contains the specified element
 	 */
-	public abstract boolean contains(int i);
+	public boolean contains(int i);
 
 	/**
 	 * Adds the specified element to this set if it is not already present. It
@@ -433,7 +417,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 *             if some property of the specified element prevents it from
 	 *             being added to this set
 	 */
-	public abstract boolean add(int i);
+	public boolean add(int i);
 
 	/**
 	 * Removes the specified element from this set if it is present.
@@ -444,7 +428,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 * @throws UnsupportedOperationException
 	 *             if the <tt>remove</tt> operation is not supported by this set
 	 */
-	public abstract boolean remove(int i);
+	public boolean remove(int i);
 
 	/**
 	 * Returns <tt>true</tt> if this set contains all of the elements of the
@@ -460,7 +444,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 *             (optional), or if the specified collection is null
 	 * @see #contains(int)
 	 */
-	public abstract boolean containsAll(IntSet c);
+	public boolean containsAll(IntSet c);
 
 	/**
 	 * Adds all of the elements in the specified collection to this set if
@@ -479,7 +463,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 *             prevents it from being added to this set
 	 * @see #add(int)
 	 */
-	public abstract boolean addAll(IntSet c);
+	public boolean addAll(IntSet c);
 
 	/**
 	 * Retains only the elements in this set that are contained in the specified
@@ -495,7 +479,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 *             the specified collection is null
 	 * @see #remove(int)
 	 */
-	public abstract boolean retainAll(IntSet c);
+	public boolean retainAll(IntSet c);
 
 	/**
 	 * Removes from this set all of its elements that are contained in the
@@ -511,7 +495,7 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 * @see #remove(int)
 	 * @see #contains(int)
 	 */
-	public abstract boolean removeAll(IntSet c);
+	public boolean removeAll(IntSet c);
 
 	/**
 	 * Removes all of the elements from this set. The set will be empty after
@@ -520,17 +504,13 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 * @throws UnsupportedOperationException
 	 *             if the <tt>clear</tt> method is not supported by this set
 	 */
-	public abstract void clear();
+	public void clear();
 
 	/**
 	 * @return an array containing all the elements in this set, in the same
 	 *         order.
 	 */
-	public int[] toArray() {
-		if (isEmpty())
-			return null;
-		return toArray(new int[size()]);
-	}
+	public int[] toArray();
 
 	/**
 	 * Returns an array containing all of the elements in this set.
@@ -548,42 +528,5 @@ public abstract class IntSet implements Cloneable, Comparable<IntSet> {
 	 * @throws IllegalArgumentException
 	 *             if this set does not fit in the specified array 
 	 */
-	public int[] toArray(int[] a) {
-		if (a.length < size())
-			throw new IllegalArgumentException();
-		if (isEmpty())
-			return a;
-		ExtendedIntIterator itr = intIterator();
-		int i = 0;
-		while (itr.hasNext()) 
-			a[i++] = itr.next();
-		return a;
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public String toString() {
-        ExtendedIntIterator itr = intIterator();
-    	if (!itr.hasNext())
-    	    return "[]";
-
-		StringBuilder sb = new StringBuilder();
-		sb.append('[');
-		for (;;) {
-			int e = itr.next();
-			sb.append(e);
-			if (!itr.hasNext())
-				return sb.append(']').toString();
-			sb.append(", ");
-		}
-	}
-
-	/**
-	 * @return the {@link IntegerSet} view of this set
-	 */
-	public IntegerSet toIntegerSet() {
-		return new IntegerSet(this);
-	}
+	public int[] toArray(int[] a);
 }

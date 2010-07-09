@@ -18,10 +18,10 @@
 
 package it.uniroma3.mat.extendedset.wrappers;
 
-import it.uniroma3.mat.extendedset.ConciseSet;
 import it.uniroma3.mat.extendedset.ExtendedSet;
-import it.uniroma3.mat.extendedset.IntSet;
-import it.uniroma3.mat.extendedset.IntSet.ExtendedIntIterator;
+import it.uniroma3.mat.extendedset.intset.ConciseSet;
+import it.uniroma3.mat.extendedset.intset.IntSet;
+import it.uniroma3.mat.extendedset.intset.IntSet.IntIterator;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -744,13 +744,13 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 	 * the set
 	 */
 	public class ExtendedLongIterator {
-		protected ExtendedIntIterator itr;
+		protected IntIterator itr;
 		protected Iterator<Entry<Long, IntSet>> otherItrs;
 		protected long first = 0;
 		protected IntSet current = null;
 		
 		private ExtendedLongIterator() {
-			itr = firstIndices.intIterator();
+			itr = firstIndices.iterator();
 			otherItrs = otherIndices.entrySet().iterator();
 			first = 0;
 		}
@@ -758,7 +758,7 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 		protected void nextItr() {
 			Entry<Long, IntSet> e = otherItrs.next();
 			current = e.getValue();
-			itr = e.getValue().intIterator();
+			itr = e.getValue().iterator();
 			first = e.getKey().longValue();
 		}
 
@@ -845,10 +845,10 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 			if (otherItrs.hasNext()) {
 				Entry<Long, IntSet> e = otherItrs.next();
 				current = e.getValue();
-				itr = e.getValue().descendingIntIterator();
+				itr = e.getValue().descendingIterator();
 				first = e.getKey().longValue();
 			} else {
-				itr = firstIndices.descendingIntIterator();
+				itr = firstIndices.descendingIterator();
 				current = null;
 				first = 0;
 			}
