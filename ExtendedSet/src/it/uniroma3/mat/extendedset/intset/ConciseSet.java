@@ -475,112 +475,6 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 		if (words != null && ((lastWordIndex + 1) << 1) < words.length)
 			words = Arrays.copyOf(words, lastWordIndex + 1);
 	}
-
-	/**
-	 * Iterates over words, from LSB to MSB.
-	 * <p>
-	 * It iterates over the <i>literals</i> represented by
-	 * {@link ConciseSet#words}. In particular, when a word is a sequence, it
-	 * "expands" the sequence to all the represented literals. It also maintains
-	 * a modified copy of the sequence that stores the number of the remaining
-	 * blocks to iterate.
-	 */
-	//TODO: REMOVE!!!
-	private class WordIterator_OLD {
-		private int currentWordIndex;	// index of the current word
-		private int currentWordCopy;	// copy of the current word
-		private int currentLiteral;		// literal contained within the current word
-		private int remainingWords;		// remaining words from "index" to the end
-		
-		/*
-		 * Initialize data 
-		 */
-		{
-			if (words != null) {
-				currentWordIndex = 0;
-				currentWordCopy = words[currentWordIndex];
-				currentLiteral = getLiteral(currentWordCopy);
-				remainingWords = lastWordIndex;
-			} else {
-				// empty set
-				currentWordIndex = 0;
-				currentWordCopy = 0;
-				currentLiteral = 0;
-				remainingWords = -1;
-			}
-		}
-
-		/**
-		 * Checks if the current word represents more than one literal
-		 * 
-		 * @return <code>true</code> if the current word represents more than
-		 *         one literal
-		 */
-		private boolean hasCurrentWordManyLiterals() {
-			/*
-			 * The complete statement should be:
-			 * 
-			 *     return !isLiteral(currentWordCopy) && getSequenceCount(currentWordCopy) > 0;
-			 *     
-			 * that is equivalent to:
-			 * 
-			 *     return ((currentWordCopy & 0x80000000) == 0) && (currentWordCopy & 0x01FFFFFF) > 0;
-			 *     
-			 * and thus equivalent to...
-			 */
-			return (currentWordCopy & 0x81FFFFFF) > 0;
-		}
-		
-//		/**
-//		 * Checks whether other literals to analyze exist
-//		 * 
-//		 * @return <code>true</code> if {@link #currentWordIndex} is out of
-//		 *         the bounds of {@link #words}
-//		 */
-//		public final boolean endOfWords() {
-//			return remainingWords < 0;
-//		}
-
-		/**
-		 * Checks whether other literals to analyze exist
-		 * 
-		 * @return <code>true</code> if there are literals to iterate
-		 */
-		public final boolean hasMoreLiterals() {
-			return hasMoreWords() || hasCurrentWordManyLiterals();
-		}
-
-		/**
-		 * Checks whether other words to analyze exist
-		 * 
-		 * @return <code>true</code> if there are words to iterate
-		 */
-		public final boolean hasMoreWords() {
-			return remainingWords > 0;
-		}
-		
-		/**
-		 * Prepares the next literal {@link #currentLiteral}, increases
-		 * {@link #currentWordIndex}, decreases {@link #remainingWords} if
-		 * necessary, and modifies the copy of the current word
-		 * {@link #currentWordCopy}.
-		 */ 
-		public final void prepareNextLiteral() {
-			if (!hasCurrentWordManyLiterals()) {
-				if (remainingWords == -1)
-					throw new NoSuchElementException();
-				if (remainingWords > 0) 
-					currentWordCopy = words[++currentWordIndex];
-				remainingWords--;
-			} else {
-				// decrease the counter and avoid to generate again the 1-bit literal
-				if (!simulateWAH)
-					currentWordCopy = getSequenceWithNoBits(currentWordCopy);
-				currentWordCopy--;
-			}
-			currentLiteral = getLiteral(currentWordCopy);
-		}
-	}
 	
 	/**
 	 * Iterates over words, from MSB to LSB.
@@ -1702,273 +1596,256 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 	}
 	
 	/**
-	 * Iterator for set bits of {@link ConciseSet}, from LSB to MSB
+	 * Iterator over the bits of a single literal/fill word
 	 */
-	private class BitIterator implements IntIterator {
-		//TODO: use WordIterator instead of WordIterator_OLD...
-		private WordIterator_OLD wordItr = new WordIterator_OLD();
-		private int rightmostBitOfCurrentWord = 0;
-		private int nextBitToCheck = 0;
-		private int initialModCount = modCount;
+	private interface WordExpander {
+		public boolean hasNext();
+		public boolean hasPrevious();
+		public int next();
+		public int previous();
+		public void skipAllAfter(int i);
+		public void skipAllBefore(int i);
+		public void reset(int offset, int word, boolean fromBeginning);
+	}
+	
+	/**
+	 * Iterator over the bits of literal and zero-fill words
+	 */
+	private class LiteralAndZeroFillExpander implements WordExpander {
+		final int[] buffer = new int[MAX_LITERAL_LENGHT];
+		int len = 0;
+		int current = 0;
+		
+		@Override public boolean hasNext() {
+			return current < len;
+		}
 
-		/**
-		 * Gets the next bit in the current literal
-		 * 
-		 * @return 32 if there is no next bit, otherwise the next set bit within
-		 *         the current literal
-		 */
-		private int getNextSetBit() {
-			return Integer.numberOfTrailingZeros(wordItr.currentLiteral & (0xFFFFFFFF << nextBitToCheck));
+		@Override public boolean hasPrevious() {
+			return current > 0;
+		}
+
+		@Override public int next() {
+			if (!hasNext())
+				throw new NoSuchElementException();
+			return buffer[current++];
+		}
+
+		@Override public int previous() {
+			if (!hasPrevious())
+				throw new NoSuchElementException();
+			return buffer[--current];
+		}
+
+		@Override public void skipAllAfter(int i) {
+			while (hasPrevious() && buffer[current - 1] > i)
+				current--;
+		}
+
+		@Override public void skipAllBefore(int i) {
+			while (hasNext() && buffer[current] < i)
+				current++;
 		}
 		
-		/**
-		 * {@inheritDoc}
-		 */
-		@Override
-		public boolean hasNext() {
-			return wordItr.hasMoreLiterals() || getNextSetBit() < MAX_LITERAL_LENGHT;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 */
-		@Override
-		public int next() {
-			// check for concurrent modification 
-			if (initialModCount != modCount)
-				throw new ConcurrentModificationException();
-			
-			// loop until we find some set bit
-			int nextSetBit = MAX_LITERAL_LENGHT;
-			while (nextSetBit >= MAX_LITERAL_LENGHT) {
-				// next bit in the current literal
-				nextSetBit = getNextSetBit();
-
-				if (nextSetBit < MAX_LITERAL_LENGHT) {
-					// return the current bit and then set the next search
-					// within the literal
-					nextBitToCheck = nextSetBit + 1;
-				} else {
-					// advance one word
-					rightmostBitOfCurrentWord += MAX_LITERAL_LENGHT;
-					if (isZeroSequence(wordItr.currentWordCopy)) {
-						// skip zeros
-						int blocks = getSequenceCount(wordItr.currentWordCopy);
-						rightmostBitOfCurrentWord += MAX_LITERAL_LENGHT * blocks;
-						wordItr.currentWordCopy -= blocks;
-					}
-					nextBitToCheck = 0;
-					wordItr.prepareNextLiteral();
-				}
-			}
-
-			return rightmostBitOfCurrentWord + nextSetBit;
-		}
-
-		/**
-		 * {@inheritDoc}
-		 */
-		@Override
-		public void skipAllBefore(int element) {
-			if (element > MAX_ALLOWED_INTEGER)
-				throw new IndexOutOfBoundsException(String.valueOf(element));
-
-			// the element is before the next one
-			if (element <= rightmostBitOfCurrentWord + nextBitToCheck)
-				return;
-			
-			// the element is after the last one
-			if (element > last){
-				// make hasNext() return "false"
-				wordItr.remainingWords = 0;
-				wordItr.currentWordCopy = 0x00000000;
-				wordItr.currentLiteral = ALL_ZEROS_LITERAL;
-				return;
-			}
-			
-			// next element
-			nextBitToCheck = element - rightmostBitOfCurrentWord;
-			
-			// the element is in the current word
-			if (nextBitToCheck < MAX_LITERAL_LENGHT)
-				return;
-			
-			// the element should be after the current word, but there are no more words
-			if (!wordItr.hasMoreLiterals()) {
-				// makes hasNext() return "false"
-				wordItr.remainingWords = 0;
-				wordItr.currentLiteral = 0;
-				return;
-			}
-			
-			// the element is after the current word
-			while (nextBitToCheck >= MAX_LITERAL_LENGHT) {
-				if (isLiteral(wordItr.currentWordCopy) || !isSequenceWithNoBits(wordItr.currentWordCopy)) {
-					// skip the current literal word or the first block of a
-					// sequence with (un)set bit
-					rightmostBitOfCurrentWord += MAX_LITERAL_LENGHT;
-					nextBitToCheck -= MAX_LITERAL_LENGHT;
-				} else {
-					int blocks = getSequenceCount(wordItr.currentWordCopy);
-					int bits = maxLiteralLengthMultiplication(1 + blocks);
-					if (isZeroSequence(wordItr.currentWordCopy)) {
-						if (bits > nextBitToCheck)
-							nextBitToCheck = 0;
-						else
-							nextBitToCheck -= bits;
+		@Override public void reset(int offset, int word, boolean fromBeginning) {
+			if (isLiteral(word)) {
+				len = 0;
+				for (int i = 0; i < MAX_LITERAL_LENGHT; i++) 
+					if ((word & (1 << i)) != 0)
+						buffer[len++] = offset + i;
+				current = fromBeginning ? 0 : len;
+			} else {
+				if (isZeroSequence(word)) {
+					if (simulateWAH || isSequenceWithNoBits(word)) {
+						len = 0;
+						current = 0;
 					} else {
-						if (bits > nextBitToCheck) {
-							blocks = maxLiteralLengthDivision(nextBitToCheck) - 1;
-							bits = maxLiteralLengthMultiplication(blocks + 1);
-						} 
-						nextBitToCheck -= bits;
+						len = 1;
+						buffer[0] = offset + ((0x3FFFFFFF & word) >>> 25) - 1;
+						current = fromBeginning ? 0 : 1;
 					}
-					rightmostBitOfCurrentWord += bits;
-					wordItr.currentWordCopy -= blocks;
+				} else {
+					throw new RuntimeException("sequence of ones!");
 				}
-				wordItr.prepareNextLiteral();
 			}
-		}
-
-		/**
-		 * {@inheritDoc}
-		 */
-		@Override
-		public void remove() {
-			// it is difficult to remove the current bit in a sequence word and
-			// to contextually keep the word iterator updated!
-			throw new UnsupportedOperationException();
 		}
 	}
-
+	
 	/**
-	 * Iterator for set bits of {@link ConciseSet}, from MSB to LSB
+	 * Iterator over the bits of one-fill words
 	 */
-	private class ReverseBitIterator implements IntIterator {
-		//TODO use ReverseWordIterator instead of ReverseWordIterator_OLD
-		private ReverseWordIterator_OLD wordItr = new ReverseWordIterator_OLD();
-		private int rightmostBitOfCurrentWord = maxLiteralLengthMultiplication(maxLiteralLengthDivision(last));
-		private int nextBitToCheck = maxLiteralLengthModulus(last);
-		private int initialModCount = modCount;
+	private class OneFillExpander implements WordExpander {
+		int firstInt = 1;
+		int lastInt = -1;
+		int current = 0;
+		int exception = -1;
+		
+		@Override public boolean hasNext() {
+			return current < lastInt;
+		}
 
-		/**
-		 * Gets the next bit in the current literal
-		 * 
-		 * @return -1 if there is no next bit, otherwise the next set bit within
-		 *         the current literal
-		 */
-		private int getNextSetBit() {
-			return MAX_LITERAL_LENGHT 
-				- Integer.numberOfLeadingZeros(wordItr.currentLiteral & ~(0xFFFFFFFF << (nextBitToCheck + 1)));
+		@Override public boolean hasPrevious() {
+			return current > firstInt;
+		}
+
+		@Override public int next() {
+			if (!hasNext())
+				throw new NoSuchElementException();
+			current++;
+			if (!simulateWAH && current == exception)
+				current++;
+			return current;
+		}
+
+		@Override public int previous() {
+			if (!hasPrevious())
+				throw new NoSuchElementException();
+			current--;
+			if (!simulateWAH && current == exception)
+				current--;
+			return current;
+		}
+
+		@Override public void skipAllAfter(int i) {
+			if (i >= current)
+				return;
+			current = i + 1;
+//			if (!simulateWAH && current == exception)
+//				current--;
+		}
+
+		@Override public void skipAllBefore(int i) {
+			if (i <= current)
+				return;
+			current = i - 1;
+//			if (!simulateWAH && current == exception)
+//				current--;
 		}
 		
-		/**
-		 * {@inheritDoc}
-		 */
+		@Override public void reset(int offset, int word, boolean fromBeginning) {
+			if (!isOneSequence(word))
+				throw new RuntimeException("NOT a sequence of ones!");
+			firstInt = offset;
+			lastInt = offset + maxLiteralLengthMultiplication(getSequenceCount(word) + 1) - 1;
+			if (!simulateWAH) {
+				exception = offset + ((0x3FFFFFFF & word) >>> 25) - 1;
+				if (exception == firstInt)
+					firstInt++;
+				if (exception == lastInt)
+					lastInt--;
+			}
+			current = fromBeginning ? (firstInt - 1) : (lastInt + 1);
+		}
+	}
+	
+	/**
+	 * Iterator for all the integers of a {@link ConciseSet} instance
+	 */
+	private class BitIterator implements IntIterator {
+		final LiteralAndZeroFillExpander litExp = new LiteralAndZeroFillExpander();
+		final OneFillExpander oneExp = new OneFillExpander();
+		WordExpander exp;
+		int index = 0;
+		int offset = 0;
+		
+		private void nextWord() {
+			final int word = words[index++];
+			exp = isOneSequence(word) ? oneExp : litExp;
+			exp.reset(offset, word, true);
+			
+			// prepare next offset
+			if (isLiteral(word)) {
+				offset += MAX_LITERAL_LENGHT;
+			} else {
+				offset += maxLiteralLengthMultiplication(getSequenceCount(word) + 1);
+			}
+		}
+		
+		private BitIterator () {
+			nextWord();
+		}
+		
 		@Override
 		public boolean hasNext() {
-			return wordItr.hasMoreLiterals() || getNextSetBit() >= 0;
+			return index <= lastWordIndex || exp.hasNext();
 		}
 
-		/**
-		 * {@inheritDoc}
-		 */
 		@Override
 		public int next() {
-			// check for concurrent modification 
-			if (initialModCount != modCount)
-				throw new ConcurrentModificationException();
-			
-			// loop until we find some set bit
-			int nextSetBit = -1;
-			while (nextSetBit < 0) {
-				// next bit in the current literal
-				nextSetBit = getNextSetBit();
-
-				if (nextSetBit >= 0) {
-					// return the current bit and then set the next search
-					// within the literal
-					nextBitToCheck = nextSetBit - 1;
-				} else {
-					// advance one word
-					rightmostBitOfCurrentWord -= MAX_LITERAL_LENGHT;
-					if (isZeroSequence(wordItr.currentWordCopy)) {
-						// skip zeros
-						int blocks = getSequenceCount(wordItr.currentWordCopy);
-						if (!isSequenceWithNoBits(wordItr.currentWordCopy))
-							blocks--;
-						if (blocks > 0) {
-							rightmostBitOfCurrentWord -= maxLiteralLengthMultiplication(blocks);
-							wordItr.currentWordCopy -= blocks;
-						}
-					}
-					nextBitToCheck = MAX_LITERAL_LENGHT - 1;
-					wordItr.prepareNextLiteral();
-				}
+			while (!exp.hasNext()) {
+				if (index > lastWordIndex)
+					throw new NoSuchElementException();
+				nextWord();
 			}
-
-			return rightmostBitOfCurrentWord + nextSetBit;
-		}
-		
-		/**
-		 * {@inheritDoc}
-		 */
-		@Override
-		public void skipAllBefore(int element) {
-			if (element < 0)
-				throw new IndexOutOfBoundsException(String.valueOf(element));
-			
-			// the element is before the next one
-			if (element >= rightmostBitOfCurrentWord + nextBitToCheck)
-				return;
-			
-			// next element
-			nextBitToCheck = element - rightmostBitOfCurrentWord;
-			
-			// the element is in the current word
-			if (nextBitToCheck > 0)
-				return;
-			
-			// the element should be after the current word, but there are no more words
-			if (!wordItr.hasMoreLiterals()) {
-				// makes hasNext() return "false"
-				wordItr.currentWordIndex = -1;
-				wordItr.currentWordCopy = ALL_ZEROS_LITERAL;
-				return;
-			}
-			
-			// the element is after the current word
-			while (nextBitToCheck < 0) {
-				if (isLiteral(wordItr.currentWordCopy) || getSequenceCount(wordItr.currentWordCopy) == 0) {
-					// skip the current literal word or the first block of a
-					// sequence with (un)set bit
-					rightmostBitOfCurrentWord -= MAX_LITERAL_LENGHT;
-					nextBitToCheck += MAX_LITERAL_LENGHT;
-				} else {
-					int blocks = getSequenceCount(wordItr.currentWordCopy);
-					if (!isSequenceWithNoBits(wordItr.currentWordCopy))
-						blocks--;
-					int bits = maxLiteralLengthMultiplication(1 + blocks);
-					if (bits > -nextBitToCheck) {
-						blocks = maxLiteralLengthDivision(-nextBitToCheck - 1);
-						bits = maxLiteralLengthMultiplication(blocks + 1);
-					}
-					rightmostBitOfCurrentWord -= bits;
-					nextBitToCheck += bits;
-					wordItr.currentWordCopy -= blocks;
-				}
-				wordItr.prepareNextLiteral();
-			}
+			return exp.next();
 		}
 
-		/**
-		 * {@inheritDoc}
-		 */
 		@Override
 		public void remove() {
-			// it is difficult to remove the current bit in a sequence word and
-			// to contextually keep the word iterator updated!
 			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public void skipAllBefore(int element) {
+			do {
+				exp.skipAllBefore(element);
+				if (exp.hasNext())
+					return;
+				nextWord();
+			} while (index <= lastWordIndex);
+		}
+	}
+	
+	private class ReverseBitIterator implements IntIterator {
+		final LiteralAndZeroFillExpander litExp = new LiteralAndZeroFillExpander();
+		final OneFillExpander oneExp = new OneFillExpander();
+		WordExpander exp;
+		int index = lastWordIndex;
+		int offset = maxLiteralLengthMultiplication(maxLiteralLengthDivision(last) + 1);
+		int firstIndex = 0;
+		
+		private void previousWord() {
+			final int word = words[index--];
+			exp = isOneSequence(word) ? oneExp : litExp;
+			if (isLiteral(word)) {
+				offset -= MAX_LITERAL_LENGHT;
+			} else {
+				offset -= maxLiteralLengthMultiplication(getSequenceCount(word) + 1);
+			}
+			exp.reset(offset, word, false);
+		}
+		
+		private ReverseBitIterator() {
+			if (isSequenceWithNoBits(words[0]) && isZeroSequence(words[0]))
+				firstIndex = 1;
+			else
+				firstIndex = 0;
+			previousWord();
+		}
+		
+		@Override
+		public boolean hasNext() {
+			return index >= firstIndex || exp.hasPrevious();
+		}
+
+		@Override
+		public int next() {
+			while (!exp.hasPrevious()) {
+				if (index < firstIndex)
+					throw new NoSuchElementException();
+				previousWord();
+			}
+			return exp.previous();
+		}
+
+		@Override
+		public void remove() {
+			throw new UnsupportedOperationException();
+		}
+
+		@Override
+		public void skipAllBefore(int element) {
+			while (index >= firstIndex && !exp.hasPrevious())
+				exp.skipAllAfter(element);
 		}
 	}
 

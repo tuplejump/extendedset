@@ -19,10 +19,6 @@
 package it.uniroma3.mat.extendedset;
 
 
-import it.uniroma3.mat.extendedset.intset.ConciseSet;
-import it.uniroma3.mat.extendedset.intset.FastSet;
-import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
-
 import java.util.AbstractCollection;
 import java.util.AbstractSet;
 import java.util.ArrayList;
@@ -36,7 +32,7 @@ import java.util.NoSuchElementException;
 import java.util.SortedSet;
 
 /**
- * This class provides a skeletal implementation of the <tt>ExtendedSet</tt>
+ * This class provides a skeletal implementation of the {@link ExtendedSet}
  * interface to minimize the effort required to implement this interface.
  * <p>
  * The process of implementing a set by extending this class is very similar,
@@ -48,11 +44,6 @@ import java.util.SortedSet;
  * 
  * @param <T>
  *            the type of elements maintained by this set
- * 
- * @see ExtendedSet
- * @see ConciseSet
- * @see FastSet
- * @see IndexedSet
  */
 public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements ExtendedSet<T> {
 	/**

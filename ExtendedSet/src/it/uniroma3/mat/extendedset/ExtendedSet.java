@@ -20,9 +20,12 @@
 package it.uniroma3.mat.extendedset;
 
 
-import it.uniroma3.mat.extendedset.intset.ConciseSet;
-import it.uniroma3.mat.extendedset.intset.FastSet;
+import it.uniroma3.mat.extendedset.intset.ArraySet;
+import it.uniroma3.mat.extendedset.others.GenericExtendedSet;
 import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
+import it.uniroma3.mat.extendedset.wrappers.IntegerSet;
+import it.uniroma3.mat.extendedset.wrappers.LongSet;
+import it.uniroma3.mat.extendedset.wrappers.pairs.PairSet;
 
 import java.util.ArrayList;
 import java.util.BitSet;
@@ -33,13 +36,8 @@ import java.util.List;
 import java.util.SortedSet;
 
 /**
- * A {@link SortedSet} with fast intersection/union/difference and other set
- * operations.
- * <p>
- * It collects all the basic functionalities and the interface of
- * {@link AbstractExtendedSet}, {@link ConciseSet}, {@link FastSet}, and
- * {@link IndexedSet}. {@link AbstractExtendedSet} is a base abstract class for
- * all other classes.
+ * An interface which extends {@link SortedSet} by adding
+ * intersection/union/difference and other set operations.
  * 
  * @author Alessandro Colantonio
  * @version $Id$
@@ -48,9 +46,12 @@ import java.util.SortedSet;
  *            the type of elements maintained by this set
  * 
  * @see AbstractExtendedSet
- * @see ConciseSet
- * @see FastSet
  * @see IndexedSet
+ * @see GenericExtendedSet
+ * @see ArraySet
+ * @see IntegerSet
+ * @see LongSet
+ * @see PairSet
  */
 public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<ExtendedSet<T>> {
 	/**

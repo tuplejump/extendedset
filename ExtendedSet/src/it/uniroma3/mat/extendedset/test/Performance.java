@@ -19,11 +19,11 @@
 
 package it.uniroma3.mat.extendedset.test;
 
+import it.uniroma3.mat.extendedset.intset.ArraySet;
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 import it.uniroma3.mat.extendedset.intset.FastSet;
 import it.uniroma3.mat.extendedset.intset.development.Concise2Set;
 import it.uniroma3.mat.extendedset.intset.development.ConcisePlusSet;
-import it.uniroma3.mat.extendedset.others.ArraySet;
 import it.uniroma3.mat.extendedset.others.GenericExtendedSet;
 import it.uniroma3.mat.extendedset.wrappers.IntegerSet;
 
