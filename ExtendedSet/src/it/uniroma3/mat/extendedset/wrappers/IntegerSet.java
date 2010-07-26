@@ -85,25 +85,9 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 		return res;
 	}
 
-	/**
-	 * Returns an {@link Integer} instance representing the specified
-	 * <code>int</code> value
-	 * <p>
-	 * <b>IMPORTANT!</b> It generates new {@link Integer} instances!
-	 * 
-	 * @param i
-	 *            integer to convert
-	 * @return the {@link Integer} instance
-	 */
-	private static Integer toInteger(int i) {
-		// TODO: to yield better space and time performance, cache frequently requested values.
-		return Integer.valueOf(i);
-	}
-	
 	/** {@inheritDoc} */
 	@Override
 	public boolean addAll(Collection<? extends Integer> c) {
-		Statistics.incUnionCount();
 		return items.addAll(toExtendedIntSet(c));
 	}
 
@@ -147,7 +131,6 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public int compareTo(ExtendedSet<Integer> o) {
-		Statistics.incEqualsCount();
 		return items.compareTo(toExtendedIntSet(o));
 	}
 
@@ -166,14 +149,12 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public boolean containsAny(Collection<? extends Integer> other) {
-		Statistics.incSizeCheckCount();
 		return items.containsAny(toExtendedIntSet(other));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public boolean containsAtLeast(Collection<? extends Integer> other, int minElements) {
-		Statistics.incSizeCheckCount();
 		return items.containsAtLeast(toExtendedIntSet(other), minElements);
 	}
 
@@ -203,7 +184,7 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 		return new ExtendedIterator<Integer>() {
 			final IntIterator itr = items.descendingIterator();
 			@Override public void remove() {itr.remove();}
-			@Override public Integer next() {return toInteger(itr.next());}
+			@Override public Integer next() {return Integer.valueOf(itr.next());}
 			@Override public boolean hasNext() {return itr.hasNext();}
 			@Override public void skipAllBefore(Integer element) {itr.skipAllBefore(element.intValue());}
 		};
@@ -212,14 +193,12 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public IntegerSet difference(Collection<? extends Integer> other) {
-		Statistics.incDifferenceCount();
 		return new IntegerSet(items.difference(toExtendedIntSet(other)));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public int differenceSize(Collection<? extends Integer> other) {
-		Statistics.incSizeCheckCount();
 		return items.differenceSize(toExtendedIntSet(other));
 	}
 
@@ -232,7 +211,6 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public boolean equals(Object o) {
-		Statistics.incEqualsCount();
 		if (this == o)
 			return true;
 		if (!(o instanceof IntegerSet))
@@ -251,7 +229,7 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public Integer first() {
-		return toInteger(items.first());
+		return Integer.valueOf(items.first());
 	}
 
 	/** {@inheritDoc} */
@@ -265,7 +243,7 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public Integer get(int i) {
-		return toInteger(items.get(i));
+		return Integer.valueOf(items.get(i));
 	}
 
 	/** {@inheritDoc} */
@@ -277,14 +255,12 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public IntegerSet intersection(Collection<? extends Integer> other) {
-		Statistics.incIntersectionCount();
 		return new IntegerSet(items.intersection(toExtendedIntSet(other)));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public int intersectionSize(Collection<? extends Integer> other) {
-		Statistics.incSizeCheckCount();
 		return items.intersectionSize(toExtendedIntSet(other));
 	}
 
@@ -296,7 +272,7 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 		return new ExtendedIterator<Integer>() {
 			final IntIterator itr = items.iterator();
 			@Override public void remove() {itr.remove();}
-			@Override public Integer next() {return toInteger(itr.next());}
+			@Override public Integer next() {return Integer.valueOf(itr.next());}
 			@Override public boolean hasNext() {return itr.hasNext();}
 			@Override public void skipAllBefore(Integer element) {itr.skipAllBefore(element.intValue());}
 		};
@@ -307,7 +283,7 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public Integer last() {
-		return toInteger(items.last());
+		return Integer.valueOf(items.last());
 	}
 
 	/** {@inheritDoc} */
@@ -327,7 +303,6 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public boolean removeAll(Collection<?> c) {
-		Statistics.incDifferenceCount();
 		return items.removeAll(toExtendedIntSet(c));
 	}
 
@@ -346,35 +321,30 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public boolean retainAll(Collection<?> c) {
-		Statistics.incIntersectionCount();
 		return items.retainAll(toExtendedIntSet(c));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public IntegerSet symmetricDifference(Collection<? extends Integer> other) {
-		Statistics.incSymmetricDifferenceCount();
 		return new IntegerSet(items.symmetricDifference(toExtendedIntSet(other)));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public int symmetricDifferenceSize(Collection<? extends Integer> other) {
-		Statistics.incSizeCheckCount();
 		return items.symmetricDifferenceSize(toExtendedIntSet(other));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public IntegerSet union(Collection<? extends Integer> other) {
-		Statistics.incUnionCount();
 		return new IntegerSet(items.union(toExtendedIntSet(other)));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public int unionSize(Collection<? extends Integer> other) {
-		Statistics.incSizeCheckCount();
 		return items.unionSize(toExtendedIntSet(other));
 	}
 
@@ -417,7 +387,6 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public boolean containsAll(Collection<?> c) {
-		Statistics.incSizeCheckCount();
 		return items.containsAll(toExtendedIntSet(c));
 	}
 

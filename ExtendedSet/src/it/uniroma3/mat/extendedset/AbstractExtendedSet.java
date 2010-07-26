@@ -50,12 +50,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 * {@inheritDoc}
 	 */
 	public ExtendedSet<T> intersection(Collection<? extends T> other) {
-		if (other == null) {
-			Statistics.incIntersectionCount();
-			return empty();
-		}
 		ExtendedSet<T> clone = clone();
-		// NOTE: it also performs Statistics.intersectionCount();
 		clone.retainAll(other);
 		return clone;
 	}
@@ -64,12 +59,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 * {@inheritDoc}
 	 */
 	public ExtendedSet<T> union(Collection<? extends T> other) {
-		if (other == null) {
-			Statistics.incUnionCount();
-			return clone();
-		}
 		ExtendedSet<T> clone = clone();
-		// NOTE: it also performs Statistics.unionCount();
 		clone.addAll(other);
 		return clone;
 	}
@@ -78,12 +68,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 * {@inheritDoc}
 	 */
 	public ExtendedSet<T> difference(Collection<? extends T> other) {
-		if (other == null) {
-			Statistics.incDifferenceCount();
-			return clone();
-		}
 		ExtendedSet<T> clone = clone();
-		// NOTE: it also performs Statistics.differenceCount();
 		clone.removeAll(other);
 		return clone;
 	}
@@ -92,45 +77,11 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 * {@inheritDoc}
 	 */
 	public ExtendedSet<T> symmetricDifference(Collection<? extends T> other) {
-		Statistics.incSymmetricDifferenceCount();
-		if (other == null)
-			return clone();
 		ExtendedSet<T> res = union(other);
 		res.removeAll(intersection(other));
-		// undo the increments of union(), removeAll(), and intersection()
-		Statistics.decIntersectionCount();
-		Statistics.decUnionCount();
-		Statistics.decDifferenceCount();
 		return res;
 	}
 	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean addAll(Collection<? extends T> c) {
-		Statistics.incUnionCount();
-		return super.addAll(c);
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean removeAll(Collection<?> c) {
-		Statistics.incDifferenceCount();
-		return super.removeAll(c);
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean retainAll(Collection<?> c) {
-		Statistics.incIntersectionCount();
-		return super.retainAll(c);
-	}
-
 	/**
 	 * {@inheritDoc}
 	 */
@@ -160,14 +111,9 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 * {@inheritDoc}
 	 */
 	public int intersectionSize(Collection<? extends T> other) {
-		Statistics.incSizeCheckCount();
-		if (other == null || other.isEmpty())
+		if (other == null || other.isEmpty() || isEmpty())
 			return 0;
-		ExtendedSet<T> clone = clone();
-		clone.retainAll(other);
-		// undo increment
-		Statistics.decUnionCount();
-		return clone.size();
+		return intersection(other).size();
 	}
 
 	/**
@@ -196,15 +142,6 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	 */
 	public int complementSize() {
 		return complemented().size();
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean equals(Object o) {
-		Statistics.incEqualsCount();
-		return super.equals(o);
 	}
 	
 	/**
@@ -515,7 +452,6 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	@SuppressWarnings("unchecked")
 	@Override
 	public int compareTo(ExtendedSet<T> o) {
-		Statistics.incEqualsCount();
 		Iterator<T> thisIterator = this.descendingIterator();
 		Iterator<T> otherIterator = o.descendingIterator();
 		while (thisIterator.hasNext() && otherIterator.hasNext()) {
@@ -542,8 +478,6 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		toRemove.complement();
 		
 		toAdd.removeAll(toRemove);
-		// undo increment
-		Statistics.decDifferenceCount();
 		
 		this.addAll(toAdd);
 	}
@@ -555,8 +489,6 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		ExtendedSet<T> toRemove = empty();
 		toRemove.fill(from, to);
 		this.removeAll(toRemove);
-		// undo increment
-		Statistics.decDifferenceCount();
 	}
 	
 	/**

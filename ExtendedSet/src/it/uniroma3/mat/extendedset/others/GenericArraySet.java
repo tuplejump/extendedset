@@ -132,7 +132,7 @@ public class GenericArraySet<T> extends AbstractExtendedSet<T> {
 			public void skipAllBefore(T e) {
 				if (comparator.compare(e, elements[next]) <= 0)
 					return;
-				next = Arrays.binarySearch(elements, next + 1, size, e);
+				next = Arrays.binarySearch(elements, next + 1, size, e, comparator);
 				if (next < 0)
 					next = -(next + 1);
 			}
@@ -164,7 +164,7 @@ public class GenericArraySet<T> extends AbstractExtendedSet<T> {
 			public void skipAllBefore(T e) {
 				if (comparator.compare(e, elements[next]) >= 0)
 					return;
-				next = Arrays.binarySearch(elements, 0, next, e);
+				next = Arrays.binarySearch(elements, 0, next, e, comparator);
 				if (next < 0)
 					next = -(next + 1) - 1;
 			}
@@ -253,7 +253,7 @@ public class GenericArraySet<T> extends AbstractExtendedSet<T> {
 		}
 		
 		// insert
-		int pos = Arrays.binarySearch(elements, 0, size, element);
+		int pos = Arrays.binarySearch(elements, 0, size, element, comparator);
 		if (pos >= 0)
 			return false;
 		
@@ -268,14 +268,20 @@ public class GenericArraySet<T> extends AbstractExtendedSet<T> {
 	/** 
 	 * {@inheritDoc} 
 	 */ 
+	@SuppressWarnings("unchecked")
 	@Override 
 	public boolean remove(Object element) {
 		if (element == null)
 			return false;
 		
-		int pos = Arrays.binarySearch(elements, 0, size, element);
-		if (pos < 0)
+		int pos;
+		try {
+			pos = Arrays.binarySearch(elements, 0, size, (T) element, comparator);
+			if (pos < 0)
+				return false;
+		} catch (ClassCastException e) {
 			return false;
+		}
 		
 		size--;
 		System.arraycopy(elements, pos + 1, elements, pos, size - pos);
@@ -296,7 +302,7 @@ public class GenericArraySet<T> extends AbstractExtendedSet<T> {
 			return;
 		}
 		
-		int pos = Arrays.binarySearch(elements, 0, size, element);
+		int pos = Arrays.binarySearch(elements, 0, size, element, comparator);
 
 		// add
 		if (pos < 0) {
@@ -317,11 +323,16 @@ public class GenericArraySet<T> extends AbstractExtendedSet<T> {
 	/** 
 	 * {@inheritDoc} 
 	 */ 
+	@SuppressWarnings("unchecked")
 	@Override 
 	public boolean contains(Object element) {
 		if (element == null || isEmpty())
 			return false;
-		return Arrays.binarySearch(elements, 0, size, element) >= 0;
+		try {
+			return Arrays.binarySearch(elements, 0, size, (T) element, comparator) >= 0;
+		} catch (ClassCastException e) {
+			return false;
+		}
 	}
 
 	/** 
@@ -848,12 +859,12 @@ public class GenericArraySet<T> extends AbstractExtendedSet<T> {
 //		}
 //
 //		// increase capacity, if necessary
-//		int posFrom = Arrays.binarySearch(elements, 0, size, from);
+//		int posFrom = Arrays.binarySearch(elements, 0, size, from, comparator);
 //		boolean fromMissing = posFrom < 0;
 //		if (fromMissing) 
 //			posFrom = -posFrom - 1;
 //
-//		int posTo = Arrays.binarySearch(elements, posFrom, size, to);
+//		int posTo = Arrays.binarySearch(elements, posFrom, size, to, comparator);
 //		boolean toMissing = posTo < 0;
 //		if (toMissing) 
 //			posTo = -posTo - 1;
@@ -890,12 +901,12 @@ public class GenericArraySet<T> extends AbstractExtendedSet<T> {
 			return;
 		}
 
-		int posFrom = Arrays.binarySearch(elements, 0, size, from);
+		int posFrom = Arrays.binarySearch(elements, 0, size, from, comparator);
 		if (posFrom < 0)
 			posFrom = -posFrom - 1;
 		if (posFrom >= size)
 			return;
-		int posTo = Arrays.binarySearch(elements, posFrom, size, to);
+		int posTo = Arrays.binarySearch(elements, posFrom, size, to, comparator);
 		if (posTo >= 0)
 			posTo++;
 		else
@@ -984,7 +995,7 @@ public class GenericArraySet<T> extends AbstractExtendedSet<T> {
 	 */
 	@Override
 	public int indexOf(T e) {
-		int pos = Arrays.binarySearch(elements, 0, size, e);
+		int pos = Arrays.binarySearch(elements, 0, size, e, comparator);
 		if (pos < 0)
 			return -1;
 		return pos;

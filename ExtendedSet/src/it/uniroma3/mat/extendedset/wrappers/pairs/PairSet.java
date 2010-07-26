@@ -38,10 +38,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -87,7 +85,7 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 
 	/** all possible transactions */
 	private final IndexedSet<T> allTransactions;
-	
+
 	/** all possible items */
 	private final IndexedSet<I> allItems;
 
@@ -96,24 +94,22 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 
 	/** cached number of all items */
 	private final int maxItemCount;
-	
+
 	/**
 	 * Initializes the set by specifying all possible transactions and items.
 	 * 
+	 * @param indices
+	 *            {@link IntSet} instance used to internally represent the set
 	 * @param transactions
 	 *            collection of <i>all</i> possible transactions. The specified
 	 *            order will be preserved within when iterating over the
 	 *            {@link PairSet} instance.
 	 * @param items
 	 *            collection of <i>all</i> possible items. The specified order
-	 *            will be preserved within each transaction
-	 *            {@link PairSet}.
-	 * @param compressed
-	 *            <code>true</code> if a compressed internal representation
-	 *            should be used
+	 *            will be preserved within each transaction {@link PairSet}.
 	 */
-	public PairSet(Collection<T> transactions, Collection<I> items, boolean compressed) {
-		this(newEmptyPairSet(transactions, items, compressed));
+	public PairSet(LongSet indices, Collection<T> transactions, Collection<I> items) {
+		this(newEmptyPairSet(indices, transactions, items));
 	}
 
 	/**
@@ -124,6 +120,8 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 *            transaction type
 	 * @param <XI>
 	 *            item type
+	 * @param indices
+	 *            {@link IntSet} instance used to internally represent the set
 	 * @param transactions
 	 *            collection of <i>all</i> possible transactions. The specified
 	 *            order will be preserved within when iterating over the
@@ -132,67 +130,23 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 *            collection of <i>all</i> possible items. The specified order
 	 *            will be preserved within each transaction
 	 *            {@link PairSet}.
-	 * @param compressed
-	 *            <code>true</code> if a compressed internal representation
-	 *            should be used
 	 * @return a new class instance           
 	 */
-	public static <XT, XI> PairSet<XT, XI> newPairSet(Collection<XT> transactions, Collection<XI> items, boolean compressed) {
-		return new PairSet<XT, XI>(transactions, items, compressed);
+	public static <XT, XI> PairSet<XT, XI> newPairSet(LongSet indices, Collection<XT> transactions, Collection<XI> items) {
+		return new PairSet<XT, XI>(indices, transactions, items);
 	}
-
-//	/**
-//	 * Initializes the set by specifying the <i>number</i> of all possible
-//	 * transactions and items
-//	 * <p>
-//	 * In this case, transactions and items are {@link Integer} ranging from 0
-//	 * to the given sizes <code>- 1</code>
-//	 * 
-//	 * @param maxTransactionCount
-//	 *            maximum number of transactions
-//	 * @param maxItemCount
-//	 *            maximum number of items
-//	 * @param compressed
-//	 *            <code>true</code> if a compressed internal representation
-//	 *            should be used
-//	 * @throws ClassCastException
-//	 *             when <code>T</code> and <code>I</code> do <i>not</i> equal to
-//	 *             {@link Integer}.
-//	 */
-//	@SuppressWarnings("unchecked")
-//	public PairSet(int maxTransactionCount, int maxItemCount, boolean compressed) {
-//		this((PairSet<T, I>) newEmptyPairSet(maxTransactionCount, maxItemCount, compressed));
-//	}
-
-//	/**
-//	 * Avoids to directly call the class constructor #PairSet(Collection,
-//	 * Collection, boolean), thus allowing for a more readable code
-//	 * 
-//	 * @param maxTransactionCount
-//	 *            maximum number of transactions
-//	 * @param maxItemCount
-//	 *            maximum number of items
-//	 * @param compressed
-//	 *            <code>true</code> if a compressed internal representation
-//	 *            should be used
-//	 * @return a new class instance           
-//	 */
-//	public static PairSet<Integer, Integer> newPairSet(int maxTransactionCount, int maxItemCount, boolean compressed) {
-//		return new PairSet<Integer, Integer>(maxTransactionCount, maxItemCount, compressed);
-//	}
 
 	/**
 	 * Converts a generic collection of transaction-item pairs to a
 	 * {@link PairSet} instance.
 	 * 
+	 * @param indices
+	 *            {@link IntSet} instance used to internally represent the set
 	 * @param pairs
 	 *            collection of {@link Pair} instances
-	 * @param compressed
-	 *            <code>true</code> if a compressed internal representation
-	 *            should be used
 	 */
-	public PairSet(Collection<? extends Pair<T, I>> pairs, boolean compressed) {
-		this(newPairSet(pairs, compressed));
+	public PairSet(LongSet indices, Collection<? extends Pair<T, I>> pairs) {
+		this(newPairSet(indices, pairs));
 	}
 
 	/**
@@ -202,18 +156,17 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 * In this case, the types <code>T</code> and <code>I</code> must be the
 	 * same, namely transaction and items must be of the same type
 	 * 
+	 * @param indices
+	 *            {@link IntSet} instance used to internally represent the set
 	 * @param pairs
 	 *            array of transaction-item pairs
-	 * @param compressed
-	 *            <code>true</code> if a compressed internal representation
-	 *            should be used
 	 * @throws ClassCastException
 	 *             when <code>T</code> and <code>I</code> are <i>not</i> of the
 	 *             same type
 	 */
 	@SuppressWarnings("unchecked")
-	public PairSet(T[][] pairs, boolean compressed) {
-		this((PairSet<T, I>) newPairSet(pairs, compressed));
+	public PairSet(LongSet indices, T[][] pairs) {
+		this((PairSet<T, I>) newPairSet(indices, pairs));
 	}
 
 	/**
@@ -224,16 +177,15 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 *            type of transactions
 	 * @param <XI>
 	 *            type of items
+	 * @param indices
+	 *            {@link IntSet} instance used to internally represent the set
 	 * @param ps
 	 *            collection of {@link Pair} instances
-	 * @param compressed
-	 *            <code>true</code> if a compressed internal representation
-	 *            should be used
 	 * @return the new {@link PairSet} instance, or the parameter if it is
 	 *         an instance of {@link PairSet}
 	 */
 	@SuppressWarnings("unchecked")
-	public static <XT, XI> PairSet<XT, XI> newPairSet(Collection<? extends Pair<XT, XI>> ps, boolean compressed) {
+	public static <XT, XI> PairSet<XT, XI> newPairSet(LongSet indices, Collection<? extends Pair<XT, XI>> ps) {
 		if (ps == null)
 			throw new RuntimeException("null pair set");
 		if (ps.isEmpty())
@@ -244,48 +196,33 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 
 		PairSet<XT, XI> res;
 		
-		if (!compressed) {
-			// identify all possible transactions and items
-			Set<XT> ts = new LinkedHashSet<XT>();
-			Set<XI> is = new LinkedHashSet<XI>();
-			for (Pair<XT, XI> a : ps) {
-				ts.add(a.transaction);
-				is.add(a.item);
-			}
-			
-			// add pairs to the final result, in the same order of the collection
-			res = new PairSet<XT, XI>(ts, is, compressed);
-			for (Pair<XT, XI> a : ps) 
-				res.add(a);
-		} else {
-			// identify all possible transactions and items
-			final Map<XT, Integer> ts = new LinkedHashMap<XT, Integer>();
-			final Map<XI, Integer> is = new LinkedHashMap<XI, Integer>();
-			int ti = 0, ii = 0;
-			for (Pair<XT, XI> p : ps) {
-				if (!ts.containsKey(p.transaction))
-					ts.put(p.transaction, ti++);
-				if (!is.containsKey(p.item))
-					is.put(p.item, ii++);
-			}
-
-			// sort the collection according to the sets of transactions and items
-			List<Pair<XT, XI>> sorted = new ArrayList<Pair<XT, XI>>(ps);
-			Collections.sort(sorted, new Comparator<Pair<XT, XI>>() {
-				@Override
-				public int compare(Pair<XT, XI> o1, Pair<XT, XI> o2) {
-					int r = ts.get(o1.transaction) - ts.get(o2.transaction);
-					if (r == 0)
-						r = is.get(o1.item) - is.get(o2.item);
-					return r;
-				}
-			});
-
-			// add pairs to the final result, according to the identified order 
-			res = new PairSet<XT, XI>(ts.keySet(), is.keySet(), compressed);
-			for (Pair<XT, XI> p : sorted) 
-				res.add(p);
+		// identify all possible transactions and items
+		final Map<XT, Integer> ts = new LinkedHashMap<XT, Integer>();
+		final Map<XI, Integer> is = new LinkedHashMap<XI, Integer>();
+		int ti = 0, ii = 0;
+		for (Pair<XT, XI> p : ps) {
+			if (!ts.containsKey(p.transaction))
+				ts.put(p.transaction, ti++);
+			if (!is.containsKey(p.item))
+				is.put(p.item, ii++);
 		}
+
+		// sort the collection according to the sets of transactions and items
+		List<Pair<XT, XI>> sorted = new ArrayList<Pair<XT, XI>>(ps);
+		Collections.sort(sorted, new Comparator<Pair<XT, XI>>() {
+			@Override
+			public int compare(Pair<XT, XI> o1, Pair<XT, XI> o2) {
+				int r = ts.get(o1.transaction).compareTo(ts.get(o2.transaction));
+				if (r == 0)
+					r = is.get(o1.item).compareTo(is.get(o2.item));
+				return r;
+			}
+		});
+
+		// add pairs to the final result, according to the identified order 
+		res = new PairSet<XT, XI>(indices, ts.keySet(), is.keySet());
+		for (Pair<XT, XI> p : sorted) 
+			res.add(p);
 		
 		return res;
 	}
@@ -296,14 +233,13 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 * 
 	 * @param <X>
 	 *            type of transactions and items
+	 * @param indices
+	 *            {@link IntSet} instance used to internally represent the set
 	 * @param pairs
 	 *            array of transaction-item pairs
-	 * @param compressed
-	 *            <code>true</code> if a compressed internal representation
-	 *            should be used
 	 * @return the new {@link PairSet} instance
 	 */
-	public static <X> PairSet<X, X> newPairSet(X[][] pairs, boolean compressed) {
+	public static <X> PairSet<X, X> newPairSet(LongSet indices, X[][] pairs) {
 		if (pairs == null || pairs[0].length != 2)
 			throw new IllegalArgumentException();
 		
@@ -311,36 +247,37 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 		for (int i = 0; i < pairs.length; i++) 
 			as.add(new Pair<X, X>(pairs[i][0], pairs[i][1]));
 		
-		return newPairSet(as, compressed);
+		return newPairSet(indices, as);
 	}
 
 	/**
 	 * Creates an empty instance of {@link PairSet}
 	 */
 	private static <XT, XI> PairSet<XT, XI> newEmptyPairSet(
-			Collection<XT> transactions, Collection<XI> items, boolean compressed) {
+			LongSet indices,
+			Collection<XT> transactions, 
+			Collection<XI> items) {
 		if (transactions == null || items == null)
 			throw new NullPointerException();
 		
 		// all transactions
 		IndexedSet<XT> allTransactions;
-		if (transactions instanceof IndexedSet<?>)
+		//TODO unmodifiable
+		if (transactions instanceof IndexedSet<?>) {
 			allTransactions = ((IndexedSet<XT>) transactions); //.unmodifiable();
-		else
-//			allTransactions = new IndexedSet<XT>(transactions, compressed).universe(); //.unmodifiable();
-			allTransactions = new IndexedSet<XT>(transactions, false).universe(); //.unmodifiable();
+		} else {
+			allTransactions = new IndexedSet<XT>(indices.emptyBlock(), transactions).universe(); //.unmodifiable();
+		}
 
 		// all items
 		IndexedSet<XI> allItems; 
-		if (items instanceof IndexedSet<?>)
+		//TODO unmodifiable
+		if (items instanceof IndexedSet<?>) {
 			allItems = ((IndexedSet<XI>) items); //.unmodifiable();
-		else
-//			allItems = new IndexedSet<XI>(items, compressed).universe(); //.unmodifiable();
-			allItems = new IndexedSet<XI>(items, false).universe(); //.unmodifiable();
-		
-		// empty index set
-		LongSet indices = new LongSet(compressed ? new ConciseSet() : new FastSet());
-		
+		} else {
+			allItems = new IndexedSet<XI>(indices.emptyBlock(), items).universe(); //.unmodifiable();
+		}
+			
 		// final pair set
 		return new PairSet<XT, XI>(
 				allTransactions, 
@@ -350,19 +287,6 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 				indices);
 	}
 	
-//	/**
-//	 * Creates an empty instance of {@link PairSet}
-//	 */
-//	private static PairSet<Integer, Integer> newEmptyPairSet(
-//			int maxTransactionCount, int maxItemCount, boolean compressed) {
-//		return newEmptyPairSet(
-////				new IndexedSet<Integer>(0, maxTransactionCount - 1, compressed).universe(),
-////				new IndexedSet<Integer>(0, maxItemCount - 1, compressed).universe(),
-//				new IndexedSet<Integer>(0, maxTransactionCount - 1, false).universe(),
-//				new IndexedSet<Integer>(0, maxItemCount - 1, false).universe(),
-//				compressed);
-//	}
-
 	/**
 	 * Shallow-copy constructor
 	 */
@@ -371,6 +295,7 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 		allItems = as.allItems;
 		maxTransactionCount = as.maxTransactionCount;
 		maxItemCount = as.maxItemCount;
+		
 		indices = as.indices;
 	}
 
@@ -385,9 +310,10 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 			LongSet indices) {
 		this.allTransactions = allTransactions;
 		this.allItems = allItems;
-		this.indices = indices;
 		this.maxTransactionCount = maxTransactionCount;
 		this.maxItemCount = maxItemCount;
+
+		this.indices = indices;
 	}
 	
 	/**

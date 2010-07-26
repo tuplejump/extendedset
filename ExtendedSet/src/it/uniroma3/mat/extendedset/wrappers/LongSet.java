@@ -67,6 +67,14 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 		firstIndices = block.empty();
 		otherIndices = new TreeMap<Long, IntSet>();
 	}
+
+	/**
+	 * @return an empty {@link IntSet} instance of the same type of that of
+	 *         internally used to represent integers
+	 */
+	public IntSet emptyBlock() {
+		return firstIndices.empty();
+	}
 	
 	/**
 	 * Retains only the elements in this set that are contained in the specified

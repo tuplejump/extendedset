@@ -19,8 +19,8 @@
 package it.uniroma3.mat.extendedset.test;
 
 import it.uniroma3.mat.extendedset.ExtendedSet;
+import it.uniroma3.mat.extendedset.IntSetStatistics;
 import it.uniroma3.mat.extendedset.ExtendedSet.ExtendedIterator;
-import it.uniroma3.mat.extendedset.ExtendedSet.Statistics;
 import it.uniroma3.mat.extendedset.intset.ArraySet;
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 import it.uniroma3.mat.extendedset.intset.FastSet;
@@ -180,7 +180,7 @@ public class Debug {
 		System.out.println(currentBits.debugInfo());
 		
 		System.out.println();
-		System.out.println(Statistics.summary());
+		System.out.println(IntSetStatistics.summary());
 	}
 	
 	/**
@@ -282,7 +282,7 @@ public class Debug {
 		System.out.println(currentBits.debugInfo());
 
 		System.out.println();
-		System.out.println(Statistics.summary());
+		System.out.println(IntSetStatistics.summary());
 	}
 	
 	/**
@@ -763,7 +763,7 @@ public class Debug {
 		}
 
 		System.out.println(currentBits.debugInfo());
-		System.out.println(Statistics.summary());
+		System.out.println(IntSetStatistics.summary());
 	}
 	
 	/**
@@ -829,7 +829,7 @@ public class Debug {
 		}
 
 		System.out.println(currentBits.debugInfo());
-		System.out.println(Statistics.summary());
+		System.out.println(IntSetStatistics.summary());
 	}
 
 	/**
@@ -1297,19 +1297,19 @@ public class Debug {
 	}
 
 	@SuppressWarnings("unused")
-	private static class IntegerFastSet extends IntegerSet {IntegerFastSet() {super(new FastSet());}}
-	@SuppressWarnings("unused")
-	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new ConciseSet());}}
-	@SuppressWarnings("unused")
-	private static class IntegerConcise2Set extends IntegerSet {IntegerConcise2Set() {super(new Concise2Set());}}
-	@SuppressWarnings("unused")
-	private static class IntegerWAHSet extends IntegerSet {IntegerWAHSet() {super(new ConciseSet(true));}}
-	@SuppressWarnings("unused")
-	private static class IntegerConcisePlusSet extends IntegerSet {IntegerConcisePlusSet() {super(new ConcisePlusSet());}}
-	@SuppressWarnings("unused")
-	private static class IntegerArraySet extends IntegerSet {IntegerArraySet() {super(new ArraySet());}}
+	private static class IntegerFastSet extends IntegerSet {IntegerFastSet() {super(new IntSetStatistics(new FastSet()));}}
 //	@SuppressWarnings("unused")
-	private static class IntegerArraySet2 extends GenericArraySet<Integer> {@SuppressWarnings("unused") public IntegerArraySet2() {/* */}}
+	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new IntSetStatistics(new ConciseSet()));}}
+	@SuppressWarnings("unused")
+	private static class IntegerConcise2Set extends IntegerSet {IntegerConcise2Set() {super(new IntSetStatistics(new Concise2Set()));}}
+	@SuppressWarnings("unused")
+	private static class IntegerWAHSet extends IntegerSet {IntegerWAHSet() {super(new IntSetStatistics(new ConciseSet(true)));}}
+	@SuppressWarnings("unused")
+	private static class IntegerConcisePlusSet extends IntegerSet {IntegerConcisePlusSet() {super(new IntSetStatistics(new ConcisePlusSet()));}}
+	@SuppressWarnings("unused")
+	private static class IntegerArraySet extends IntegerSet {IntegerArraySet() {super(new IntSetStatistics(new ArraySet()));}}
+	@SuppressWarnings("unused")
+	private static class IntegerArraySet2 extends GenericArraySet<Integer> {public IntegerArraySet2() {/* */}}
 
 	/**
 	 * Test launcher
@@ -1320,20 +1320,20 @@ public class Debug {
 		// NOTE: the most complete test is TestCase.RANDOM_OPERATION_STRESS
 //		TestCase testCase = TestCase.ADDITION_STRESS;
 //		TestCase testCase = TestCase.REMOVAL_STRESS;
-		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS;
-//		TestCase testCase = TestCase.SKIP;
+//		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS;
+		TestCase testCase = TestCase.SKIP;
 //		TestCase testCase = TestCase.POSITION;
 //		TestCase testCase = TestCase.COMPARATOR_COMPLEX;
 		
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerFastSet.class;
-//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConciseSet.class;
+		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConciseSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcise2Set.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcisePlusSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerWAHSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = ListSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = LinkedSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerArraySet.class;
-		Class<? extends ExtendedSet<Integer>> classToTest = IntegerArraySet2.class;
+//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerArraySet2.class;
 		
 		if (args != null && args.length > 0) {
 			try {

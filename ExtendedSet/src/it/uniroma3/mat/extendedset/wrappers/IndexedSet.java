@@ -21,8 +21,6 @@ package it.uniroma3.mat.extendedset.wrappers;
 
 import it.uniroma3.mat.extendedset.AbstractExtendedSet;
 import it.uniroma3.mat.extendedset.ExtendedSet;
-import it.uniroma3.mat.extendedset.intset.ConciseSet;
-import it.uniroma3.mat.extendedset.intset.FastSet;
 import it.uniroma3.mat.extendedset.intset.IntSet;
 import it.uniroma3.mat.extendedset.intset.IntSet.IntIterator;
 
@@ -48,10 +46,7 @@ import java.util.SortedSet;
  * 
  * @see ExtendedSet
  * @see AbstractExtendedSet
- * @see ConciseSet
- * @see FastSet
  */
-//TODO: usare IntSet invece di IntSet
 public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Serializable {
 	/** generated serial ID */
 	private static final long serialVersionUID = -2386771695765773453L;
@@ -61,105 +56,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 
 	// mapping to translate items to indices and vice-versa
 	private final Map<T, Integer> itemToIndex;
-//	private final Map<Integer, T> indexToItem;
 	private final T[] indexToItem;
-
-//	/**
-//	 * Used when the universe is a sequence of integral numbers
-//	 */
-//	private class CheckedFakeMap implements Map<Integer, Integer>, java.io.Serializable {
-//		/** generated serial ID */
-//		private static final long serialVersionUID = 9179931456581081163L;
-//		
-//		private final int size;
-//		private final int shift;
-//		private final boolean inverse;
-//		
-//		/**
-//		 * Specifies the first and the last element of the map
-//		 * 
-//		 * @param size
-//		 *            sequence length
-//		 * @param shift
-//		 *            first element of the sequence
-//		 * @param inverse
-//		 *            <code>false</code> if it is used as a index-to-item map,
-//		 *            <code>false</code> if it is used as a item-to-index map
-//		 */
-//		public CheckedFakeMap(int size, int shift, boolean inverse) {
-//			this.size = size;
-//			this.shift = shift;
-//			this.inverse = inverse;
-//		}
-//
-//		@Override public Integer get(Object key) {
-//			Integer value = (Integer) key - (inverse ? shift : 0);
-//			if (value.compareTo(0) < 0 || value.compareTo(size) >= 0)
-//				throw new IndexOutOfBoundsException(key.toString());
-//			return value + (inverse ? 0 : shift);
-//		}
-//		
-//		@Override public int size() {return size;}
-//
-//		@Override public void clear() {throw new UnsupportedOperationException();}
-//		@Override public boolean containsKey(Object key) {throw new UnsupportedOperationException();}
-//		@Override public boolean containsValue(Object value) {throw new UnsupportedOperationException();}
-//		@Override public Set<Entry<Integer, Integer>> entrySet() {throw new UnsupportedOperationException();}
-//		@Override public boolean isEmpty() {throw new UnsupportedOperationException();}
-//		@Override public Set<Integer> keySet() {throw new UnsupportedOperationException();}
-//		@Override public Integer put(Integer key, Integer value) {throw new UnsupportedOperationException();}
-//		@Override public void putAll(Map<? extends Integer, ? extends Integer> m) {throw new UnsupportedOperationException();}
-//		@Override public Integer remove(Object key) {throw new UnsupportedOperationException();}
-//		@Override public Collection<Integer> values() {throw new UnsupportedOperationException();}
-//	}
-//	
-//	/**
-//	 * Used when the universe is a sequence of integral numbers
-//	 */
-//	private class UncheckedFakeMap implements Map<Integer, Integer>, java.io.Serializable {
-//		/** generated serial ID */
-//		private static final long serialVersionUID = 4383471467074220611L;
-//
-//		private final int shift;
-//		
-//		/**
-//		 * Specifies the first element of the map
-//		 * 
-//		 * @param shift
-//		 *            first element of the sequence
-//		 */
-//		public UncheckedFakeMap(int shift) {
-//			this.shift = shift;
-//		}
-//
-//		/**
-//		 * {@inheritDoc}
-//		 * <p>
-//		 * There is no bound check, thus {@link IndexedSet#absoluteGet(int)} and
-//		 * {@link IndexedSet#absoluteIndexOf(Object)} methods does not throw exceptions
-//		 * when using indices below the lower bound
-//		 */
-//		@Override public Integer get(Object key) {return (Integer) key + shift;}
-//		
-//		/**
-//		 * {@inheritDoc}
-//		 * <p>
-//		 * By not supporting this method we make the method
-//		 * {@link IndexedSet#universe()} not working
-//		 */
-//		@Override public int size() {throw new UnsupportedOperationException();}
-//
-//		@Override public void clear() {throw new UnsupportedOperationException();}
-//		@Override public boolean containsKey(Object key) {throw new UnsupportedOperationException();}
-//		@Override public boolean containsValue(Object value) {throw new UnsupportedOperationException();}
-//		@Override public Set<Entry<Integer, Integer>> entrySet() {throw new UnsupportedOperationException();}
-//		@Override public boolean isEmpty() {throw new UnsupportedOperationException();}
-//		@Override public Set<Integer> keySet() {throw new UnsupportedOperationException();}
-//		@Override public Integer put(Integer key, Integer value) {throw new UnsupportedOperationException();}
-//		@Override public void putAll(Map<? extends Integer, ? extends Integer> m) {throw new UnsupportedOperationException();}
-//		@Override public Integer remove(Object key) {throw new UnsupportedOperationException();}
-//		@Override public Collection<Integer> values() {throw new UnsupportedOperationException();}
-//	}
 
 	/**
 	 * Creates an empty {@link IndexedSet} based on a given collection that
@@ -167,115 +64,26 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 * {@link IndexedSet} instance.
 	 * <p>
 	 * <b>VERY IMPORTANT!</b> to correctly work and effectively reduce the
-	 * memory allocation, new instances of {@link IndexedSet} <i>must</i>
-	 * be created through the {@link #clone()} or {@link #empty()}
-	 * methods and <i>not</i> by calling many times this constructor with the
-	 * same collection for <code>universe</code>!
+	 * memory allocation, new instances of {@link IndexedSet} <i>must</i> be
+	 * created through the {@link #clone()} or {@link #empty()} methods and
+	 * <i>not</i> by calling many times this constructor with the same
+	 * collection for <code>universe</code>!
 	 * 
+	 * @param indices
+	 *            {@link IntSet} instance used for internal representation
 	 * @param universe
 	 *            collection of <i>all</i> possible items. Order will be
 	 *            preserved.
-	 * @param compressed
-	 *            <code>true</code> if a compressed internal representation
-	 *            should be used
 	 */
 	@SuppressWarnings("unchecked")
-	public IndexedSet(final Collection<T> universe, boolean compressed) {
-		// check if indices are sequential
-//		boolean isSequence = true;
-//		int shift = 0;
-//		try {
-//			SortedSet<Integer> ss = (SortedSet) universe;
-//			shift = ss.first();
-//			isSequence = ss.comparator() == null && ss.last().equals(shift + ss.size() - 1);
-//		} catch (ClassCastException e) {
-//			isSequence = false;
-//		}
-//
-//		if (isSequence) {
-//			indexToItem = (Map<Integer, T>) new CheckedFakeMap(universe.size(), shift, false);
-//			itemToIndex = (Map<T, Integer>) new CheckedFakeMap(universe.size(), shift, true);
-//		} else {
-			// NOTE: it removes duplicates and keeps the order
-//			indexToItem = new ArrayMap<T>(universe instanceof Set ? 
-//					(T[]) universe.toArray() :
-//					(T[]) (new LinkedHashSet<T>(universe)).toArray());
-//
-//			itemToIndex = new HashMap<T, Integer>(Math.max((int) (indexToItem.size() / .75f) + 1, 16));
-//			for (int i = 0; i < indexToItem.size(); i++)
-//				itemToIndex.put(indexToItem.get(i), i);
-
-			// NOTE: it removes duplicates and keeps the order
-			indexToItem = universe instanceof Set ? (T[]) universe.toArray() : (T[]) (new LinkedHashSet<T>(universe)).toArray();
-			itemToIndex = new HashMap<T, Integer>(Math.max((int) (indexToItem.length / .75f) + 1, 16));
-			for (int i = 0; i < indexToItem.length; i++)
-				itemToIndex.put(indexToItem[i], Integer.valueOf(i));
-//		}
-
-		indices = compressed ? new ConciseSet() : new FastSet();
+	public IndexedSet(IntSet indices, final Collection<T> universe) {
+		// NOTE: this procedure removes duplicates while keeping the order
+		indexToItem = universe instanceof Set ? (T[]) universe.toArray() : (T[]) (new LinkedHashSet<T>(universe)).toArray();
+		itemToIndex = new HashMap<T, Integer>(Math.max((int) (indexToItem.length / .75f) + 1, 16));
+		for (int i = 0; i < indexToItem.length; i++)
+			itemToIndex.put(indexToItem[i], Integer.valueOf(i));
+		this.indices = indices;
 	}
-
-//	/**
-//	 * Creates an empty {@link IndexedSet} instance that can contain all
-//	 * integral numbers ranging from the given first number to "infinity"
-//	 * <p>
-//	 * Note that <code>T</code> must be {@link Integer}.
-//	 * <p>
-//	 * Since there is not an upper bound, the method {@link #universe()} does
-//	 * not work when using this constructor.
-//	 * <p>
-//	 * <b>IMPORTANT:</b> in this case there is no bound check, thus
-//	 * {@link #absoluteGet(int)} and {@link #absoluteIndexOf(Object)} methods does not throw
-//	 * exceptions when using indices below the lower bound
-//	 * <p>
-//	 * <b>VERY IMPORTANT!</b> to correctly work and effectively reduce the
-//	 * memory allocation, new instances of {@link IndexedSet} <i>must</i> be
-//	 * created through the {@link #clone()} or {@link #empty()} methods and
-//	 * <i>not</i> by calling many times this constructor with the same
-//	 * collection for <code>universe</code>!
-//	 * 
-//	 * @param first
-//	 *            lowest representable integral.
-//	 * @param compressed
-//	 *            <code>true</code> if a compressed internal representation
-//	 *            should be used
-//	 */
-//	@SuppressWarnings("unchecked")
-//	public IndexedSet(int first, boolean compressed) {
-//		indexToItem = (Map<Integer, T>) new UncheckedFakeMap(first);
-//		itemToIndex = (Map<T, Integer>) new UncheckedFakeMap(-first);
-//		indices = compressed ? new ConciseSet() : new FastSet();
-//	}
-
-//	/**
-//	 * Creates an empty {@link IndexedSet} instance that can contain all
-//	 * integral number ranging from the given first number to the given last
-//	 * number
-//	 * <p>
-//	 * Note that <code>T</code> must be {@link Integer}.
-//	 * <p>
-//	 * <b>VERY IMPORTANT!</b> to correctly work and effectively reduce the
-//	 * memory allocation, new instances of {@link IndexedSet} <i>must</i> be
-//	 * created through the {@link #clone()} or {@link #empty()} methods and
-//	 * <i>not</i> by calling many times this constructor with the same
-//	 * collection for <code>universe</code>!
-//	 * 
-//	 * @param first
-//	 *            lowest representable integral.
-//	 * @param last
-//	 *            highest representable integral.
-//	 * @param compressed
-//	 *            <code>true</code> if a compressed internal representation
-//	 *            should be used
-//	 */
-//	@SuppressWarnings("unchecked")
-//	public IndexedSet(int first, int last, boolean compressed) {
-//		if (first > last)
-//			throw new IllegalArgumentException("first > last");
-//		indexToItem = (Map<Integer, T>) new CheckedFakeMap(last - first + 1, first, false);
-//		itemToIndex = (Map<T, Integer>) new CheckedFakeMap(last - first + 1, first, true);
-//		indices = compressed ? new ConciseSet() : new FastSet();
-//	}
 
 	/**
 	 * Creates a {@link IndexedSet} instance from a given universe
@@ -288,7 +96,6 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 * @param indices
 	 *            initial item set
 	 */
-//	private IndexedSet(Map<T, Integer> itemToIndex, Map<Integer, T> indexToItem, IntSet indices) {
 	private IndexedSet(Map<T, Integer> itemToIndex, T[] indexToItem, IntSet indices) {
 		this.itemToIndex = itemToIndex;
 		this.indexToItem = indexToItem;
@@ -356,9 +163,6 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 */
 	@Override
 	public Comparator<? super T> comparator() {
-//		if (itemToIndex instanceof IndexedSet<?>.UncheckedFakeMap 
-//				|| itemToIndex instanceof IndexedSet<?>.CheckedFakeMap)
-//			return null;
 		return new Comparator<T>() {
 			@Override
 			public int compare(T o1, T o2) {
@@ -373,7 +177,6 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 */
 	@Override
 	public T first() {
-//		return indexToItem.get(indices.first());
 		return indexToItem[indices.first()];
 	}
 
@@ -382,7 +185,6 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 */
 	@Override
 	public T last() {
-//		return indexToItem.get(indices.last());
 		return indexToItem[indices.last()];
 	}
 
@@ -472,7 +274,6 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 		return new ExtendedIterator<T>() {
 			final IntIterator itr = indices.iterator();
 			@Override public boolean hasNext() {return itr.hasNext();}
-//			@Override public T next() {return indexToItem.get(itr.next());}
 			@Override public T next() {return indexToItem[itr.next()];}
 			@Override public void skipAllBefore(T element) {itr.skipAllBefore(itemToIndex.get(element).intValue());}
 			@Override public void remove() {itr.remove();}
@@ -487,7 +288,6 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 		return new ExtendedIterator<T>() {
 			final IntIterator itr = indices.descendingIterator();
 			@Override public boolean hasNext() {return itr.hasNext();}
-//			@Override public T next() {return indexToItem.get(itr.next());}
 			@Override public T next() {return indexToItem[itr.next()];}
 			@Override public void skipAllBefore(T element) {itr.skipAllBefore(itemToIndex.get(element).intValue());}
 			@Override public void remove() {itr.remove();}
@@ -634,7 +434,6 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 */
 	public IndexedSet<T> universe() {
 		IntSet allItems = indices.empty();
-//		allItems.fill(0, indexToItem.size() - 1);
 		allItems.fill(0, indexToItem.length - 1);
 		return new IndexedSet<T>(itemToIndex, indexToItem, allItems);
 	}
@@ -656,7 +455,6 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 * @return the item 
 	 */
 	public T absoluteGet(int i) {
-//		return indexToItem.get(i);
 		return indexToItem[i];
 	}
 
@@ -671,10 +469,6 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 * @see #absoluteIndexOf(Object)
 	 */
 	public IntSet indices() {
-		//TODO: optimize indices.headSet
-//		if (indexToItem instanceof IndexedSet<?>.UncheckedFakeMap)
-//			return indices; 
-//		return indices.headSet(indexToItem.size());
 		return indices; 
 	}
 	

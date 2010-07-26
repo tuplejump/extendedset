@@ -1744,19 +1744,19 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 		final LiteralAndZeroFillExpander litExp = new LiteralAndZeroFillExpander();
 		final OneFillExpander oneExp = new OneFillExpander();
 		WordExpander exp;
-		int index = 0;
-		int offset = 0;
+		int nextIndex = 0;
+		int nextOffset = 0;
 		
 		private void nextWord() {
-			final int word = words[index++];
+			final int word = words[nextIndex++];
 			exp = isOneSequence(word) ? oneExp : litExp;
-			exp.reset(offset, word, true);
+			exp.reset(nextOffset, word, true);
 			
 			// prepare next offset
 			if (isLiteral(word)) {
-				offset += MAX_LITERAL_LENGHT;
+				nextOffset += MAX_LITERAL_LENGHT;
 			} else {
-				offset += maxLiteralLengthMultiplication(getSequenceCount(word) + 1);
+				nextOffset += maxLiteralLengthMultiplication(getSequenceCount(word) + 1);
 			}
 		}
 		
@@ -1766,13 +1766,13 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 		
 		@Override
 		public boolean hasNext() {
-			return index <= lastWordIndex || exp.hasNext();
+			return nextIndex <= lastWordIndex || exp.hasNext();
 		}
 
 		@Override
 		public int next() {
 			while (!exp.hasNext()) {
-				if (index > lastWordIndex)
+				if (nextIndex > lastWordIndex)
 					throw new NoSuchElementException();
 				nextWord();
 			}
@@ -1786,12 +1786,12 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 
 		@Override
 		public void skipAllBefore(int element) {
-			do {
+			while(true) {
 				exp.skipAllBefore(element);
-				if (exp.hasNext())
+				if (exp.hasNext() || nextIndex > lastWordIndex)
 					return;
 				nextWord();
-			} while (index <= lastWordIndex);
+			}
 		}
 	}
 	
@@ -1799,19 +1799,19 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 		final LiteralAndZeroFillExpander litExp = new LiteralAndZeroFillExpander();
 		final OneFillExpander oneExp = new OneFillExpander();
 		WordExpander exp;
-		int index = lastWordIndex;
-		int offset = maxLiteralLengthMultiplication(maxLiteralLengthDivision(last) + 1);
+		int nextIndex = lastWordIndex;
+		int nextOffset = maxLiteralLengthMultiplication(maxLiteralLengthDivision(last) + 1);
 		int firstIndex = 0;
 		
 		private void previousWord() {
-			final int word = words[index--];
+			final int word = words[nextIndex--];
 			exp = isOneSequence(word) ? oneExp : litExp;
 			if (isLiteral(word)) {
-				offset -= MAX_LITERAL_LENGHT;
+				nextOffset -= MAX_LITERAL_LENGHT;
 			} else {
-				offset -= maxLiteralLengthMultiplication(getSequenceCount(word) + 1);
+				nextOffset -= maxLiteralLengthMultiplication(getSequenceCount(word) + 1);
 			}
-			exp.reset(offset, word, false);
+			exp.reset(nextOffset, word, false);
 		}
 		
 		private ReverseBitIterator() {
@@ -1824,13 +1824,13 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 		
 		@Override
 		public boolean hasNext() {
-			return index >= firstIndex || exp.hasPrevious();
+			return nextIndex > firstIndex || exp.hasPrevious();
 		}
 
 		@Override
 		public int next() {
 			while (!exp.hasPrevious()) {
-				if (index < firstIndex)
+				if (nextIndex < firstIndex)
 					throw new NoSuchElementException();
 				previousWord();
 			}
@@ -1844,8 +1844,12 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 
 		@Override
 		public void skipAllBefore(int element) {
-			while (index >= firstIndex && !exp.hasPrevious())
+			while(true) {
 				exp.skipAllAfter(element);
+				if (exp.hasPrevious() || nextIndex < firstIndex)
+					return;
+				previousWord();
+			}
 		}
 	}
 
