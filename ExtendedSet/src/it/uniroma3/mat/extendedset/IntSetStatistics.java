@@ -27,6 +27,7 @@ public class IntSetStatistics implements IntSet {
 	private static long symmetricDifferenceSizeCount = 0;
 	private static long complementSizeCount = 0;
 	private static long equalsCount = 0;
+	private static long hashCodeCount = 0;
 	private static long containsAllCount = 0;
 	private static long containsAnyCount = 0;
 	private static long containsAtLeastCount = 0;
@@ -58,12 +59,17 @@ public class IntSetStatistics implements IntSet {
 	public static long getComplementSizeCount() {return complementSizeCount;}
 	/** @return number of equality check operations (i.e., {@link #equals(Object)}) */
 	public static long getEqualsCount() {return equalsCount;}
+	/** @return number of hash code computations (i.e., {@link #hashCode()}) */
+	public static long getHashCodeCount() {return hashCodeCount;}
 	/** @return number of {@link #containsAll(IntSet)} calls */
 	public static long getContainsAllCount() {return containsAllCount;}
 	/** @return number of {@link #containsAny(IntSet)} calls */
 	public static long getContainsAnyCount() {return containsAnyCount;}
 	/** @return number of {@link #containsAtLeast(IntSet, int)} calls */
 	public static long getContainsAtLeastCount() {return containsAtLeastCount;}
+	/** @return the sum of the cardinality of set operations */
+	public static long getSizeCheckCount() {return getIntersectionSizeCount() + 
+		getUnionSizeCount() + getDifferenceSizeCount() + getSymmetricDifferenceSizeCount() + getComplementSizeCount();}
 	
 	
 	/*
@@ -82,20 +88,21 @@ public class IntSetStatistics implements IntSet {
 		final StringBuilder s = new StringBuilder();
 		final Formatter f = new Formatter(s);
 		
-		f.format("unionCount: %d\n", unionCount);
-		f.format("intersectionCount: %d\n", intersectionCount);
-		f.format("differenceCount: %d\n", differenceCount);
-		f.format("symmetricDifferenceCount: %d\n", symmetricDifferenceCount);
-		f.format("complementCount: %d\n", complementCount);
-		f.format("unionSizeCount: %d\n", unionSizeCount);
-		f.format("intersectionSizeCount: %d\n", intersectionSizeCount);
-		f.format("differenceSizeCount: %d\n", differenceSizeCount);
-		f.format("symmetricDifferenceSizeCount: %d\n", symmetricDifferenceSizeCount);
-		f.format("complementSizeCount: %d\n", complementSizeCount);
-		f.format("equalsCount: %d\n", equalsCount);
-		f.format("containsAllCount: %d\n", containsAllCount);
-		f.format("containsAnyCount: %d\n", containsAnyCount);
-		f.format("containsAtLeastCount: %d\n", containsAtLeastCount);
+		f.format("unionCount: %d\n", Long.valueOf(unionCount));
+		f.format("intersectionCount: %d\n", Long.valueOf(intersectionCount));
+		f.format("differenceCount: %d\n", Long.valueOf(differenceCount));
+		f.format("symmetricDifferenceCount: %d\n", Long.valueOf(symmetricDifferenceCount));
+		f.format("complementCount: %d\n", Long.valueOf(complementCount));
+		f.format("unionSizeCount: %d\n", Long.valueOf(unionSizeCount));
+		f.format("intersectionSizeCount: %d\n", Long.valueOf(intersectionSizeCount));
+		f.format("differenceSizeCount: %d\n", Long.valueOf(differenceSizeCount));
+		f.format("symmetricDifferenceSizeCount: %d\n", Long.valueOf(symmetricDifferenceSizeCount));
+		f.format("complementSizeCount: %d\n", Long.valueOf(complementSizeCount));
+		f.format("equalsCount: %d\n", Long.valueOf(equalsCount));
+		f.format("hashCodeCount: %d\n", Long.valueOf(hashCodeCount));
+		f.format("containsAllCount: %d\n", Long.valueOf(containsAllCount));
+		f.format("containsAnyCount: %d\n", Long.valueOf(containsAnyCount));
+		f.format("containsAtLeastCount: %d\n", Long.valueOf(containsAtLeastCount));
 		
 		return s.toString();
 	}
@@ -109,33 +116,53 @@ public class IntSetStatistics implements IntSet {
 	 *            {@link IntSet} to wrap
 	 */
 	public IntSetStatistics(IntSet container) {
-		this.container = container;
+		this.container = extractContainer(container);
 	}
 
+	
+	/**
+	 * Removes the {@link IntSetStatistics} wrapper
+	 * @param c 
+	 * @return the contained {@link IntSet} instance
+	 */
+	public static IntSet extractContainer(IntSet c) {
+		if (c instanceof IntSetStatistics)
+			return extractContainer(((IntSetStatistics) c).container);
+		return c;
+	}
+	
 	/*
 	 * MONITORED METHODS
 	 */
 
-	/** {@inheritDoc} */ @Override public boolean addAll(IntSet c) {unionCount++; return container.addAll(c);}
-	/** {@inheritDoc} */ @Override public IntSet union(IntSet other) {unionCount++; return new IntSetStatistics(container.union(other));}
-	/** {@inheritDoc} */ @Override public boolean retainAll(IntSet c) {intersectionCount++; return container.retainAll(c);}
-	/** {@inheritDoc} */ @Override public IntSet intersection(IntSet other) {intersectionCount++; return new IntSetStatistics(container.intersection(other));}
-	/** {@inheritDoc} */ @Override public boolean removeAll(IntSet c) {differenceCount++; return container.removeAll(c);}
-	/** {@inheritDoc} */ @Override public IntSet difference(IntSet other) {differenceCount++; return new IntSetStatistics(container.difference(other));}
-	/** {@inheritDoc} */ @Override public IntSet symmetricDifference(IntSet other) {symmetricDifferenceCount++; return container.symmetricDifference(other);}
+	/** {@inheritDoc} */ @Override public boolean addAll(IntSet c) {unionCount++; return container.addAll(extractContainer(c));}
+	/** {@inheritDoc} */ @Override public IntSet union(IntSet other) {unionCount++; return new IntSetStatistics(container.union(extractContainer(other)));}
+	/** {@inheritDoc} */ @Override public boolean retainAll(IntSet c) {intersectionCount++; return container.retainAll(extractContainer(c));}
+	/** {@inheritDoc} */ @Override public IntSet intersection(IntSet other) {intersectionCount++; return new IntSetStatistics(container.intersection(extractContainer(other)));}
+	/** {@inheritDoc} */ @Override public boolean removeAll(IntSet c) {differenceCount++; return container.removeAll(extractContainer(c));}
+	/** {@inheritDoc} */ @Override public IntSet difference(IntSet other) {differenceCount++; return new IntSetStatistics(container.difference(extractContainer(other)));}
+	/** {@inheritDoc} */ @Override public IntSet symmetricDifference(IntSet other) {symmetricDifferenceCount++; return container.symmetricDifference(extractContainer(other));}
 	/** {@inheritDoc} */ @Override public void complement() {complementCount++; container.complement();}
 	/** {@inheritDoc} */ @Override public IntSet complemented() {complementCount++; return new IntSetStatistics(container.complemented());}
-	/** {@inheritDoc} */ @Override public int unionSize(IntSet other) {unionSizeCount++; return container.unionSize(other);}
-	/** {@inheritDoc} */ @Override public int intersectionSize(IntSet other) {intersectionSizeCount++; return container.intersectionSize(other);}
-	/** {@inheritDoc} */ @Override public int differenceSize(IntSet other) {differenceSizeCount++; return container.differenceSize(other);}
-	/** {@inheritDoc} */ @Override public int symmetricDifferenceSize(IntSet other) {symmetricDifferenceSizeCount++; return container.symmetricDifferenceSize(other);}
+	/** {@inheritDoc} */ @Override public int unionSize(IntSet other) {unionSizeCount++; return container.unionSize(extractContainer(other));}
+	/** {@inheritDoc} */ @Override public int intersectionSize(IntSet other) {intersectionSizeCount++; return container.intersectionSize(extractContainer(other));}
+	/** {@inheritDoc} */ @Override public int differenceSize(IntSet other) {differenceSizeCount++; return container.differenceSize(extractContainer(other));}
+	/** {@inheritDoc} */ @Override public int symmetricDifferenceSize(IntSet other) {symmetricDifferenceSizeCount++; return container.symmetricDifferenceSize(extractContainer(other));}
 	/** {@inheritDoc} */ @Override public int complementSize() {complementSizeCount++; return container.complementSize();}
-	/** {@inheritDoc} */ @Override public boolean equals(Object obj) {equalsCount++; return container.equals(obj);}
-	/** {@inheritDoc} */ @Override public boolean containsAll(IntSet c) {containsAllCount++; return container.containsAll(c);}
-	/** {@inheritDoc} */ @Override public boolean containsAny(IntSet other) {containsAnyCount++; return container.containsAny(other);}
-	/** {@inheritDoc} */ @Override public boolean containsAtLeast(IntSet other, int minElements) {containsAtLeastCount++; return container.containsAtLeast(other, minElements);}
+	/** {@inheritDoc} */ @Override public boolean containsAll(IntSet c) {containsAllCount++; return container.containsAll(extractContainer(c));}
+	/** {@inheritDoc} */ @Override public boolean containsAny(IntSet other) {containsAnyCount++; return container.containsAny(extractContainer(other));}
+	/** {@inheritDoc} */ @Override public boolean containsAtLeast(IntSet other, int minElements) {containsAtLeastCount++; return container.containsAtLeast(extractContainer(other), minElements);}
+	/** {@inheritDoc} */ @Override public int hashCode() {hashCodeCount++; return container.hashCode();}
 
-	
+	/** {@inheritDoc} */ @Override
+	public boolean equals(Object obj) {
+		equalsCount++;
+		return obj != null
+				&& ((obj instanceof IntSetStatistics) 
+						? container.equals(extractContainer((IntSetStatistics) obj))
+						: container.equals(obj));
+	}
+
 	/*
 	 * SIMPLE REDIRECTION
 	 */
@@ -160,6 +187,7 @@ public class IntSetStatistics implements IntSet {
 	/** {@inheritDoc} */ @Override public int[] toArray() {return container.toArray();}
 	/** {@inheritDoc} */ @Override public int[] toArray(int[] a) {return container.toArray(a);}
 	/** {@inheritDoc} */ @Override public int compareTo(IntSet o) {return container.compareTo(o);}
+	/** {@inheritDoc} */ @Override public String toString() {return container.toString();}
 	
 	/*
 	 * OTHERS
@@ -168,5 +196,5 @@ public class IntSetStatistics implements IntSet {
 	/** {@inheritDoc} */ @Override public IntSet clone() {return new IntSetStatistics(container.clone());}
 	/** {@inheritDoc} */ @Override public IntSet convert(int... a) {return new IntSetStatistics(container.convert(a));}
 	/** {@inheritDoc} */ @Override public IntSet convert(Collection<Integer> c) {return new IntSetStatistics(container.convert(c));}
-	/** {@inheritDoc} */ @Override public String debugInfo() {return "STATISTICS OF " + container.debugInfo();}
+	/** {@inheritDoc} */ @Override public String debugInfo() {return "Analyzed IntSet:\n" + container.debugInfo();}
 }
