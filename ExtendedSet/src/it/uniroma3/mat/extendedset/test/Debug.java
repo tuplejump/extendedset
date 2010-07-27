@@ -19,7 +19,6 @@
 package it.uniroma3.mat.extendedset.test;
 
 import it.uniroma3.mat.extendedset.ExtendedSet;
-import it.uniroma3.mat.extendedset.IntSetStatistics;
 import it.uniroma3.mat.extendedset.ExtendedSet.ExtendedIterator;
 import it.uniroma3.mat.extendedset.intset.ArraySet;
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
@@ -28,6 +27,7 @@ import it.uniroma3.mat.extendedset.intset.development.Concise2Set;
 import it.uniroma3.mat.extendedset.intset.development.ConcisePlusSet;
 import it.uniroma3.mat.extendedset.others.GenericArraySet;
 import it.uniroma3.mat.extendedset.others.GenericExtendedSet;
+import it.uniroma3.mat.extendedset.utilities.IntSetStatistics;
 import it.uniroma3.mat.extendedset.utilities.MersenneTwister;
 import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
 import it.uniroma3.mat.extendedset.wrappers.IntegerSet;

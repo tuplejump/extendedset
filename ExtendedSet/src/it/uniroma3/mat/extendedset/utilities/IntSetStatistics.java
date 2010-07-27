@@ -1,4 +1,4 @@
-package it.uniroma3.mat.extendedset;
+package it.uniroma3.mat.extendedset.utilities;
 
 import it.uniroma3.mat.extendedset.intset.IntSet;
 
