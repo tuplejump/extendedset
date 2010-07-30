@@ -80,7 +80,7 @@ public class IntSetStatistics implements IntSet {
 	public static void resetCounters() {
 		unionCount = intersectionCount = differenceCount = symmetricDifferenceCount = complementCount = 
 			unionSizeCount = intersectionSizeCount = differenceSizeCount = symmetricDifferenceSizeCount = complementSizeCount = 
-				equalsCount = containsAllCount = containsAnyCount = containsAtLeastCount = 0;
+				equalsCount = hashCodeCount = containsAllCount = containsAnyCount = containsAtLeastCount = 0;
 	}
 	
 	/** @return the summary information string */
