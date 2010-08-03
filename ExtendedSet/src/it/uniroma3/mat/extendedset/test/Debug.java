@@ -1298,9 +1298,9 @@ public class Debug {
 
 	@SuppressWarnings("unused")
 	private static class IntegerFastSet extends IntegerSet {IntegerFastSet() {super(new IntSetStatistics(new FastSet()));}}
-//	@SuppressWarnings("unused")
-	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new IntSetStatistics(new ConciseSet()));}}
 	@SuppressWarnings("unused")
+	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new IntSetStatistics(new ConciseSet()));}}
+//	@SuppressWarnings("unused")
 	private static class IntegerConcise2Set extends IntegerSet {IntegerConcise2Set() {super(new IntSetStatistics(new Concise2Set()));}}
 	@SuppressWarnings("unused")
 	private static class IntegerWAHSet extends IntegerSet {IntegerWAHSet() {super(new IntSetStatistics(new ConciseSet(true)));}}
@@ -1320,14 +1320,14 @@ public class Debug {
 		// NOTE: the most complete test is TestCase.RANDOM_OPERATION_STRESS
 //		TestCase testCase = TestCase.ADDITION_STRESS;
 //		TestCase testCase = TestCase.REMOVAL_STRESS;
-//		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS;
-		TestCase testCase = TestCase.SKIP;
+		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS;
+//		TestCase testCase = TestCase.SKIP;
 //		TestCase testCase = TestCase.POSITION;
 //		TestCase testCase = TestCase.COMPARATOR_COMPLEX;
 		
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerFastSet.class;
-		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConciseSet.class;
-//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcise2Set.class;
+//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConciseSet.class;
+		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcise2Set.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcisePlusSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerWAHSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = ListSet.class;

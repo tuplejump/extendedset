@@ -22,6 +22,7 @@ package it.uniroma3.mat.extendedset.intset;
 
 import it.uniroma3.mat.extendedset.AbstractExtendedSet;
 import it.uniroma3.mat.extendedset.ExtendedSet;
+import it.uniroma3.mat.extendedset.intset.IntSet.IntIterator;
 import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
 
 import java.io.IOException;
@@ -41,6 +42,13 @@ import java.util.NoSuchElementException;
  * It actually is an extension of {@link BitSet}. More specifically, union and
  * intersection operations are mainly derived from the code of {@link BitSet} to
  * provide bitwise "or" and "and".
+ * <p>
+ * The iterator implemented for this class allows for modifications during the
+ * iteration, that is it is possible to add/remove elements through
+ * {@link #add(int)}, {@link #remove(int)}, {@link #addAll(IntSet)},
+ * {@link #removeAll(IntSet)}, {@link #retainAll(IntSet)}, etc.. In this case,
+ * {@link IntIterator#next()} returns the first integral greater than the last
+ * visited one.
  * 
  * @author Alessandro Colantonio
  * @version $Id$
@@ -55,7 +63,7 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 	private static final long serialVersionUID = 6519808981110513440L;
 
 	/** number of bits within each word */
-	private final static int BITS_PER_WORD = 32;
+	private final static int WORD_SIZE = 32;
 
 	/** 32-bit string of all 1's */
 	private static final int ALL_ONES_WORD = 0xFFFFFFFF;
@@ -77,11 +85,25 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 	}
 
 	/**
+	 * Given a number, it returns the multiplication by the number of bits for each block
+	 */
+	private static int multiplyByWordSize(int i) {
+		return i << 5; // i * WORD_SIZE;
+	}
+	
+	/**
 	 * Given a bit index, it returns the index of the word containing it
 	 */
 	private static int wordIndex(int bitIndex) {
 		if (bitIndex < 0)
 			throw new IndexOutOfBoundsException("index < 0: " + bitIndex);
+		return bitIndex >> 5;
+	}
+
+	/**
+	 * Given a bit index, it returns the index of the word containing it
+	 */
+	private static int wordIndexNoCheck(int bitIndex) {
 		return bitIndex >> 5;
 	}
 
@@ -344,7 +366,7 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 	public boolean contains(int i) {
 		if (isEmpty() || i < 0)
 			return false;
-		int wordIndex = wordIndex(i);
+		int wordIndex = wordIndexNoCheck(i);
 		return (wordIndex < wordsInUse)
 				&& ((words[wordIndex] & (1 << i)) != 0);
 	}
@@ -435,48 +457,56 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 
 	/**
 	 * Iterates over bits
+	 * <p>
+	 * This iterator allows for modifications during the iteration, that is it
+	 * is possible to add/remove elements through {@link #add(int)},
+	 * {@link #remove(int)}, {@link #addAll(IntSet)}, {@link #removeAll(IntSet)}, {@link #retainAll(IntSet)}, etc.. In this case,
+	 * {@link IntIterator#next()} returns the first integral greater than the
+	 * last visited one.
 	 */
 	private class BitIterator implements IntIterator {
-		// current bit
-		private int curr;
+		private int nextIndex;
+		private int nextBit;
+		private int last;
 		
-		// next bit to poll
-		private int next;
-
-		/**
-		 * Returns the index of the first bit that is set to <code>true</code> that
-		 * occurs on or after the specified starting index. If no such bit exists,
-		 * then -1 is returned.
-		 */
-		private int nextSetBit(int fromIndex) {
-			int u = wordIndex(fromIndex);
-			if (u >= wordsInUse)
-				return -1;
-			int word = words[u] & (ALL_ONES_WORD << fromIndex);
-			while (true) {
-				if (word != 0)
-					return (u * BITS_PER_WORD)
-							+ Integer.numberOfTrailingZeros(word);
-				if (++u == wordsInUse)
-					return -1;
-				word = words[u];
-			}
+		/** identify the first bit */
+		private BitIterator() {
+			nextIndex = 0;
+			if (isEmpty())
+				return;
+			
+			last = -1; // unused!
+			
+			// find the first non-empty word
+			while (words[nextIndex] == 0) 
+				nextIndex++;
+			
+			// find the first set bit
+			nextBit = Integer.numberOfTrailingZeros(words[nextIndex]);
 		}
 
-		/**
-		 * Constructor
-		 */
-		public BitIterator() {
-			curr = -1;
-			next = nextSetBit(0);
-		}
+		/** find the first set bit after nextIndex + nextBit */
+		void prepareNext() {
+			// find the next set bit within the current word
+			int w = words[nextIndex];
+			while ((++nextBit < WORD_SIZE))
+				if ((w & (1 << nextBit)) != 0)
+					return;
 
+			// find the first non-empty word
+			do {
+				if (++nextIndex == wordsInUse)
+					return;
+			} while ((w = words[nextIndex]) == 0);
+			nextBit = Integer.numberOfTrailingZeros(w);
+		}
+		
 		/**
 		 * {@inheritDoc}
 		 */
 		@Override
 		public boolean hasNext() {
-			return next >= 0;
+			return nextIndex < wordsInUse;
 		}
 
 		/**
@@ -486,9 +516,9 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 		public int next() {
 			if (!hasNext())
 				throw new NoSuchElementException();
-			curr = next;
-			next = nextSetBit(curr + 1);
-			return curr;
+			last = multiplyByWordSize(nextIndex) + nextBit;
+			prepareNext();
+			return last;
 		}
 
 		/**
@@ -496,9 +526,20 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 		 */
 		@Override
 		public void skipAllBefore(int element) {
-			if (element <= next)
+			if (element <= 0 || element <= last)
 				return;
-			next = nextSetBit(element);
+			
+			// identify where the element is
+			int newNextIndex = wordIndexNoCheck(element);
+			int newNextBit = element & (WORD_SIZE - 1);
+			if (newNextIndex < nextIndex || (newNextIndex == nextIndex && newNextBit <= nextBit))
+				return;
+			
+			// "element" is the next item to return, unless it does not exist
+			nextIndex = newNextIndex;
+			nextBit = newNextBit;
+			if ((words[nextIndex] & (1 << nextBit)) == 0)
+				prepareNext();
 		}
 
 		/**
@@ -506,58 +547,56 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 		 */
 		@Override
 		public void remove() {
-			if (curr < 0 || !contains(curr))
-				throw new IllegalStateException();
-			FastSet.this.remove(curr);
+			FastSet.this.remove(last);
 		}
 	}
 
 	/**
-	 * Iterates over bits
+	 * Iterates over bits in reverse order
+	 * <p>
+	 * This iterator allows for modifications during the iteration, that is it
+	 * is possible to add/remove elements through {@link #add(int)},
+	 * {@link #remove(int)}, {@link #addAll(IntSet)}, {@link #removeAll(IntSet)}, {@link #retainAll(IntSet)}, etc.. In this case,
+	 * {@link IntIterator#next()} returns the first integral greater than the
+	 * last visited one.
 	 */
 	private class ReverseBitIterator implements IntIterator {
-		// current bit
-		private int curr;
+		private int nextIndex;
+		private int nextBit;
+		private int last;
 		
-		// next bit to poll
-		private int next;
-
-		/**
-		 * Returns the index of the first bit that is set to <code>true</code> that
-		 * occurs on or before the specified starting index. If no such bit exists,
-		 * then -1 is returned.
-		 */
-		private int nextSetBit(int fromIndex) {
-			if (fromIndex < 0)
-				return -1;
-			int u = wordIndex(fromIndex);
-			if (u >= wordsInUse)
-				return last();
-			int word = words[u] & (ALL_ONES_WORD >>> -(fromIndex + 1));
-			while (true) {
-				if (word != 0)
-					return ((u + 1) * BITS_PER_WORD)
-							- Integer.numberOfLeadingZeros(word) - 1;
-				if (--u < 0)
-					return -1;
-				word = words[u];
-			}
+		/** identify the first bit */
+		private ReverseBitIterator() {
+			nextIndex = wordsInUse - 1;
+			if (isEmpty())
+				return;
+			
+			last = Integer.MAX_VALUE; // unused!
+			nextBit = WORD_SIZE - Integer.numberOfLeadingZeros(words[nextIndex]) - 1;
 		}
 
-		/**
-		 * Constructor
-		 */
-		public ReverseBitIterator() {
-			curr = -1;
-			next = isEmpty() ? -1 : last();
-		}
+		/** find the first set bit after nextIndex + nextBit */
+		void prepareNext() {
+			// find the next set bit within the current word
+			int w = words[nextIndex];
+			while ((--nextBit >= 0))
+				if ((w & (1 << nextBit)) != 0)
+					return;
 
+			// find the first non-empty word
+			do {
+				if (--nextIndex == -1)
+					return;
+			} while ((w = words[nextIndex]) == 0);
+			nextBit = WORD_SIZE - Integer.numberOfLeadingZeros(w) - 1;
+		}
+		
 		/**
 		 * {@inheritDoc}
 		 */
 		@Override
 		public boolean hasNext() {
-			return next >= 0;
+			return nextIndex >= 0;
 		}
 
 		/**
@@ -567,9 +606,9 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 		public int next() {
 			if (!hasNext())
 				throw new NoSuchElementException();
-			curr = next;
-			next = nextSetBit(curr - 1);
-			return curr;
+			last = multiplyByWordSize(nextIndex) + nextBit;
+			prepareNext();
+			return last;
 		}
 
 		/**
@@ -577,9 +616,24 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 		 */
 		@Override
 		public void skipAllBefore(int element) {
-			if (element >= next)
+			if (element < 0) {
+				nextIndex = -1;
 				return;
-			next = nextSetBit(element);
+			}
+			if (element >= last)
+				return;
+			
+			// identify where the element is
+			int newNextIndex = wordIndexNoCheck(element);
+			int newNextBit = element & (WORD_SIZE - 1);
+			if (newNextIndex > nextIndex || (newNextIndex == nextIndex && newNextBit >= nextBit))
+				return;
+			
+			// "element" is the next item to return, unless it does not exist
+			nextIndex = newNextIndex;
+			nextBit = newNextBit;
+			if ((words[nextIndex] & (1 << nextBit)) == 0)
+				prepareNext();
 		}
 
 		/**
@@ -587,9 +641,7 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 		 */
 		@Override
 		public void remove() {
-			if (curr < 0 || !contains(curr))
-				throw new IllegalStateException();
-			FastSet.this.remove(curr);
+			FastSet.this.remove(last);
 		}
 	}
 
@@ -616,9 +668,8 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 	public int last() {
 		if (isEmpty())
 			throw new NoSuchElementException();
-		return BITS_PER_WORD
-			* (wordsInUse - 1)
-			+ (BITS_PER_WORD - Integer.numberOfLeadingZeros(words[wordsInUse - 1])) - 1;
+		return multiplyByWordSize(wordsInUse - 1)
+			+ (WORD_SIZE - Integer.numberOfLeadingZeros(words[wordsInUse - 1])) - 1;
 	}
 
 	/**
@@ -918,7 +969,7 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 				int bit = -1;
 				for (int skip = index - count; skip >= 0; skip--)
 					bit = Integer.numberOfTrailingZeros(w & (ALL_ONES_WORD << (bit + 1)));
-				return BITS_PER_WORD * j + bit;
+				return multiplyByWordSize(j) + bit;
 			}
 			count += current;
 		}
@@ -970,7 +1021,10 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 		// raw representation of words
 		for (int i = 0; i < wordsInUse; i++)
 			f.format("words[%d] = %s (from %d to %d)\n", 
-					i, toBinaryString(words[i]), i * BITS_PER_WORD, (i + 1) * BITS_PER_WORD - 1);
+					Integer.valueOf(i), 
+					toBinaryString(words[i]), 
+					Integer.valueOf(multiplyByWordSize(i)), 
+					Integer.valueOf(multiplyByWordSize(i + 1) - 1));
 		
 		// object attributes
 		f.format("wordsInUse: %d\n", wordsInUse);
