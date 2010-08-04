@@ -537,6 +537,8 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 			
 			// "element" is the next item to return, unless it does not exist
 			nextIndex = newNextIndex;
+			if (nextIndex >= wordsInUse)
+				return;
 			nextBit = newNextBit;
 			if ((words[nextIndex] & (1 << nextBit)) == 0)
 				prepareNext();
