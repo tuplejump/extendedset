@@ -23,6 +23,7 @@ package it.uniroma3.mat.extendedset.intset;
 import it.uniroma3.mat.extendedset.AbstractExtendedSet;
 import it.uniroma3.mat.extendedset.ExtendedSet;
 import it.uniroma3.mat.extendedset.intset.IntSet.IntIterator;
+import it.uniroma3.mat.extendedset.utilities.BitCount;
 import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
 
 import java.io.IOException;
@@ -202,11 +203,8 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 	@Override
 	public int size() {
 		// check if the cached size is invalid
-		if (size < 0) {
-			size = 0;
-			for (int i = 0; i < wordsInUse; i++)
-				size += Integer.bitCount(words[i]);
-		}
+		if (size < 0)
+			size = BitCount.count(words, wordsInUse);
 		return size;
 	}
 
@@ -984,9 +982,7 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 	@Override
 	public int indexOf(int e) {
 		int index = wordIndex(e);
-		int count = 0;
-		for (int j = 0; j < index; j++)
-			count += Integer.bitCount(words[j]);
+		int count = BitCount.count(words, index);
 		count += Integer.bitCount(words[index] & ~(ALL_ONES_WORD << e));
 		return count;
 	}

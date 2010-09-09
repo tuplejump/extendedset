@@ -53,6 +53,13 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	}
 
 	/**
+	 * @return the internal integer representation
+	 */
+	public IntSet intSet() {
+		return items;
+	}
+	
+	/**
 	 * Converts a generic collection of {@link Integer} instances to a
 	 * {@link IntSet} instance. If the given collection is an
 	 * {@link IntegerSet} instance, it returns the contained

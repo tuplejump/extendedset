@@ -1321,8 +1321,8 @@ public class Debug {
 //		TestCase testCase = TestCase.ADDITION_STRESS;
 //		TestCase testCase = TestCase.REMOVAL_STRESS;
 //		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS;
-		TestCase testCase = TestCase.SKIP;
-//		TestCase testCase = TestCase.POSITION;
+//		TestCase testCase = TestCase.SKIP;
+		TestCase testCase = TestCase.POSITION;
 //		TestCase testCase = TestCase.COMPARATOR_COMPLEX;
 		
 		Class<? extends ExtendedSet<Integer>> classToTest = IntegerFastSet.class;
