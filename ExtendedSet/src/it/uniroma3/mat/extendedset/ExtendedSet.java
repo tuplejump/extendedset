@@ -295,7 +295,8 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * Rakesh Agrawal, Ramakrishnan Srikant, <i>Fast Algorithms for Mining
 	 * Association Rules in Large Databases</i>, in Proceedings of the
 	 * 20<sup>th</sup> International Conference on Very Large Data Bases,
-	 * p.487-499, 1994). The power-set does <i>not</i> contains the empty set.
+	 * p.487-499, 1994). The returned power-set does <i>not</i> contain the
+	 * empty set.
 	 * <p>
 	 * The subsets composing the powerset are returned in a list that is sorted
 	 * according to the lexicographical order provided by the sorted set.
@@ -341,11 +342,10 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	public int powerSetSize();
 
 	/**
-	 * Computes the power-set size of the current set, composed by those
-	 * subsets that have cardinality between <code>min</code> and
-	 * <code>max</code>.
+	 * Computes the power-set size of the current set, composed by those subsets
+	 * that have cardinality between <code>min</code> and <code>max</code>.
 	 * <p>
-	 * The power-set does <i>not</i> contains the empty set.
+	 * The returned power-set does <i>not</i> contain the empty set.
 	 * 
 	 * @param min
 	 *            minimum subset size (greater than zero)
