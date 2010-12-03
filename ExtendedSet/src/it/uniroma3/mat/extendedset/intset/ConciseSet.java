@@ -2229,6 +2229,7 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 
 		// check whether the first operator starts with a sequence that
 		// completely "covers" the second operator
+		//TODO ricontrollare che non mi convince...
 		if (isSequenceWithNoBits(this.words[0]) 
 				&& maxLiteralLengthMultiplication(getSequenceCount(this.words[0]) + 1) > other.last) {
 			if (isZeroSequence(this.words[0]))

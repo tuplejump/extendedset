@@ -116,6 +116,19 @@ public class BitCount {
 		}
 		return cnt;
 	}
+	
+	/**
+	 * Population count
+	 * <p>
+	 * It counts a single word
+	 * 
+	 * @param word
+	 *            word to count
+	 * @return population count
+	 */
+	public static int count(int word) {
+		return Integer.bitCount(word);
+	}
 
 	/**
 	 * Test 

@@ -23,6 +23,7 @@ import it.uniroma3.mat.extendedset.ExtendedSet.ExtendedIterator;
 import it.uniroma3.mat.extendedset.intset.ArraySet;
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 import it.uniroma3.mat.extendedset.intset.FastSet;
+import it.uniroma3.mat.extendedset.intset.HashIntSet;
 import it.uniroma3.mat.extendedset.intset.development.Concise2Set;
 import it.uniroma3.mat.extendedset.intset.development.ConcisePlusSet;
 import it.uniroma3.mat.extendedset.others.GenericArraySet;
@@ -1297,6 +1298,8 @@ public class Debug {
 	}
 
 //	@SuppressWarnings("unused")
+	private static class IntegerHashSet extends IntegerSet {IntegerHashSet() {super(new IntSetStatistics(new HashIntSet()));}}
+	@SuppressWarnings("unused")
 	private static class IntegerFastSet extends IntegerSet {IntegerFastSet() {super(new IntSetStatistics(new FastSet()));}}
 	@SuppressWarnings("unused")
 	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new IntSetStatistics(new ConciseSet()));}}
@@ -1318,14 +1321,15 @@ public class Debug {
 	 */
 	public static void main(String[] args) {
 		// NOTE: the most complete test is TestCase.RANDOM_OPERATION_STRESS
-//		TestCase testCase = TestCase.ADDITION_STRESS;
+		TestCase testCase = TestCase.ADDITION_STRESS;
 //		TestCase testCase = TestCase.REMOVAL_STRESS;
 //		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS;
 //		TestCase testCase = TestCase.SKIP;
-		TestCase testCase = TestCase.POSITION;
+//		TestCase testCase = TestCase.POSITION;
 //		TestCase testCase = TestCase.COMPARATOR_COMPLEX;
 		
-		Class<? extends ExtendedSet<Integer>> classToTest = IntegerFastSet.class;
+		Class<? extends ExtendedSet<Integer>> classToTest = IntegerHashSet.class;
+//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerFastSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConciseSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcise2Set.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcisePlusSet.class;

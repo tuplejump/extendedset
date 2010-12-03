@@ -37,55 +37,115 @@ public abstract class AbstractIntSet implements IntSet {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public abstract IntSet intersection(IntSet other);
+	public IntSet union(IntSet other) {
+		IntSet res = clone();
+		res.addAll(other);
+		return res;
+	}
 
-	/** 
+	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public abstract IntSet union(IntSet other);
+	public IntSet difference(IntSet other) {
+		IntSet res = clone();
+		res.removeAll(other);
+		return res;
+	}
 
-	/** 
+	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public abstract IntSet difference(IntSet other);
+	public IntSet intersection(IntSet other) {
+		IntSet res = clone();
+		res.retainAll(other);
+		return res;
+	}
 
-	/** 
+	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public abstract IntSet symmetricDifference(IntSet other);
+	public IntSet symmetricDifference(IntSet c) {
+		IntSet res = clone();
+		IntIterator itr = c.iterator();
+		while (itr.hasNext())
+			res.flip(itr.next());
+		return res;
+	}
 
-	/** 
+	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public abstract IntSet complemented();
+	public IntSet complemented() {
+		IntSet res = clone();
+		res.complement();
+		return res;
+	}
 
-	/** 
+	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public abstract void complement();
+	public void complement() {
+		if (isEmpty())
+			return;
+		for (int e = last(); e >= 0; e--) 
+			flip(e);
+	}
 
-	/** 
+	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public abstract boolean containsAny(IntSet other);
+	public boolean containsAll(IntSet c) {
+		IntIterator itr = c.iterator();
+		boolean res = true;
+		while (res && itr.hasNext())
+			res &= contains(itr.next());
+		return res;
+	}
 
-	/** 
+	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public abstract boolean containsAtLeast(IntSet other, int minElements);
+	public boolean containsAny(IntSet c) {
+		IntIterator itr = c.iterator();
+		boolean res = true;
+		while (res && itr.hasNext())
+			if (contains(itr.next()))
+				return true;
+		return false;
+	}
 
-	/** 
+	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public abstract int intersectionSize(IntSet other);
+	public boolean containsAtLeast(IntSet c, int minElements) {
+		IntIterator itr = c.iterator();
+		while (minElements > 0 && itr.hasNext())
+			if (contains(itr.next()))
+				minElements--;
+		return minElements == 0;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int intersectionSize(IntSet c) {
+		int res = 0;
+		IntIterator itr = c.iterator();
+		while (itr.hasNext())
+			if (contains(itr.next()))
+				res++;
+		return res;
+
+	}
 
 	/** 
 	 * {@inheritDoc}
@@ -167,19 +227,44 @@ public abstract class AbstractIntSet implements IntSet {
 	 * {@inheritDoc}
 	 */
 	@Override
-	public abstract void fill(int from, int to);
+	public void clear() {
+		IntIterator itr = iterator();
+		while (itr.hasNext()) {
+			itr.next();
+			itr.remove();
+		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void clear(int from, int to) {
+		if (from > to)
+			throw new IndexOutOfBoundsException("from: " + from + " > to: " + to);
+		for (int e = from; e <= to; e++)
+			remove(e);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void fill(int from, int to) {
+		if (from > to)
+			throw new IndexOutOfBoundsException("from: " + from + " > to: " + to);
+		for (int e = from; e <= to; e++)
+			add(e);
+	}
 
 	/** 
 	 * {@inheritDoc}
 	 */
 	@Override
-	public abstract void clear(int from, int to);
-
-	/** 
-	 * {@inheritDoc}
-	 */
-	@Override
-	public abstract void flip(int e);
+	public void flip(int e) {
+		if (!add(e))
+			remove(e);
+	}
 
 	/** 
 	 * {@inheritDoc}
@@ -251,35 +336,52 @@ public abstract class AbstractIntSet implements IntSet {
 	@Override
 	public abstract boolean remove(int i);
 
-	/** 
+	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public abstract boolean containsAll(IntSet c);
+	public boolean addAll(IntSet c) {
+		if (c == null || c.isEmpty())
+			return false;
+		IntIterator itr = c.iterator();
+		boolean res = false;
+		while (itr.hasNext())
+			res |= add(itr.next());
+		return res;
+	}
 
-	/** 
+	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public abstract boolean addAll(IntSet c);
+	public boolean removeAll(IntSet c) {
+		if (c == null || c.isEmpty())
+			return false;
+		IntIterator itr = c.iterator();
+		boolean res = false;
+		while (itr.hasNext())
+			res |= remove(itr.next());
+		return res;
+	}
 
-	/** 
+	/**
 	 * {@inheritDoc}
 	 */
 	@Override
-	public abstract boolean retainAll(IntSet c);
-
-	/** 
-	 * {@inheritDoc}
-	 */
-	@Override
-	public abstract boolean removeAll(IntSet c);
-
-	/** 
-	 * {@inheritDoc}
-	 */
-	@Override
-	public abstract void clear();
+	public boolean retainAll(IntSet c) {
+		if (c == null || c.isEmpty())
+			return false;
+		IntIterator itr = iterator();
+		boolean res = false;
+		while (itr.hasNext()) {
+			int e = itr.next();
+			if (!c.contains(e)) {
+				res = true;
+				itr.remove();
+			}
+		}
+		return res;
+	}
 
 	/** 
 	 * {@inheritDoc}
@@ -325,5 +427,23 @@ public abstract class AbstractIntSet implements IntSet {
 				return sb.append(']').toString();
 			sb.append(", ");
 		}
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public int compareTo(IntSet o) {
+		IntIterator thisIterator = this.descendingIterator();
+		IntIterator otherIterator = o.descendingIterator();
+		while (thisIterator.hasNext() && otherIterator.hasNext()) {
+			int thisItem = thisIterator.next();
+			int otherItem = otherIterator.next();
+			if (thisItem < otherItem)
+				return -1;
+			if (thisItem > otherItem)
+				return 1;
+		}
+		return thisIterator.hasNext() ? 1 : (otherIterator.hasNext() ? -1 : 0);
 	}
 }

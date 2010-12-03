@@ -408,7 +408,7 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 
 		int count = 0;
 		for (int i = Math.min(wordsInUse, other.wordsInUse) - 1; i >= 0; i--) {
-			count += Integer.bitCount(words[i] & other.words[i]);
+			count += BitCount.count(words[i] & other.words[i]);
 			if (count >= minElements)
 				return true;
 		}
@@ -449,7 +449,7 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 
 		int count = 0;
 		for (int i = Math.min(wordsInUse, other.wordsInUse) - 1; i >= 0; i--) 
-			count += Integer.bitCount(words[i] & other.words[i]);
+			count += BitCount.count(words[i] & other.words[i]);
 		return count;
 	}
 
@@ -964,7 +964,7 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 		int count = 0;
 		for (int j = 0; j < wordsInUse; j++) {
 			int w = words[j];
-			int current = Integer.bitCount(w);
+			int current = BitCount.count(w);
 			if (index < count + current) {
 				int bit = -1;
 				for (int skip = index - count; skip >= 0; skip--)
@@ -983,7 +983,7 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 	public int indexOf(int e) {
 		int index = wordIndex(e);
 		int count = BitCount.count(words, index);
-		count += Integer.bitCount(words[index] & ~(ALL_ONES_WORD << e));
+		count += BitCount.count(words[index] & ~(ALL_ONES_WORD << e));
 		return count;
 	}
 	
@@ -1055,7 +1055,7 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 		clone.retainAll(other);
 		return clone;
 	}
-
+	
 	/**
 	 * {@inheritDoc}
 	 */

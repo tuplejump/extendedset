@@ -21,6 +21,7 @@ package it.uniroma3.mat.extendedset;
 
 
 import it.uniroma3.mat.extendedset.intset.ArraySet;
+import it.uniroma3.mat.extendedset.intset.IntSet;
 import it.uniroma3.mat.extendedset.others.GenericExtendedSet;
 import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
 import it.uniroma3.mat.extendedset.wrappers.IntegerSet;
@@ -64,6 +65,22 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * @see #retainAll(java.util.Collection)
 	 */
 	public ExtendedSet<T> intersection(Collection<? extends T> other);
+
+	/**
+	 * Generates the intersection set, by starting from the specified index. To
+	 * be used in conjunction with {@link #firstDifferentBlockIndex(Collection)}.
+	 * 
+	 * @param other
+	 *            {@link IntSet} instance that represents the right operand
+	 * @param startIndex
+	 *            index of the first element to intersect, according to the
+	 *            internal representation. The elements before the given index
+	 *            are just copied from the given set, since they are supposed to
+	 *            be included. See {@link #firstDifferentBlockIndex(Collection)} for
+	 *            more details.
+	 * @return the result of the operation
+	 */
+	public ExtendedSet<T> intersection(Collection<? extends T> other, int startIndex);
 
 	/**
 	 * Generates the union set
@@ -119,6 +136,27 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	 * @see ExtendedSet#complemented()
 	 */
 	public void complement();
+
+	/**
+	 * Returns the index of the first non-containing "blocks" according to the
+	 * internal representation, namely how many blocks <i>completely</i>
+	 * contains the blocks of the given set until the first different one. To be
+	 * used in conjunction with {@link #intersection(Collection, int)}.
+	 * <p>
+	 * Notice that if this collection completely contains the specified one, it
+	 * returns <code>-1</code>. 
+	 * 
+	 * @param c
+	 *            collection to be checked for containment in this set
+	 * @return <code>-1</code> if this collection is completely contained within
+	 *         the specified one, otherwise it returns the number of the first
+	 *         contained blocks
+	 * @throws NullPointerException
+	 *             if the specified collection contains one or more null
+	 *             elements and this set does not permit null elements
+	 *             (optional), or if the specified collection is null
+	 */
+	public int firstDifferentBlockIndex(Collection<? extends T> c);
 
 	/**
 	 * Returns <code>true</code> if the specified {@link Collection} instance

@@ -19,9 +19,9 @@
 
 package it.uniroma3.mat.extendedset.test;
 
-import it.uniroma3.mat.extendedset.intset.ArraySet;
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 import it.uniroma3.mat.extendedset.intset.FastSet;
+import it.uniroma3.mat.extendedset.intset.HashIntSet;
 import it.uniroma3.mat.extendedset.intset.development.Concise2Set;
 import it.uniroma3.mat.extendedset.intset.development.ConcisePlusSet;
 import it.uniroma3.mat.extendedset.others.GenericExtendedSet;
@@ -53,6 +53,7 @@ public class Performance {
 		private static final long serialVersionUID = -5048707825606872979L;
 		WAHSet() {super(true);}
 	}
+	private static class IntegerHashSet extends IntegerSet {IntegerHashSet() {super(new HashIntSet());}}
 	private static class IntegerFastSet extends IntegerSet {IntegerFastSet() {super(new FastSet());}}
 	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new ConciseSet());}}
 	private static class IntegerConcisePlusSet extends IntegerSet {IntegerConcisePlusSet() {super(new ConcisePlusSet());}}
@@ -317,8 +318,9 @@ public class Performance {
 //				LinkedListSet.class, 
 				HashSet.class,
 				TreeSet.class,
-				ArraySet.class, 
+//				ArraySet.class, 
 				IntegerFastSet.class, 
+				IntegerHashSet.class,
 				IntegerWAHSet.class, 
 				IntegerConciseSet.class,
 				IntegerConcisePlusSet.class,

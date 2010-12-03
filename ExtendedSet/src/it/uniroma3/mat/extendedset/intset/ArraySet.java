@@ -135,7 +135,7 @@ public class ArraySet extends AbstractIntSet {
 					next = -(next + 1) - 1;
 			}
 			@Override public boolean hasNext() {
-				return next > 0;
+				return next >= 0; 
 			}
 			@Override public int next() {
 				if (!hasNext())
@@ -967,23 +967,5 @@ public class ArraySet extends AbstractIntSet {
 		if (pos < 0)
 			return -1;
 		return pos;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public int compareTo(IntSet o) {
-		IntIterator thisIterator = this.descendingIterator();
-		IntIterator otherIterator = o.descendingIterator();
-		while (thisIterator.hasNext() && otherIterator.hasNext()) {
-			int thisItem = thisIterator.next();
-			int otherItem = otherIterator.next();
-			if (thisItem < otherItem)
-				return -1;
-			if (thisItem > otherItem)
-				return 1;
-		}
-		return thisIterator.hasNext() ? 1 : (otherIterator.hasNext() ? -1 : 0);
 	}
 }
