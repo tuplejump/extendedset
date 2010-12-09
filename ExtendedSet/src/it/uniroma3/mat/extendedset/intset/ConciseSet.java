@@ -22,6 +22,7 @@ package it.uniroma3.mat.extendedset.intset;
 
 import it.uniroma3.mat.extendedset.AbstractExtendedSet;
 import it.uniroma3.mat.extendedset.ExtendedSet;
+import it.uniroma3.mat.extendedset.utilities.BitCount;
 import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
 
 import java.io.IOException;
@@ -412,7 +413,7 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 	 * @return the number of set bits within the literal word
 	 */
 	private static int getLiteralBitCount(int word) {
-		return Integer.bitCount(getLiteralBits(word));
+		return BitCount.count(getLiteralBits(word));
 	}
 
 	/**
@@ -1424,7 +1425,7 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 				if (blockIndex == 0) {
 					if ((w & (1 << bitPosition)) == 0)
 						return -1;
-					return index + Integer.bitCount(w & ~(0xFFFFFFFF << bitPosition));
+					return index + BitCount.count(w & ~(0xFFFFFFFF << bitPosition));
 				}
 				blockIndex--;
 				index += getLiteralBitCount(w);
@@ -1439,7 +1440,7 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 						int l = getLiteral(w);
 						if ((l & (1 << bitPosition)) == 0)
 							return -1;
-						return index + Integer.bitCount(l & ~(0xFFFFFFFF << bitPosition));
+						return index + BitCount.count(l & ~(0xFFFFFFFF << bitPosition));
 					}
 					
 					// if we are in the middle of a sequence of 1's, the bit already exist
@@ -2532,10 +2533,10 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 	 */
 	@Override
 	public int hashCode() {
-        int h = 1;
-        for (int i = 0; i <= lastWordIndex; i++) 
-            h = (h << 5) - h + words[i];
-        return h;
+		int h = 1;
+		for (int i = 0; i <= lastWordIndex; i++)
+			h = (h << 5) - h + words[i];
+		return h;
 	}
 
 	/**

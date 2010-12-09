@@ -149,7 +149,7 @@ public class BitCount {
 
 			int size1 = 0;
 			for (int j = 0; j < x.length; j++)
-				size1 += Integer.bitCount(x[j]);
+				size1 += count(x[j]);
 			int size2 = count(x);
 
 			if (size1 != size2) {
@@ -157,13 +157,13 @@ public class BitCount {
 				System.out.println("ERRORE!");
 				System.out.println(size1 + ", " + size2);
 				for (int j = 0; j < x.length; j++)
-					System.out.format("x[%d] = %d --> %d\n", j, x[j], Integer.bitCount(x[j]));
+					System.out.format("x[%d] = %d --> %d\n", j, x[j], count(x[j]));
 				return;
 			}
 		}
 		System.out.println("done!");
 
-		System.out.print("Test time Integer.bitCount(): ");
+		System.out.print("Test time count(): ");
 		rnd = new Random(seed);
 		long t = System.currentTimeMillis();
 		for (int i = 0; i < trials; i++) {
@@ -173,7 +173,7 @@ public class BitCount {
 
 			int size = 0;
 			for (int j = 0; j < x.length; j++)
-				size += Integer.bitCount(x[j]);
+				size += count(x[j]);
 		}
 		System.out.println(System.currentTimeMillis() - t);
 

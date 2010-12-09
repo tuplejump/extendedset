@@ -1,9 +1,27 @@
+/* 
+ * (c) 2010 Alessandro Colantonio
+ * <mailto:colanton@mat.uniroma3.it>
+ * <http://ricerca.mat.uniroma3.it/users/colanton>
+ *  
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */ 
+
 package it.uniroma3.mat.extendedset.intset;
 
 
-// WARNING: If you do any changes to this class, make sure that you
 // update CompactIdentityHashSet.java, UniqueSet.java and
 // SoftHashMapIndex.java accordingly.
+import it.uniroma3.mat.extendedset.utilities.IntHashCode;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -129,7 +147,7 @@ public class HashIntSet extends AbstractIntSet {
 	 */
 	private int findElementOrEmpty(int element) {
 		assert element >= 0;
-		int index = toIndex(element);
+		int index = toIndex(IntHashCode.hashCode(element));
 		int offset = 1;
 
 		while (cells[index] != EMPTY) {
@@ -161,7 +179,7 @@ public class HashIntSet extends AbstractIntSet {
 	 */
 	private int findElementOrRemoved(int element) {
 		assert element >= 0;
-		int index = toIndex(element);
+		int index = toIndex(IntHashCode.hashCode(element));
 		int offset = 1;
 		int removed = -1;
 
@@ -776,7 +794,7 @@ public class HashIntSet extends AbstractIntSet {
         int h = 1;
         for (int e : cells)
         	if (e >= 0)
-        		h ^= e;
+        		h ^= IntHashCode.hashCode(e);
         return h;
 	}
 
