@@ -30,7 +30,7 @@ import java.util.TreeSet;
  * Generation of random integer sets
  * 
  * @author Alessandro Colantonio
- * @version $Id: Performance.java 86 2010-04-08 23:02:35Z cocciasik $
+ * @version $Id$
  */
 public abstract class RandomNumbers {
 	/** pseudo-random number generator */
