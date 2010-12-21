@@ -20,10 +20,7 @@
 package it.uniroma3.mat.extendedset.intset;
 
 
-import it.uniroma3.mat.extendedset.AbstractExtendedSet;
-import it.uniroma3.mat.extendedset.ExtendedSet;
 import it.uniroma3.mat.extendedset.utilities.BitCount;
-import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -62,11 +59,6 @@ import java.util.SortedSet;
  * 
  * @author Alessandro Colantonio
  * @version $Id$
- * 
- * @see ExtendedSet
- * @see AbstractExtendedSet
- * @see FastSet
- * @see IndexedSet
  */
 public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 	/** generated serial ID */

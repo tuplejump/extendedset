@@ -28,9 +28,6 @@ import java.util.NoSuchElementException;
  * 
  * @author Alessandro Colantonio
  * @version $Id$
- * 
- * @see ConciseSet
- * @see FastSet
  */
 public abstract class AbstractIntSet implements IntSet {
 	/** 

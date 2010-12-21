@@ -30,7 +30,7 @@ import java.util.SortedSet;
 
 /**
  * {@link IntSet}-based class internally managed by a sorted array of
- * <code>int</code>. 
+ * <code>int</code>s. 
  * 
  * @author Alessandro Colantonio
  * @version $Id$

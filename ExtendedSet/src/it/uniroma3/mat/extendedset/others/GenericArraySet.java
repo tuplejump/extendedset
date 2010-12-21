@@ -35,10 +35,10 @@ import java.util.SortedSet;
 /**
  * {@link ExtendedSet}-based class internally managed by a sorted array.
  * <p>
- * Objects have to be {@link Comparable} or, alternatively, a comparator have to
- * be defined.
+ * Objects must be {@link Comparable} or, alternatively, a comparator must be
+ * defined.
  * 
- * @param <T> 
+ * @param <T>
  * 
  * @author Alessandro Colantonio
  * @version $Id$

@@ -6,7 +6,11 @@ import java.util.Collection;
 import java.util.Formatter;
 
 /**
- * @author colantonio
+ * A wrapper class for classes that implement the {@link IntSet} interface to
+ * count method calls
+ * 
+ * @author Alessandro Colantonio
+ * @version $Id$
  */
 public class IntSetStatistics implements IntSet {
 	/** instance to monitor */

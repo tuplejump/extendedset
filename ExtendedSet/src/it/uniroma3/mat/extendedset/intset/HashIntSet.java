@@ -33,6 +33,9 @@ import java.util.NoSuchElementException;
  * <p>
  * Inspired by <a href="http://code.google.com/p/ontopia/source/browse/trunk/ontopia/src/java/net/ontopia/utils/CompactHashSet.java"
  * >http://code.google.com/p/ontopia/source/browse/trunk/ontopia/src/java/net/ontopia/utils/CompactHashSet.java</a>
+ * 
+ * @author Alessandro Colantonio
+ * @version $Id$
  */
 public class HashIntSet extends AbstractIntSet {
 	protected final static int INITIAL_SIZE = 3;

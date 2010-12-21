@@ -33,6 +33,11 @@ import java.util.NoSuchElementException;
  * 
  * @author Alessandro Colantonio
  * @version $Id$
+ * 
+ * @see ArraySet
+ * @see ConciseSet
+ * @see FastSet
+ * @see HashIntSet
  */
 public interface IntSet extends Cloneable, Comparable<IntSet> {
 	/**
@@ -227,7 +232,7 @@ public interface IntSet extends Cloneable, Comparable<IntSet> {
 	public double collectionCompressionRatio();
 
 	/**
-	 * A {@link Iterator}-like interface that allows to "skip" some elements of
+	 * An {@link Iterator}-like interface that allows to "skip" some elements of
 	 * the set
 	 */
 	public interface IntIterator {
