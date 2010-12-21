@@ -40,6 +40,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Random;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
@@ -1081,7 +1082,7 @@ public class Debug {
 		ExtendedSet<Integer> bitsLeft = empty(c);
 		ExtendedSet<Integer> bitsRight = empty(c);
 
-		Random rnd = new MersenneTwister(31);
+		Random rnd = new MersenneTwister();
 		for (int i = 0; i < 10000; i++) {
 			// empty numbers
 			BigInteger correctLeft = BigInteger.ZERO;
@@ -1093,8 +1094,8 @@ public class Debug {
 			int size = 1 + rnd.nextInt(10000);
 			int left = 0, right = 0;
 			for (int j = 0; j < size; j++) {
-				left = Math.abs(rnd.nextDouble() > 0.001D ? (left - 1) : rnd.nextInt(size));
-				right = Math.abs(rnd.nextDouble() > 0.001D ? left : rnd.nextInt(size));
+				left = Math.abs(rnd.nextDouble() > 0.01D ? (left - 1) : rnd.nextInt(size));
+				right = Math.abs(rnd.nextDouble() > 0.01D ? left : rnd.nextInt(size));
 				bitsLeft.add(left);
 				bitsRight.add(right);
 				correctLeft = correctLeft.setBit(left);
@@ -1140,30 +1141,36 @@ public class Debug {
 	private static void testForDescendingIterator(Class<? extends ExtendedSet<Integer>> c) {
 		ExtendedSet<Integer> bits = empty(c);
 		
-		Random rnd = new MersenneTwister(31);
+		Random rnd = new MersenneTwister();
 		for (int i = 0; i < 100000; i++) {
-			HashSet<Integer> x = new HashSet<Integer>(bits);
-			HashSet<Integer> y = new HashSet<Integer>();
-			for (Integer e : bits.descending())
-				y.add(e);
-			
-			boolean correct = x.equals(y);
-			System.out.print(i + ": " + correct);
-			if (!correct) {
-				System.out.println("ERRORE!");
+			int n = rnd.nextInt(10000);
+			System.out.print(i + ": add " + n);
+			bits.add(n);
+
+			Set<Integer> x = new HashSet<Integer>(bits);
+			Set<Integer> y = new HashSet<Integer>();
+			try {
+				for (Integer e : bits.descending())
+					y.add(e);
+			} catch (Exception e) {
+				System.out.println("\nERROR!");
+				System.out.println(e.getMessage());
 				System.out.println(bits.debugInfo());
+				break;
+			}
+			boolean correct = x.equals(y);
+			System.out.println(" --> " + correct);
+			if (!correct) {
+				System.out.println(bits.debugInfo());
+				System.out.print("result: ");
 				for (Integer e : bits.descending())
 					System.out.print(e + ", ");
+				System.out.println();
+				break;
 			}
-
-			int n = rnd.nextInt(10000);
-			System.out.println(" + " + n);
-			bits.add(n);
 		}
 		
-		System.out.println(bits.debugInfo());
-		for (Integer e : bits.descending())
-			System.out.print(e + ", ");
+		System.out.println("Done!");
 	}
 	
 	/**
@@ -1297,11 +1304,11 @@ public class Debug {
 		}
 	}
 
-//	@SuppressWarnings("unused")
+	@SuppressWarnings("unused")
 	private static class IntegerHashSet extends IntegerSet {IntegerHashSet() {super(new IntSetStatistics(new HashIntSet()));}}
 	@SuppressWarnings("unused")
 	private static class IntegerFastSet extends IntegerSet {IntegerFastSet() {super(new IntSetStatistics(new FastSet()));}}
-	@SuppressWarnings("unused")
+//	@SuppressWarnings("unused")
 	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new IntSetStatistics(new ConciseSet()));}}
 	@SuppressWarnings("unused")
 	private static class IntegerConcise2Set extends IntegerSet {IntegerConcise2Set() {super(new IntSetStatistics(new Concise2Set()));}}
@@ -1321,16 +1328,17 @@ public class Debug {
 	 */
 	public static void main(String[] args) {
 		// NOTE: the most complete test is TestCase.RANDOM_OPERATION_STRESS
-		TestCase testCase = TestCase.ADDITION_STRESS;
+//		TestCase testCase = TestCase.ADDITION_STRESS;
 //		TestCase testCase = TestCase.REMOVAL_STRESS;
-//		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS;
+		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS;
 //		TestCase testCase = TestCase.SKIP;
 //		TestCase testCase = TestCase.POSITION;
 //		TestCase testCase = TestCase.COMPARATOR_COMPLEX;
+//		TestCase testCase = TestCase.DESCENDING_ITERATOR;
 		
-		Class<? extends ExtendedSet<Integer>> classToTest = IntegerHashSet.class;
+//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerHashSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerFastSet.class;
-//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConciseSet.class;
+		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConciseSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcise2Set.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcisePlusSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerWAHSet.class;

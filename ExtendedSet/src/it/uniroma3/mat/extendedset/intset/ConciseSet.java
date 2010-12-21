@@ -68,7 +68,6 @@ import java.util.SortedSet;
  * @see FastSet
  * @see IndexedSet
  */
-// TODO: REPLACE ALL "WordIterator_OLD" INSTANCES WITH "WordIterator" !!!
 public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 	/** generated serial ID */
 	private static final long serialVersionUID = 560068054685367266L;
@@ -478,152 +477,6 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 	}
 	
 	/**
-	 * Iterates over words, from MSB to LSB.
-	 * <p>
-	 * @see WordIterator_OLD
-	 */
-	//TODO: replace with ReverseWordIterator!!!
-	private class ReverseWordIterator_OLD {
-		private int currentWordIndex;	// index of the current word
-		private int currentWordCopy;	// copy of the current word
-		private int currentLiteral;		// literal contained within the current word
-
-		/**
-		 * Gets the literal word that represents the <i>last</i> 31 bits of the
-		 * given the word (i.e. the last block of a sequence word, or the bits
-		 * of a literal word).
-		 * <p>
-		 * If the word is a literal, it returns the unmodified word. In case of
-		 * a sequence, it returns a literal that represents the last 31 bits of
-		 * the given sequence word.
-		 * <p>
-		 * Different from {@link ConciseSet#getLiteral(int)}, when the word is
-		 * a sequence that contains one (un)set bit, and the count is greater
-		 * than zero, then it means that we are traversing the sequence from the
-		 * end, and then the literal is represented by all ones or all zeros.
-		 * 
-		 * @param word
-		 *            the word where to extract the literal
-		 * @return the literal contained at the end of the given word, with the
-		 *         most significant bit set to 1.
-		 */
-		private int getReverseLiteral(int word) {
-			if (simulateWAH || isLiteral(word) || isSequenceWithNoBits(word) || getSequenceCount(word) == 0)
-				return getLiteral(word);
-			return isZeroSequence(word) ? ALL_ZEROS_LITERAL : ALL_ONES_LITERAL;
-		}
-		
-		/*
-		 * Initialize data 
-		 */
-		{
-			if (words != null) {
-				currentWordIndex = lastWordIndex;
-				currentWordCopy = words[currentWordIndex];
-				currentLiteral = getReverseLiteral(currentWordCopy);
-			} else {
-				// empty set
-				currentWordIndex = -1;
-				currentWordCopy = 0;
-				currentLiteral = 0;
-			}
-		}
-		
-		/**
-		 * Checks whether other literals to analyze exist
-		 * 
-		 * @return <code>true</code> if there are literals to iterate
-		 */
-		public final boolean hasMoreLiterals() {
-			if (currentWordIndex > 1)
-				return true;
-			if (currentWordIndex < 0)
-				return false;
-			
-			// now currentWordIndex == 0 or 1
-			if (currentWordIndex == 1) {
-				if (isLiteral(currentWordCopy) 
-						|| getSequenceCount(currentWordCopy) == 0 
-						|| (isZeroSequence(currentWordCopy) && isSequenceWithNoBits(currentWordCopy)))
-					return !(words[0] == ALL_ZEROS_LITERAL 
-							|| (isZeroSequence(words[0]) && isSequenceWithNoBits(words[0])));
-				// I don't have to "jump" to words[0], namely I still have to finish words[1]
-				return true;
-			} 
-			
-			// now currentWordIndex == 0, namely the first element
-			if (isLiteral(currentWordCopy))
-				return false;
-			
-			// now currentWordCopy is a sequence
-			if (getSequenceCount(currentWordCopy) == 0)
-				return false;
-
-			// now currentWordCopy is a non-empty sequence
-			if (isOneSequence(currentWordCopy))
-				return true;
-
-			// now currentWordCopy is a zero sequence
-			if (simulateWAH || isSequenceWithNoBits(currentWordCopy))
-				return false;
-			
-			// zero sequence with a set bit at the beginning
-			return true;
-		}
-
-		/**
-		 * Checks whether other words to analyze exist
-		 * 
-		 * @return <code>true</code> if there are words to iterate
-		 */
-		public final boolean endOfWords() {
-			return currentWordIndex < 0;
-		}
-
-		/**
-		 * Prepares the next literal, similar to
-		 * {@link ReverseWordIterator_OLD#prepareNextLiteral()}. <b>NOTE:</b> it supposes
-		 * that {@link #hasMoreLiterals()} returns <code>true</code>.
-		 */ 
-		public final void prepareNextLiteral() {
-			if (isLiteral(currentWordCopy) || getSequenceCount(currentWordCopy) == 0) {
-				if (--currentWordIndex >= 0)
-					currentWordCopy = words[currentWordIndex];
-				if (currentWordIndex == -2)
-					throw new NoSuchElementException();
-			} else {
-				currentWordCopy--;
-			}
-			currentLiteral = getReverseLiteral(currentWordCopy);
-		}
-	}
-	
-	/**
-	 * The same as {@link #skipSequence(WordIterator_OLD, WordIterator_OLD)}, but for
-	 * {@link ReverseWordIterator_OLD} instances
-	 */
-	// TODO: REMOVE!!!
-	private int skipSequence(ReverseWordIterator_OLD itr1, ReverseWordIterator_OLD itr2) {
-		int count = 0;
-		if (!isLiteral(itr1.currentWordCopy) && !isLiteral(itr2.currentWordCopy)) {
-			if (simulateWAH)
-				count = Math.min(
-						getSequenceCount(itr1.currentWordCopy),
-						getSequenceCount(itr2.currentWordCopy));
-			else
-				count = Math.min(
-						getSequenceCount(itr1.currentWordCopy) - (isSequenceWithNoBits(itr1.currentWordCopy) ? 0 : 1),
-						getSequenceCount(itr2.currentWordCopy) - (isSequenceWithNoBits(itr2.currentWordCopy) ? 0 : 1));
-			if (count > 0) {
-				// increase sequence counter
-				itr1.currentWordCopy -= count;
-				itr2.currentWordCopy -= count;
-			}
-		} 
-		return count;
-	}
-
-	/**
 	 * Possible operations
 	 */
 	private enum Operator {
@@ -935,11 +788,17 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 	 *            be set to 1.
 	 */
 	private void appendLiteral(int word) {
-		// TODO se sto inserendo 0x80000000 e ho solo una sequence 0x01FFFFFF,
-		// allora il risultato è un insieme vuoto, mentre invece qui mi genera
-		// 0x02000000 che è una sequence con il primo bit a 1!!!
+		// when we have a zero sequence of the maximum lenght (that is,
+		// 00.00000.1111111111111111111111111 = 0x01FFFFFF), it could happen
+		// that we try to append a zero literal because the result of the given operation must be an
+		// empty set. Whitout the following test, we would have increased the
+		// counter of the zero sequence, thus obtaining 0x02000000 that
+		// represents a sequence with the first bit set!
+		if (lastWordIndex == 0 && word == ALL_ZEROS_LITERAL && words[0] == 0x01FFFFFF)
+			return;
+
+		// first addition
 		if (lastWordIndex < 0) {
-			// empty set
 			words[lastWordIndex = 0] = word;
 			return;
 		} 
@@ -1710,16 +1569,12 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 			if (i >= current)
 				return;
 			current = i + 1;
-//			if (!simulateWAH && current == exception)
-//				current--;
 		}
 
 		@Override public void skipAllBefore(int i) {
 			if (i <= current)
 				return;
 			current = i - 1;
-//			if (!simulateWAH && current == exception)
-//				current--;
 		}
 		
 		@Override public void reset(int offset, int word, boolean fromBeginning) {
@@ -1802,9 +1657,9 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 		WordExpander exp;
 		int nextIndex = lastWordIndex;
 		int nextOffset = maxLiteralLengthMultiplication(maxLiteralLengthDivision(last) + 1);
-		int firstIndex = 0;
+		int firstIndex; // first non-zero block
 		
-		private void previousWord() {
+		void previousWord() {
 			final int word = words[nextIndex--];
 			exp = isOneSequence(word) ? oneExp : litExp;
 			if (isLiteral(word)) {
@@ -1815,8 +1670,9 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 			exp.reset(nextOffset, word, false);
 		}
 		
-		private ReverseBitIterator() {
-			if (isSequenceWithNoBits(words[0]) && isZeroSequence(words[0]))
+		ReverseBitIterator() {
+			// identify the first non-zero block
+			if ((isSequenceWithNoBits(words[0]) && isZeroSequence(words[0])) || (isLiteral(words[0]) && words[0] == ALL_ZEROS_LITERAL))
 				firstIndex = 1;
 			else
 				firstIndex = 0;
@@ -1825,7 +1681,7 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 		
 		@Override
 		public boolean hasNext() {
-			return nextIndex > firstIndex || exp.hasPrevious();
+			return nextIndex >= firstIndex || exp.hasPrevious();
 		}
 
 		@Override
@@ -2230,7 +2086,6 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 
 		// check whether the first operator starts with a sequence that
 		// completely "covers" the second operator
-		//TODO ricontrollare che non mi convince...
 		if (isSequenceWithNoBits(this.words[0]) 
 				&& maxLiteralLengthMultiplication(getSequenceCount(this.words[0]) + 1) > other.last) {
 			if (isZeroSequence(this.words[0]))
@@ -2583,22 +2438,44 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 			return res < 0 ? -1 : 1;
 		
 		// scan words from MSB to LSB
-		ReverseWordIterator_OLD thisIterator = this.new ReverseWordIterator_OLD();
-		ReverseWordIterator_OLD otherIterator = other.new ReverseWordIterator_OLD();
-		while (!thisIterator.endOfWords() && !otherIterator.endOfWords()) {
-			// compare current literals
-			res = getLiteralBits(thisIterator.currentLiteral) - getLiteralBits(otherIterator.currentLiteral);
-			if (res != 0)
-				return res < 0 ? -1 : 1;
-			
-			// avoid loops when both are sequences and the result is a sequence
-			skipSequence(thisIterator, otherIterator);
-
-			// next literals
-			thisIterator.prepareNextLiteral();
-			otherIterator.prepareNextLiteral();
-		}
-		return thisIterator.hasMoreLiterals() ? 1 : (otherIterator.hasMoreLiterals() ? -1 : 0);
+		int thisIndex = this.lastWordIndex;
+		int otherIndex = other.lastWordIndex;
+		int thisWord = this.words[thisIndex];
+		int otherWord = other.words[otherIndex];
+		while (thisIndex >= 0 && otherIndex >= 0) {
+			if (!isLiteral(thisWord)) {
+				if (!isLiteral(otherWord)) {
+					if (isZeroSequence(thisWord)) {
+						if (isOneSequence(otherWord))
+							return -1;
+						res = getSequenceCount(otherWord) - getSequenceCount(thisWord);
+						if (res != 0)
+							return res < 0 ? -1 : 1;
+					} else {
+						if (isZeroSequence(otherWord))
+							return 1;
+						res = getSequenceCount(thisWord) - getSequenceCount(otherWord);
+						if (res != 0)
+							return res < 0 ? -1 : 1;
+					}
+					thisWord = getLiteral(thisWord);
+					otherWord = getLiteral(otherWord);
+				} else {
+					return isZeroSequence(thisWord) ? -1 : 1;
+				}
+			} else if (!isLiteral(otherWord)) {
+				return isZeroSequence(otherWord) ? 1 : -1;
+			} else {
+				res = getLiteralBits(thisWord) - getLiteralBits(otherWord);
+				if (res != 0)
+					return res < 0 ? -1 : 1;
+				if (--thisIndex >= 0)
+					thisWord = this.words[thisIndex];
+				if (--otherIndex >= 0)
+					otherWord = other.words[otherIndex];
+			}
+		}			
+		return thisIndex >= 0 ? 1 : (otherIndex >= 0 ? -1 : 0);
 	}
 
 	/**
