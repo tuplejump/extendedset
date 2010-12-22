@@ -58,14 +58,6 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
-	@Override
-	public ExtendedSet<T> intersection(Collection<? extends T> other, int startIndex) {
-		throw new UnsupportedOperationException();
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
 	public ExtendedSet<T> union(Collection<? extends T> other) {
 		ExtendedSet<T> clone = clone();
 		clone.addAll(other);
@@ -97,14 +89,6 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		ExtendedSet<T> clone = clone();
 		clone.complement();
 		return clone;
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public int firstDifferentBlockIndex(Collection<? extends T> c) {
-		throw new UnsupportedOperationException();
 	}
 	
 	/**
@@ -739,7 +723,6 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		@Override public ExtendedSet<T> difference(Collection<? extends T> other) {return raw().difference(convert(other));}
 		@Override public ExtendedSet<T> symmetricDifference(Collection<? extends T> other) {return raw().symmetricDifference(convert(other));}
 		@Override public ExtendedSet<T> intersection(Collection<? extends T> other) {return raw().intersection(convert(other));}
-		@Override public ExtendedSet<T> intersection(Collection<? extends T> other, int startIndex) {return raw().intersection(convert(other), startIndex);}
 		@Override public ExtendedSet<T> union(Collection<? extends T> other) {return raw().union(convert(other));}
 		@Override public int intersectionSize(Collection<? extends T> other) {return raw().intersectionSize(convert(other));}
 		@Override public int differenceSize(Collection<? extends T> other) {return raw().differenceSize(convert(other));}
@@ -748,7 +731,6 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		@Override public boolean containsAll(Collection<?> c) {return raw().containsAll(convert(c));}
 		@Override public boolean containsAny(Collection<? extends T> other) {return raw().containsAny(convert(other));}
 		@Override public boolean containsAtLeast(Collection<? extends T> other, int minElements) {return raw().containsAtLeast(convert(other), minElements);}
-		@Override public int firstDifferentBlockIndex(Collection<? extends T> c) {return raw().firstDifferentBlockIndex(convert(c));}
 	}
 	
 	/**
