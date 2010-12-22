@@ -33,6 +33,7 @@ import java.util.Set;
  * instance. It is not as fast as {@link HashMap}, but requires much less memory.
  * 
  * @author Alessandro Colantonio
+ * @version $Id$
  * 
  * @param <T>
  *            transaction type
