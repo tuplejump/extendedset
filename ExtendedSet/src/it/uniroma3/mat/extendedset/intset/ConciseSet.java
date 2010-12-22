@@ -2437,28 +2437,73 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 		while (thisIndex >= 0 && otherIndex >= 0) {
 			if (!isLiteral(thisWord)) {
 				if (!isLiteral(otherWord)) {
+					// compare two sequences 
+					// note that they are made up of at least two blocks, and we
+					// start comparing from the end, that is at blocks with no
+					// (un)set bits
 					if (isZeroSequence(thisWord)) {
 						if (isOneSequence(otherWord))
+							// zeros < ones
 							return -1;
+						// compare two sequences of zeros
 						res = getSequenceCount(otherWord) - getSequenceCount(thisWord);
 						if (res != 0)
 							return res < 0 ? -1 : 1;
 					} else {
 						if (isZeroSequence(otherWord))
+							// ones > zeros
 							return 1;
+						// compare two sequences of ones
 						res = getSequenceCount(thisWord) - getSequenceCount(otherWord);
 						if (res != 0)
 							return res < 0 ? -1 : 1;
 					}
+					// if the sequences are the same (both zeros or both ones)
+					// and have the same length, compare the first blocks in the
+					// next loop since such blocks might contain (un)set bits
 					thisWord = getLiteral(thisWord);
 					otherWord = getLiteral(otherWord);
 				} else {
-					return isZeroSequence(thisWord) ? -1 : 1;
+					// zeros < literal --> -1
+					// ones > literal --> +1
+					// note that the sequence is made up of at least two blocks,
+					// and we start comparing from the end, that is at a block
+					// with no (un)set bits
+					if (isZeroSequence(thisWord)) {
+						if (otherWord != ALL_ZEROS_LITERAL)
+							return -1;
+					} else {
+						if (otherWord != ALL_ONES_LITERAL)
+							return 1;
+					}
+					if (getSequenceCount(thisWord) == 1)
+						thisWord = getLiteral(thisWord);
+					else
+						thisWord--;
+					if (--otherIndex >= 0)
+						otherWord = other.words[otherIndex];
 				}
 			} else if (!isLiteral(otherWord)) {
-				return isZeroSequence(otherWord) ? 1 : -1;
+				// literal > zeros --> +1
+				// literal < ones --> -1
+				// note that the sequence is made up of at least two blocks,
+				// and we start comparing from the end, that is at a block
+				// with no (un)set bits
+				if (isZeroSequence(otherWord)) {
+					if (thisWord != ALL_ZEROS_LITERAL)
+						return 1;
+				} else {
+					if (thisWord != ALL_ONES_LITERAL)
+						return -1;
+				}
+				if (--thisIndex >= 0)
+					thisWord = this.words[thisIndex];
+				if (getSequenceCount(otherWord) == 1)
+					otherWord = getLiteral(otherWord);
+				else
+					otherWord--;
 			} else {
-				res = getLiteralBits(thisWord) - getLiteralBits(otherWord);
+				res = thisWord - otherWord; // equals getLiteralBits(thisWord) - getLiteralBits(otherWord)
 				if (res != 0)
 					return res < 0 ? -1 : 1;
 				if (--thisIndex >= 0)

@@ -1090,17 +1090,23 @@ public class Debug {
 			bitsLeft.clear();
 			bitsRight.clear();
 			
-			// generate two random numbers
-			int size = 1 + rnd.nextInt(10000);
-			int left = 0, right = 0;
-			for (int j = 0; j < size; j++) {
-				left = Math.abs(rnd.nextDouble() > 0.01D ? (left - 1) : rnd.nextInt(size));
-				right = Math.abs(rnd.nextDouble() > 0.01D ? left : rnd.nextInt(size));
-				bitsLeft.add(left);
-				bitsRight.add(right);
-				correctLeft = correctLeft.setBit(left);
-				correctRight = correctRight.setBit(right);
+			int size = 10 + rnd.nextInt(10000);
+			RandomNumbers rn;
+			if (rnd.nextBoolean()) 
+				rn = new RandomNumbers.Uniform(rnd.nextInt(size), rnd.nextDouble() * 0.999, rnd.nextInt(size / 10));
+			else
+				rn = new RandomNumbers.Markovian(rnd.nextInt(size), rnd.nextDouble() * 0.999, rnd.nextInt(size / 10));
+			bitsLeft.addAll(rn.generate());
+			if (rnd.nextBoolean()) {
+				bitsRight.addAll(bitsLeft);
+				bitsRight.add(rnd.nextInt(size));
+			} else {
+				bitsRight.addAll(rn.generate());
 			}
+			for (int x : bitsLeft.descending()) 
+				correctLeft = correctLeft.setBit(x);
+			for (int x : bitsRight)
+				correctRight = correctRight.setBit(x);
 			
 			// compare them!
 			boolean correct = bitsLeft.compareTo(bitsRight) == correctLeft.compareTo(correctRight);
@@ -1330,10 +1336,10 @@ public class Debug {
 		// NOTE: the most complete test is TestCase.RANDOM_OPERATION_STRESS
 //		TestCase testCase = TestCase.ADDITION_STRESS;
 //		TestCase testCase = TestCase.REMOVAL_STRESS;
-		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS;
+//		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS;
 //		TestCase testCase = TestCase.SKIP;
 //		TestCase testCase = TestCase.POSITION;
-//		TestCase testCase = TestCase.COMPARATOR_COMPLEX;
+		TestCase testCase = TestCase.COMPARATOR_COMPLEX;
 //		TestCase testCase = TestCase.DESCENDING_ITERATOR;
 		
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerHashSet.class;
