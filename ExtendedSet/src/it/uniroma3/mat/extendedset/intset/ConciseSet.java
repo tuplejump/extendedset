@@ -1324,6 +1324,10 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 	 */
 	@Override
 	public ConciseSet intersection(IntSet other) {
+		if (isEmpty() || other == null || other.isEmpty())
+			return empty();
+		if (other == this)
+			return clone();
 		return performOperation(convert(other), Operator.AND);
 	}
 
@@ -1332,6 +1336,8 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 	 */
 	@Override
 	public ConciseSet union(IntSet other) {
+		if (other == null || other.isEmpty() || other == this)
+			return clone();
 		return performOperation(convert(other), Operator.OR);
 	}
 
@@ -1340,6 +1346,10 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 	 */
 	@Override
 	public ConciseSet difference(IntSet  other) {
+		if (other == this)
+			return empty();
+		if (other == null || other.isEmpty())
+			return clone();
 		return performOperation(convert(other), Operator.ANDNOT);
 	}
 
@@ -1348,6 +1358,10 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 	 */
 	@Override
 	public ConciseSet symmetricDifference(IntSet other) {
+		if (other == this)
+			return empty();
+		if (other == null || other.isEmpty())
+			return clone();
 		return performOperation(convert(other), Operator.XOR);
 	}
 

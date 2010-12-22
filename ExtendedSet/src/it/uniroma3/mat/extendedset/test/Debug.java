@@ -1336,10 +1336,10 @@ public class Debug {
 		// NOTE: the most complete test is TestCase.RANDOM_OPERATION_STRESS
 //		TestCase testCase = TestCase.ADDITION_STRESS;
 //		TestCase testCase = TestCase.REMOVAL_STRESS;
-//		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS;
+		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS;
 //		TestCase testCase = TestCase.SKIP;
 //		TestCase testCase = TestCase.POSITION;
-		TestCase testCase = TestCase.COMPARATOR_COMPLEX;
+//		TestCase testCase = TestCase.COMPARATOR_COMPLEX;
 //		TestCase testCase = TestCase.DESCENDING_ITERATOR;
 		
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerHashSet.class;
