@@ -71,10 +71,20 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 	private transient int size;
 
 	/**
-	 * Creates a new set. All bits are initially <code>false</code>.
+	 * Creates a new, empty set. 
 	 */
 	public FastSet() {
 		clear();
+	}
+
+	/**
+	 * Creates a new, empty set. It preallocates the space for
+	 * <code>maxWordsInUse</code> words.
+	 */
+	private FastSet(int maxWordsInUse) {
+		wordsInUse = 0;
+		size = 0;
+		words = new int[maxWordsInUse];
 	}
 
 	/**
@@ -106,7 +116,8 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 	 */
 	private void fixWordsInUse() {
 		int i = wordsInUse - 1;
-		while (i >= 0 && words[i] == 0)
+		final int[] localWords = words; // faster
+		while (i >= 0 && localWords[i] == 0)
 			i--;
 		wordsInUse = i + 1;
 	}
@@ -157,8 +168,9 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 	@Override
 	public int hashCode() {
 		int h = 1;
+		final int[] localWords = words; // faster
 		for (int i = 0; i < wordsInUse; i++)
-			h = (h << 5) - h + words[i];
+			h = (h << 5) - h + localWords[i];
 		return h;
 	}
 
@@ -175,8 +187,10 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 		final FastSet other = (FastSet) obj;
 		if (wordsInUse != other.wordsInUse)
 			return false;
+		final int[] localWords = words; 				// faster
+		final int[] localOtherWords = other.words; 	// faster
 		for (int i = 0; i < wordsInUse; i++)
-			if (words[i] != other.words[i])
+			if (localWords[i] != localOtherWords[i])
 				return false;
 		return true;
 	}
@@ -258,11 +272,14 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 			wordsInUse = other.wordsInUse;
 		}
 
+		final int[] localWords = words; 			// faster
+		final int[] localOtherWords = other.words; 	// faster
+
 		// Perform logical OR on words in common
 		for (int i = 0; i < wordsInCommon; i++) {
-			int before = words[i];
-			words[i] |= other.words[i];
-			modified = modified || before != words[i];
+			int before = localWords[i];
+			localWords[i] |= localOtherWords[i];
+			modified = modified || before != localWords[i];
 		}
 
 		// Copy any remaining words
@@ -290,13 +307,15 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 		}
 		
 		final FastSet other = convert(c);
+		final int[] localWords = words; 			// faster
+		final int[] localOtherWords = other.words; 	// faster
 
 		// Perform logical (a & !b) on words in common
 		boolean modified = false;
 		for (int i = Math.min(wordsInUse, other.wordsInUse) - 1; i >= 0; i--) {
-			int before = words[i];
-			words[i] &= ~other.words[i];
-			modified = modified || before != words[i];
+			int before = localWords[i];
+			localWords[i] &= ~localOtherWords[i];
+			modified = modified || before != localWords[i];
 		}
 		if (modified) {
 			fixWordsInUse();
@@ -318,19 +337,21 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 		}
 		
 		final FastSet other = convert(c);
+		final int[] localWords = words; 			// faster
+		final int[] localOtherWords = other.words; 	// faster
 
 		boolean modified = false;
 		if (wordsInUse > other.wordsInUse) {
 			modified = true;
 			while (wordsInUse > other.wordsInUse)
-				words[--wordsInUse] = 0;
+				localWords[--wordsInUse] = 0;
 		}
 
 		// Perform logical AND on words in common
 		for (int i = 0; i < wordsInUse; i++) {
-			int before = words[i];
-			words[i] &= other.words[i];
-			modified = modified || before != words[i];
+			int before = localWords[i];
+			localWords[i] &= localOtherWords[i];
+			modified = modified || before != localWords[i];
 		}
 		if (modified) {
 			fixWordsInUse();
@@ -344,7 +365,7 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 	 */
 	@Override
 	public void clear() {
-		words = new int[1];
+		words = new int[10];
 		wordsInUse = 0;
 		size = 0;
 	}
@@ -376,9 +397,11 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 		if (other.wordsInUse > wordsInUse)
 			return false;
 
+		final int[] localWords = words; 			// faster
+		final int[] localOtherWords = other.words; 	// faster
 		for (int i = 0; i < other.wordsInUse; i++) {
-			int o = other.words[i];
-			if ((words[i] & o) != o)
+			int o = localOtherWords[i];
+			if ((localWords[i] & o) != o)
 				return false;
 		}
 		return true;
@@ -397,10 +420,12 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 			return size() >= minElements;
 
 		final FastSet other = convert(c);
+		final int[] localWords = words; 			// faster
+		final int[] localOtherWords = other.words; 	// faster
 
 		int count = 0;
 		for (int i = Math.min(wordsInUse, other.wordsInUse) - 1; i >= 0; i--) {
-			count += BitCount.count(words[i] & other.words[i]);
+			count += BitCount.count(localWords[i] & localOtherWords[i]);
 			if (count >= minElements)
 				return true;
 		}
@@ -418,9 +443,11 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 			return false;
 		
 		final FastSet other = convert(c);
+		final int[] localWords = words; 			// faster
+		final int[] localOtherWords = other.words; 	// faster
 			
 		for (int i = Math.min(wordsInUse, other.wordsInUse) - 1; i >= 0; i--)
-			if ((words[i] & other.words[i]) != 0)
+			if ((localWords[i] & localOtherWords[i]) != 0)
 				return true;
 		return false;
 	}
@@ -438,10 +465,12 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 			return 0;
 
 		final FastSet other = convert(c);
+		final int[] localWords = words; 			// faster
+		final int[] localOtherWords = other.words; 	// faster
 
 		int count = 0;
 		for (int i = Math.min(wordsInUse, other.wordsInUse) - 1; i >= 0; i--) 
-			count += BitCount.count(words[i] & other.words[i]);
+			count += BitCount.count(localWords[i] & localOtherWords[i]);
 		return count;
 	}
 
@@ -674,9 +703,10 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 		if (size > 0)
 			size = last() - size + 1;
 		int lastWordMask = ALL_ONES_WORD >>> Integer.numberOfLeadingZeros(words[wordsInUse - 1]);
+		final int[] localWords = words; 			// faster
 		for (int i = 0; i < wordsInUse - 1; i++)
-			words[i] ^= ALL_ONES_WORD;
-		words[wordsInUse - 1] ^= lastWordMask;
+			localWords[i] ^= ALL_ONES_WORD;
+		localWords[wordsInUse - 1] ^= lastWordMask;
 		fixWordsInUse();
 	}
 
@@ -698,43 +728,6 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 		return new FastSet();
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public FastSet symmetricDifference(IntSet c) {
-		if (c == null || c.isEmpty())
-			return clone();
-		if (c == this)
-			return empty();
-		
-		final FastSet other = convert(c);
-
-		if (c.isEmpty()) 
-			return other.clone();
-
-		FastSet cloned = clone();
-		cloned.size = -1;
-
-		int wordsInCommon = Math.min(cloned.wordsInUse, other.wordsInUse);
-
-		if (cloned.wordsInUse < other.wordsInUse) {
-			cloned.ensureCapacity(other.wordsInUse);
-			cloned.wordsInUse = other.wordsInUse;
-		}
-
-		// Perform logical XOR on words in common
-		for (int i = 0; i < wordsInCommon; i++)
-			cloned.words[i] ^= other.words[i];
-
-		// Copy any remaining words
-		if (wordsInCommon < other.wordsInUse)
-			System.arraycopy(other.words, wordsInCommon, cloned.words, wordsInCommon,
-					other.wordsInUse - wordsInCommon);
-		cloned.fixWordsInUse();
-		return cloned;
-	}
-	
 	/**
 	 * {@inheritDoc}
 	 */
@@ -808,6 +801,8 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 			return;
 		}
 
+		final int[] localWords = words; 			// faster
+
 		// Increase capacity if necessary
 		int startWordIndex = wordIndex(fromIndex);
 		int endWordIndex = wordIndex(toIndex);
@@ -818,26 +813,26 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 		int lastWordMask = ALL_ONES_WORD >>> -(toIndex + 1);
 		if (startWordIndex == endWordIndex) {
 			// Case 1: One word
-			int before = words[startWordIndex];
-			words[startWordIndex] |= (firstWordMask & lastWordMask);
-			modified = words[startWordIndex] != before;
+			int before = localWords[startWordIndex];
+			localWords[startWordIndex] |= (firstWordMask & lastWordMask);
+			modified = localWords[startWordIndex] != before;
 		} else {
 			// Case 2: Multiple words
 			// Handle first word
-			int before = words[startWordIndex];
-			words[startWordIndex] |= firstWordMask;
-			modified = words[startWordIndex] != before;
+			int before = localWords[startWordIndex];
+			localWords[startWordIndex] |= firstWordMask;
+			modified = localWords[startWordIndex] != before;
 
 			// Handle intermediate words, if any
 			for (int i = startWordIndex + 1; i < endWordIndex; i++) {
-				modified = modified || words[i] != ALL_ONES_WORD;
-				words[i] = ALL_ONES_WORD;
+				modified = modified || localWords[i] != ALL_ONES_WORD;
+				localWords[i] = ALL_ONES_WORD;
 			}
 
 			// Handle last word
-			before = words[endWordIndex];
-			words[endWordIndex] |= lastWordMask;
-			modified = modified || words[endWordIndex] != before;
+			before = localWords[endWordIndex];
+			localWords[endWordIndex] |= lastWordMask;
+			modified = modified || localWords[endWordIndex] != before;
 		}
 		if (modified)
 			size = -1;
@@ -866,31 +861,33 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 			endWordIndex = wordsInUse - 1;
 		}
 
+		final int[] localWords = words; 			// faster
+
 		boolean modified = false;
 		int firstWordMask = ALL_ONES_WORD << fromIndex;
 		int lastWordMask = ALL_ONES_WORD >>> -(toIndex + 1);
 		if (startWordIndex == endWordIndex) {
 			// Case 1: One word
-			int before = words[startWordIndex];
-			words[startWordIndex] &= ~(firstWordMask & lastWordMask);
-			modified = words[startWordIndex] != before;
+			int before = localWords[startWordIndex];
+			localWords[startWordIndex] &= ~(firstWordMask & lastWordMask);
+			modified = localWords[startWordIndex] != before;
 		} else {
 			// Case 2: Multiple words
 			// Handle first word
-			int before = words[startWordIndex];
-			words[startWordIndex] &= ~firstWordMask;
-			modified = words[startWordIndex] != before;
+			int before = localWords[startWordIndex];
+			localWords[startWordIndex] &= ~firstWordMask;
+			modified = localWords[startWordIndex] != before;
 
 			// Handle intermediate words, if any
 			for (int i = startWordIndex + 1; i < endWordIndex; i++) {
-				modified = modified || words[i] != 0;
-				words[i] = 0;
+				modified = modified || localWords[i] != 0;
+				localWords[i] = 0;
 			}
 
 			// Handle last word
-			before = words[endWordIndex];
-			words[endWordIndex] &= ~lastWordMask;
-			modified = modified || words[endWordIndex] != before;
+			before = localWords[endWordIndex];
+			localWords[endWordIndex] &= ~lastWordMask;
+			modified = modified || localWords[endWordIndex] != before;
 		}
 		if (modified) {
 			fixWordsInUse();
@@ -930,14 +927,16 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 			return 1;
 		
 		final FastSet other = convert(o);
+		final int[] localWords = words; 			// faster
+		final int[] localOtherWords = other.words; 	// faster
 
 		if (wordsInUse > other.wordsInUse)
 			return 1;
 		if (wordsInUse < other.wordsInUse)
 			return -1;
 		for (int i = wordsInUse - 1; i >= 0; i--) {
-			long w1 = words[i] & 0xFFFFFFFFL;
-			long w2 = other.words[i] & 0xFFFFFFFFL;
+			long w1 = localWords[i] & 0xFFFFFFFFL;
+			long w2 = localOtherWords[i] & 0xFFFFFFFFL;
 			int res = w1 < w2 ? -1 : (w1 > w2 ? 1 : 0);
 			if (res != 0)
 				return res;
@@ -954,8 +953,9 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 			throw new IndexOutOfBoundsException();
 		
 		int count = 0;
+		final int[] localWords = words; 			// faster
 		for (int j = 0; j < wordsInUse; j++) {
-			int w = words[j];
+			int w = localWords[j];
 			int current = BitCount.count(w);
 			if (index < count + current) {
 				int bit = -1;
@@ -979,6 +979,145 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 		return count;
 	}
 	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public FastSet intersection(IntSet other) {
+		if (isEmpty() || other == null || other.isEmpty())
+			return empty();
+		if (other == this)
+			return clone();
+		
+		final FastSet o = convert(other);
+		FastSet res = new FastSet(Math.min(wordsInUse, o.wordsInUse));
+		res.wordsInUse = res.words.length;
+		
+		final int[] localWords = words; 		// faster
+		final int[] localOtherWords = o.words; 	// faster
+		final int[] localResWords = res.words; 	// faster
+
+		for (int i = 0; i < res.wordsInUse; i++)
+			localResWords[i] = localWords[i] & localOtherWords[i];
+		res.fixWordsInUse();
+		res.size = -1;
+		return res;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public FastSet union(IntSet other) {
+		if (other == null || other.isEmpty() || this == other)
+			return clone();
+
+		final FastSet o = convert(other);
+		if (isEmpty())
+			return o.clone();
+
+		FastSet res = new FastSet(Math.max(wordsInUse, o.wordsInUse));
+		res.wordsInUse = res.words.length;
+		final int wordsInCommon = Math.min(wordsInUse, o.wordsInUse);
+
+		final int[] localWords = words; 		// faster
+		final int[] localOtherWords = o.words; 	// faster
+		final int[] localResWords = res.words; 	// faster
+
+		for (int i = 0; i < wordsInCommon; i++)
+			localResWords[i] = localWords[i] | localOtherWords[i];
+
+		if (wordsInCommon < wordsInUse)
+			System.arraycopy(localWords, wordsInCommon, localResWords, wordsInCommon,
+					res.wordsInUse - wordsInCommon);
+		if (wordsInCommon < o.wordsInUse)
+			System.arraycopy(localOtherWords, wordsInCommon, localResWords, wordsInCommon,
+					res.wordsInUse - wordsInCommon);
+		res.size = -1;
+		return res;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public FastSet difference(IntSet other) {
+		if (other == null || other.isEmpty())
+			return clone();
+		if (other == this || isEmpty())
+			return empty();
+		
+		final FastSet o = convert(other);
+		FastSet res = new FastSet(wordsInUse);
+		res.wordsInUse = wordsInUse;
+
+		final int[] localWords = words; 		// faster
+		final int[] localOtherWords = o.words; 	// faster
+		final int[] localResWords = res.words; 	// faster
+
+		for (int i = 0; i < res.wordsInUse; i++)
+			localResWords[i] = localWords[i] & ~localOtherWords[i];
+		res.fixWordsInUse();
+		res.size = -1;
+		return res;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public FastSet symmetricDifference(IntSet other) {
+		if (other == null || other.isEmpty())
+			return clone();
+		if (other == this)
+			return empty();
+		
+		final FastSet o = convert(other);
+		if (isEmpty()) 
+			return o.clone();
+
+		FastSet res = new FastSet(Math.max(wordsInUse, o.wordsInUse));
+		res.wordsInUse = res.words.length;
+		final int wordsInCommon = Math.min(wordsInUse, o.wordsInUse);
+
+		final int[] localWords = words; 		// faster
+		final int[] localOtherWords = o.words; 	// faster
+		final int[] localResWords = res.words; 	// faster
+
+		for (int i = 0; i < wordsInCommon; i++)
+			localResWords[i] = localWords[i] ^ localOtherWords[i];
+
+		if (wordsInCommon < wordsInUse)
+			System.arraycopy(localWords, wordsInCommon, localResWords, wordsInCommon,
+					res.wordsInUse - wordsInCommon);
+		else if (wordsInCommon < o.wordsInUse)
+			System.arraycopy(localOtherWords, wordsInCommon, localResWords, wordsInCommon,
+					res.wordsInUse - wordsInCommon);
+		else 
+			res.fixWordsInUse();
+		res.size = -1;
+		return res;
+	}
+	
+	/**
+	 * Save the state of the {@link ConciseSet}instance to a stream 
+	 */
+    private void writeObject(ObjectOutputStream s) throws IOException {
+    	assert words != null;
+    	if (wordsInUse < words.length)
+    		words = Arrays.copyOf(words, wordsInUse);
+    	s.defaultWriteObject();
+    }
+
+	/**
+	 * Reconstruct the {@link ConciseSet} instance from a stream 
+	 */
+    private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
+		s.defaultReadObject();
+		wordsInUse = words.length;
+		size = -1;
+    }
+    
 	/**
 	 * Generates the 32-bit binary representation of a given word (debug only)
 	 * 
@@ -1027,53 +1166,4 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 
 		return s.toString();
 	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public FastSet difference(IntSet other) {
-		FastSet clone = clone();
-		clone.removeAll(other);
-		return clone;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public FastSet intersection(IntSet other) {
-		FastSet clone = clone();
-		clone.retainAll(other);
-		return clone;
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public FastSet union(IntSet other) {
-		FastSet clone = clone();
-		clone.addAll(other);
-		return clone;
-	}
-
-	/**
-	 * Save the state of the {@link ConciseSet}instance to a stream 
-	 */
-    private void writeObject(ObjectOutputStream s) throws IOException {
-    	assert words != null;
-    	if (wordsInUse < words.length)
-    		words = Arrays.copyOf(words, wordsInUse);
-    	s.defaultWriteObject();
-    }
-
-	/**
-	 * Reconstruct the {@link ConciseSet} instance from a stream 
-	 */
-    private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
-		s.defaultReadObject();
-		wordsInUse = words.length;
-		size = -1;
-    }
 }
