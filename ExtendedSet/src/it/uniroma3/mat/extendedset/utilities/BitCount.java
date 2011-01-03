@@ -35,7 +35,21 @@ public class BitCount {
 	/**
 	 * Population count
 	 * <p>
-	 * It counts 24 words at a time, then 3 at a time, then 1 at a time
+	 * It counts a single word
+	 * 
+	 * @param word
+	 *            word to count
+	 * @return population count
+	 */
+	public static int count(int word) {
+		word -= ((word >>> 1) & 0x55555555);
+		word = (word & 0x33333333) + ((word >>> 2) & 0x33333333);
+		word = (word + (word >>> 4)) & 0x0F0F0F0F;
+		return (word * 0x01010101) >>> 24;
+	}
+
+	/**
+	 * Population count
 	 * 
 	 * @param buffer
 	 *            array of <code>int</code>
@@ -70,6 +84,7 @@ public class BitCount {
 		return cnt;
 	}
 
+	// used by count()
 	private static int merging3(int[] buffer, int x) {
 		int cnt1;
 		int cnt2;
@@ -89,6 +104,7 @@ public class BitCount {
 		return cnt & 0x00000FFFF;
 	}
 
+	// used by count()
 	private static int merging2(int[] buffer, int x) {
 		int cnt1 = buffer[x];
 		int cnt2 = buffer[x + 1];
@@ -104,30 +120,92 @@ public class BitCount {
 		return cnt1 & 0x000000FF;
 	}
 
+	// used by count()
 	private static int popcount_fbsd2(int[] data, int x, int n) {
 		int cnt = 0;
-		for (; x < n; x++) {
-			int v = data[x];
-			v -= ((v >>> 1) & 0x55555555);
-			v = (v & 0x33333333) + ((v >>> 2) & 0x33333333);
-			v = (v + (v >>> 4)) & 0x0F0F0F0F;
-			v = (v * 0x01010101) >>> 24;
-			cnt += v;
-		}
+		for (; x < n; x++)
+			cnt += count(data[x]);
 		return cnt;
 	}
 	
 	/**
-	 * Population count
-	 * <p>
-	 * It counts a single word
+	 * Population count, skipping words at even positions
 	 * 
-	 * @param word
-	 *            word to count
+	 * @param buffer
+	 *            array of <code>int</code>
 	 * @return population count
 	 */
-	public static int count(int word) {
-		return Integer.bitCount(word);
+	public static int count_2(int[] buffer) {
+		return count_2(buffer, buffer.length);
+	}
+
+	/**
+	 * Population count, skipping words at even positions
+	 * <p>
+	 * It counts 24 words at a time, then 3 at a time, then 1 at a time
+	 * 
+	 * @param buffer
+	 *            array of <code>int</code>
+	 * @param n
+	 *            number of elements of <code>buffer</code> to count
+	 * @return population count
+	 */
+	public static int count_2(int[] buffer, int n) {
+		final int n1 = n - n % 48;
+		final int n2 = n - n % 6;
+
+		int cnt = 0;
+		int i;
+		for (i = 0; i < n1; i += 48)
+			cnt += merging3_2(buffer, i);
+		for (; i < n2; i += 6)
+			cnt += merging2_2(buffer, i);
+		cnt += popcount_fbsd2_2(buffer, i, n);
+		return cnt;
+	}
+
+	// used by count_2()
+	private static int merging3_2(int[] buffer, int x) {
+		int cnt1;
+		int cnt2;
+		int cnt = 0;
+		for (int i = x; i < x + 48; i += 6) {
+			cnt1 = buffer[i + 1];
+			cnt2 = buffer[i + 3];
+			final int w = buffer[i + 5];
+			cnt1 = cnt1 - ((cnt1 >>> 1) & 0x55555555) + (w & 0x55555555);
+			cnt2 = cnt2 - ((cnt2 >>> 1) & 0x55555555) + ((w >>> 1) & 0x55555555);
+			cnt1 = (cnt1 & 0x33333333) + ((cnt1 >>> 2) & 0x33333333);
+			cnt1 += (cnt2 & 0x33333333) + ((cnt2 >>> 2) & 0x33333333);
+			cnt += (cnt1 & 0x0F0F0F0F) + ((cnt1 >>> 4) & 0x0F0F0F0F);
+		}
+		cnt = (cnt & 0x00FF00FF) + ((cnt >>> 8) & 0x00FF00FF);
+		cnt += cnt >>> 16;
+		return cnt & 0x00000FFFF;
+	}
+
+	// used by count_2()
+	private static int merging2_2(int[] buffer, int x) {
+		int cnt1 = buffer[x + 1];
+		int cnt2 = buffer[x + 3];
+		final int w = buffer[x + 5];
+		cnt1 = cnt1 - ((cnt1 >>> 1) & 0x55555555) + (w & 0x55555555);
+		cnt2 = cnt2 - ((cnt2 >>> 1) & 0x55555555) + ((w >>> 1) & 0x55555555);
+		cnt1 = (cnt1 & 0x33333333) + ((cnt1 >>> 2) & 0x33333333);
+		cnt2 = (cnt2 & 0x33333333) + ((cnt2 >>> 2) & 0x33333333);
+		cnt1 += cnt2;
+		cnt1 = (cnt1 & 0x0F0F0F0F) + ((cnt1 >>> 4) & 0x0F0F0F0F);
+		cnt1 += cnt1 >>> 8;
+		cnt1 += cnt1 >>> 16;
+		return cnt1 & 0x000000FF;
+	}
+
+	// used by count_2()
+	private static int popcount_fbsd2_2(int[] data, int x, int n) {
+		int cnt = 0;
+		for (x++; x < n; x += 2)
+			cnt += count(data[x]);
+		return cnt;
 	}
 
 	/**
@@ -138,10 +216,12 @@ public class BitCount {
 	public static void main(String[] args) {
 		final int trials = 10000;
 		final int maxLength = 10000;
-		final int seed = 31;
+
+		Random rnd = new Random();
+		final int seed = rnd.nextInt();
 
 		System.out.print("Test correctness... ");
-		Random rnd = new Random(seed);
+		rnd = new Random(seed);
 		for (int i = 0; i < trials; i++) {
 			int[] x = new int[rnd.nextInt(maxLength)];
 			for (int j = 0; j < x.length; j++)
@@ -157,6 +237,29 @@ public class BitCount {
 				System.out.println("ERRORE!");
 				System.out.println(size1 + ", " + size2);
 				for (int j = 0; j < x.length; j++)
+					System.out.format("x[%d] = %d --> %d\n", j, x[j], count(x[j]));
+				return;
+			}
+		}
+		System.out.println("done!");
+
+		System.out.print("Test correctness II... ");
+		rnd = new Random(seed);
+		for (int i = 0; i < trials; i++) {
+			int[] x = new int[rnd.nextInt(maxLength << 1)];
+			for (int j = 1; j < x.length; j += 2)
+				x[j] = rnd.nextInt(Integer.MAX_VALUE);
+
+			int size1 = 0;
+			for (int j = 1; j < x.length; j += 2)
+				size1 += count(x[j]);
+			int size2 = count_2(x);
+
+			if (size1 != size2) {
+				System.out.println("i = " + i);
+				System.out.println("ERRORE!");
+				System.out.println(size1 + ", " + size2);
+				for (int j = 1; j < x.length; j += 2)
 					System.out.format("x[%d] = %d --> %d\n", j, x[j], count(x[j]));
 				return;
 			}
@@ -185,6 +288,31 @@ public class BitCount {
 			for (int j = 0; j < x.length; j++)
 				x[j] = rnd.nextInt(Integer.MAX_VALUE);
 			count(x);
+		}
+		System.out.println(System.currentTimeMillis() - t);
+
+		System.out.print("Test II time count(): ");
+		rnd = new Random(seed);
+		t = System.currentTimeMillis();
+		for (int i = 0; i < trials; i++) {
+			int[] x = new int[rnd.nextInt(maxLength << 1)];
+			for (int j = 1; j < x.length; j += 2)
+				x[j] = rnd.nextInt(Integer.MAX_VALUE);
+
+			int size = 0;
+			for (int j = 1; j < x.length; j += 2)
+				size += count(x[j]);
+		}
+		System.out.println(System.currentTimeMillis() - t);
+
+		System.out.print("Test II time BitCount.count():   ");
+		rnd = new Random(seed);
+		t = System.currentTimeMillis();
+		for (int i = 0; i < trials; i++) {
+			int[] x = new int[rnd.nextInt(maxLength << 1)];
+			for (int j = 1; j < x.length; j += 2)
+				x[j] = rnd.nextInt(Integer.MAX_VALUE);
+			count_2(x);
 		}
 		System.out.println(System.currentTimeMillis() - t);
 	}

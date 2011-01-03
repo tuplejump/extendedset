@@ -300,19 +300,20 @@ public class ArraySet extends AbstractIntSet {
 			return false;
 		
 		final ArraySet o = convert(c);
-		int[] otherElements = o.elements;
+		final int[] thisElements = elements;		// faster
+		final int[] otherElements = o.elements;		// faster
 		int otherSize = o.size;
 		int thisIndex = -1;
 		int otherIndex = -1;
 		while (thisIndex < (size - 1) && otherIndex < (otherSize - 1)) {
 			thisIndex++;
 			otherIndex++;
-			while (elements[thisIndex] < otherElements[otherIndex]) {
+			while (thisElements[thisIndex] < otherElements[otherIndex]) {
 				if (thisIndex == size - 1)
 					return false;
 				thisIndex++;
 			}
-			if (elements[thisIndex] > otherElements[otherIndex])
+			if (thisElements[thisIndex] > otherElements[otherIndex])
 				return false;
 		}
 		return otherIndex == otherSize - 1;
@@ -329,22 +330,23 @@ public class ArraySet extends AbstractIntSet {
 			return false;
 
 		final ArraySet o = convert(other);
-		int[] otherElements = o.elements;
+		final int[] thisElements = elements;		// faster
+		final int[] otherElements = o.elements;		// faster
 		int otherSize = o.size;
 		int thisIndex = -1;
 		int otherIndex = -1;
 		while (thisIndex < (size - 1) && otherIndex < (otherSize - 1)) {
 			thisIndex++;
 			otherIndex++;
-			while (elements[thisIndex] != otherElements[otherIndex]) {
-				while (elements[thisIndex] > otherElements[otherIndex]) {
+			while (thisElements[thisIndex] != otherElements[otherIndex]) {
+				while (thisElements[thisIndex] > otherElements[otherIndex]) {
 					if (otherIndex == otherSize - 1)
 						return false;
 					otherIndex++;
 				}
-				if (elements[thisIndex] == otherElements[otherIndex])
+				if (thisElements[thisIndex] == otherElements[otherIndex])
 					break;
-				while (elements[thisIndex] < otherElements[otherIndex]) {
+				while (thisElements[thisIndex] < otherElements[otherIndex]) {
 					if (thisIndex == size - 1)
 						return false;
 					thisIndex++;
@@ -368,7 +370,8 @@ public class ArraySet extends AbstractIntSet {
 			return size() >= minElements;
 			
 		final ArraySet o = convert(other);
-		int[] otherElements = o.elements;
+		final int[] thisElements = elements;		// faster
+		final int[] otherElements = o.elements;		// faster
 		int otherSize = o.size;
 		int thisIndex = -1;
 		int otherIndex = -1;
@@ -376,15 +379,15 @@ public class ArraySet extends AbstractIntSet {
 		while (thisIndex < (size - 1) && otherIndex < (otherSize - 1)) {
 			thisIndex++;
 			otherIndex++;
-			while (elements[thisIndex] != otherElements[otherIndex]) {
-				while (elements[thisIndex] > otherElements[otherIndex]) {
+			while (thisElements[thisIndex] != otherElements[otherIndex]) {
+				while (thisElements[thisIndex] > otherElements[otherIndex]) {
 					if (otherIndex == otherSize - 1)
 						return false;
 					otherIndex++;
 				}
-				if (elements[thisIndex] == otherElements[otherIndex])
+				if (thisElements[thisIndex] == otherElements[otherIndex])
 					break;
-				while (elements[thisIndex] < otherElements[otherIndex]) {
+				while (thisElements[thisIndex] < otherElements[otherIndex]) {
 					if (thisIndex == size - 1)
 						return false;
 					thisIndex++;
@@ -437,9 +440,10 @@ public class ArraySet extends AbstractIntSet {
 	public int hashCode() {
         if (isEmpty())
             return 0;
+		final int[] thisElements = elements;		// faster
         int h = 1;
         for (int i = 0; i < size; i++)
-            h = (h << 5) - h + elements[i];
+            h = (h << 5) - h + thisElements[i];
         return h;
 	}
 
@@ -455,8 +459,10 @@ public class ArraySet extends AbstractIntSet {
 		final ArraySet other = (ArraySet) obj;
 		if (size != other.size)
 			return false;
+		final int[] thisElements = elements;		// faster
+		final int[] otherElements = other.elements;	// faster
         for (int i = 0; i < size; i++)
-        	if (elements[i] != other.elements[i])
+        	if (thisElements[i] != otherElements[i])
         		return false;
 		return true;
 	}
@@ -517,7 +523,8 @@ public class ArraySet extends AbstractIntSet {
 			return size();
 
 		final ArraySet o = convert(other);
-		int[] otherElements = o.elements;
+		final int[] thisElements = elements;		// faster
+		final int[] otherElements = o.elements;		// faster
 		int otherSize = o.size;
 		int thisIndex = -1;
 		int otherIndex = -1;
@@ -525,15 +532,15 @@ public class ArraySet extends AbstractIntSet {
 		while (thisIndex < (size - 1) && otherIndex < (otherSize - 1)) {
 			thisIndex++;
 			otherIndex++;
-			while (elements[thisIndex] != otherElements[otherIndex]) {
-				while (elements[thisIndex] > otherElements[otherIndex]) {
+			while (thisElements[thisIndex] != otherElements[otherIndex]) {
+				while (thisElements[thisIndex] > otherElements[otherIndex]) {
 					if (otherIndex == otherSize - 1)
 						return res;
 					otherIndex++;
 				}
-				if (elements[thisIndex] == otherElements[otherIndex])
+				if (thisElements[thisIndex] == otherElements[otherIndex])
 					break;
-				while (elements[thisIndex] < otherElements[otherIndex]) {
+				while (thisElements[thisIndex] < otherElements[otherIndex]) {
 					if (thisIndex == size - 1)
 						return res;
 					thisIndex++;
@@ -555,17 +562,18 @@ public class ArraySet extends AbstractIntSet {
 			return clone();
 		
 		final ArraySet o = convert(other);
-		int[] otherElements = o.elements;
 		int otherSize = o.size;
 		int thisIndex = -1;
 		int otherIndex = -1;
-		int[] resElements = new int[Math.min(size, otherSize)];
 		int resSize = 0;
+		final int[] thisElements = elements;		// faster
+		final int[] otherElements = o.elements;		// faster
+		final int[] resElements = new int[Math.min(size, otherSize)];
 		while (thisIndex < (size - 1) && otherIndex < (otherSize - 1)) {
 			thisIndex++;
 			otherIndex++;
-			while (elements[thisIndex] != otherElements[otherIndex]) {
-				while (elements[thisIndex] > otherElements[otherIndex]) {
+			while (thisElements[thisIndex] != otherElements[otherIndex]) {
+				while (thisElements[thisIndex] > otherElements[otherIndex]) {
 					if (otherIndex == otherSize - 1) {
 						ArraySet res = empty();
 						res.elements = resElements;
@@ -575,9 +583,9 @@ public class ArraySet extends AbstractIntSet {
 					}
 					otherIndex++;
 				}
-				if (elements[thisIndex] == otherElements[otherIndex])
+				if (thisElements[thisIndex] == otherElements[otherIndex])
 					break;
-				while (elements[thisIndex] < otherElements[otherIndex]) {
+				while (thisElements[thisIndex] < otherElements[otherIndex]) {
 					if (thisIndex == size - 1) {
 						ArraySet res = empty();
 						res.elements = resElements;
@@ -588,7 +596,7 @@ public class ArraySet extends AbstractIntSet {
 					thisIndex++;
 				}
 			}
-			resElements[resSize++] = elements[thisIndex];
+			resElements[resSize++] = thisElements[thisIndex];
 		}
 		
 		ArraySet res = empty();
@@ -613,29 +621,30 @@ public class ArraySet extends AbstractIntSet {
 		}
 		
 		final ArraySet o = convert(other);
-		int[] otherElements = o.elements;
 		int otherSize = o.size;
 		int thisIndex = -1;
 		int otherIndex = -1;
-		int[] resElements = new int[size + otherSize];
 		int resSize = 0;
+		final int[] thisElements = elements;		// faster
+		final int[] otherElements = o.elements;		// faster
+		final int[] resElements = new int[size + otherSize];
 		mainLoop:
 		while (thisIndex < (size - 1) && otherIndex < (otherSize - 1)) {
 			thisIndex++;
 			otherIndex++;
-			while (elements[thisIndex] != otherElements[otherIndex]) {
-				while (elements[thisIndex] > otherElements[otherIndex]) {
+			while (thisElements[thisIndex] != otherElements[otherIndex]) {
+				while (thisElements[thisIndex] > otherElements[otherIndex]) {
 					resElements[resSize++] = otherElements[otherIndex];
 					if (otherIndex == otherSize - 1) {
-						resElements[resSize++] = elements[thisIndex];
+						resElements[resSize++] = thisElements[thisIndex];
 						break mainLoop;
 					}
 					otherIndex++;
 				}
-				if (elements[thisIndex] == otherElements[otherIndex])
+				if (thisElements[thisIndex] == otherElements[otherIndex])
 					break;
-				while (elements[thisIndex] < otherElements[otherIndex]) {
-					resElements[resSize++] = elements[thisIndex];
+				while (thisElements[thisIndex] < otherElements[otherIndex]) {
+					resElements[resSize++] = thisElements[thisIndex];
 					if (thisIndex == size - 1) {
 						resElements[resSize++] = otherElements[otherIndex];
 						break mainLoop;
@@ -643,10 +652,10 @@ public class ArraySet extends AbstractIntSet {
 					thisIndex++;
 				}
 			}
-			resElements[resSize++] = elements[thisIndex];
+			resElements[resSize++] = thisElements[thisIndex];
 		}
 		while (thisIndex < size - 1)
-			resElements[resSize++] = elements[++thisIndex];
+			resElements[resSize++] = thisElements[++thisIndex];
 		while (otherIndex < otherSize - 1)
 			resElements[resSize++] = otherElements[++otherIndex];
 		
@@ -668,28 +677,29 @@ public class ArraySet extends AbstractIntSet {
 			return clone();
 		
 		final ArraySet o = convert(other);
-		int[] otherElements = o.elements;
 		int otherSize = o.size;
 		int thisIndex = -1;
 		int otherIndex = -1;
-		int[] resElements = new int[size];
 		int resSize = 0;
+		final int[] thisElements = elements;		// faster
+		final int[] otherElements = o.elements;		// faster
+		final int[] resElements = new int[size];
 		mainLoop:
 		while (thisIndex < (size - 1) && otherIndex < (otherSize - 1)) {
 			thisIndex++;
 			otherIndex++;
-			while (elements[thisIndex] != otherElements[otherIndex]) {
-				while (elements[thisIndex] > otherElements[otherIndex]) {
+			while (thisElements[thisIndex] != otherElements[otherIndex]) {
+				while (thisElements[thisIndex] > otherElements[otherIndex]) {
 					if (otherIndex == otherSize - 1) {
-						resElements[resSize++] = elements[thisIndex];
+						resElements[resSize++] = thisElements[thisIndex];
 						break mainLoop;
 					}
 					otherIndex++;
 				}
-				if (elements[thisIndex] == otherElements[otherIndex])
+				if (thisElements[thisIndex] == otherElements[otherIndex])
 					break;
-				while (elements[thisIndex] < otherElements[otherIndex]) {
-					resElements[resSize++] = elements[thisIndex];
+				while (thisElements[thisIndex] < otherElements[otherIndex]) {
+					resElements[resSize++] = thisElements[thisIndex];
 					if (thisIndex == size - 1) {
 						break mainLoop;
 					}
@@ -698,7 +708,7 @@ public class ArraySet extends AbstractIntSet {
 			}
 		}
 		while (thisIndex < size - 1)
-			resElements[resSize++] = elements[++thisIndex];
+			resElements[resSize++] = thisElements[++thisIndex];
 		
 		ArraySet res = empty();
 		res.elements = resElements;
@@ -718,29 +728,30 @@ public class ArraySet extends AbstractIntSet {
 			return convert(other).clone();
 		
 		final ArraySet o = convert(other);
-		int[] otherElements = o.elements;
 		int otherSize = o.size;
 		int thisIndex = -1;
 		int otherIndex = -1;
-		int[] resElements = new int[size + otherSize];
 		int resSize = 0;
+		final int[] thisElements = elements;		// faster
+		final int[] otherElements = o.elements;		// faster
+		final int[] resElements = new int[size + otherSize];
 		mainLoop:
 		while (thisIndex < (size - 1) && otherIndex < (otherSize - 1)) {
 			thisIndex++;
 			otherIndex++;
-			while (elements[thisIndex] != otherElements[otherIndex]) {
-				while (elements[thisIndex] > otherElements[otherIndex]) {
+			while (thisElements[thisIndex] != otherElements[otherIndex]) {
+				while (thisElements[thisIndex] > otherElements[otherIndex]) {
 					resElements[resSize++] = otherElements[otherIndex];
 					if (otherIndex == otherSize - 1) {
-						resElements[resSize++] = elements[thisIndex];
+						resElements[resSize++] = thisElements[thisIndex];
 						break mainLoop;
 					}
 					otherIndex++;
 				}
-				if (elements[thisIndex] == otherElements[otherIndex])
+				if (thisElements[thisIndex] == otherElements[otherIndex])
 					break;
-				while (elements[thisIndex] < otherElements[otherIndex]) {
-					resElements[resSize++] = elements[thisIndex];
+				while (thisElements[thisIndex] < otherElements[otherIndex]) {
+					resElements[resSize++] = thisElements[thisIndex];
 					if (thisIndex == size - 1) {
 						resElements[resSize++] = otherElements[otherIndex];
 						break mainLoop;
@@ -750,7 +761,7 @@ public class ArraySet extends AbstractIntSet {
 			}
 		}
 		while (thisIndex < size - 1)
-			resElements[resSize++] = elements[++thisIndex];
+			resElements[resSize++] = thisElements[++thisIndex];
 		while (otherIndex < otherSize - 1)
 			resElements[resSize++] = otherElements[++otherIndex];
 
@@ -771,12 +782,13 @@ public class ArraySet extends AbstractIntSet {
 		
 		IntIterator thisItr = clone().iterator(); // avoid concurrency
 		elements = new int[complementSize()];
+		final int[] thisElements = elements;		// faster
 		size = 0;
 		int u = -1;
 		while (thisItr.hasNext()) {
 			int c = thisItr.next();
 			while (++u < c)  
-				elements[size++] = u;
+				thisElements[size++] = u;
 		}
 	}
 	
@@ -791,21 +803,25 @@ public class ArraySet extends AbstractIntSet {
 			add(from);
 			return;
 		}
+
+		int[] thisElements = elements;		// faster
+
 		if (isEmpty()) {
 			size = to - from + 1;
 			ensureCapacity();
+			thisElements = elements;
 			for (int i = 0; i < size; i++) 
-				elements[i] = from++;
+				thisElements[i] = from++;
 			return;
 		}
 
 		// increase capacity, if necessary
-		int posFrom = Arrays.binarySearch(elements, 0, size, from);
+		int posFrom = Arrays.binarySearch(thisElements, 0, size, from);
 		boolean fromMissing = posFrom < 0;
 		if (fromMissing) 
 			posFrom = -posFrom - 1;
 
-		int posTo = Arrays.binarySearch(elements, posFrom, size, to);
+		int posTo = Arrays.binarySearch(thisElements, posFrom, size, to);
 		boolean toMissing = posTo < 0;
 		if (toMissing) 
 			posTo = -posTo - 1;
@@ -819,12 +835,13 @@ public class ArraySet extends AbstractIntSet {
 		if (delta > 0) {
 			size += delta;
 			ensureCapacity();
-			System.arraycopy(elements, posTo, elements, posTo + delta, size - delta - posTo);
+			thisElements = elements;
+			System.arraycopy(thisElements, posTo, thisElements, posTo + delta, size - delta - posTo);
 			posTo = posFrom + gap;
 
 			// set values
 			for (int i = posFrom; i <= posTo; i++) 
-				elements[i] = from++;
+				thisElements[i] = from++;
 		}
 	}
 	

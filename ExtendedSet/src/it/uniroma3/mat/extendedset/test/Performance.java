@@ -19,30 +19,25 @@
 
 package it.uniroma3.mat.extendedset.test;
 
+import it.uniroma3.mat.extendedset.intset.ArraySet;
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 import it.uniroma3.mat.extendedset.intset.FastSet;
-import it.uniroma3.mat.extendedset.intset.HashIntSet;
 import it.uniroma3.mat.extendedset.intset.development.Concise2Set;
-import it.uniroma3.mat.extendedset.intset.development.ConcisePlusSet;
+import it.uniroma3.mat.extendedset.intset.development.Concise3Set;
 import it.uniroma3.mat.extendedset.others.GenericExtendedSet;
 import it.uniroma3.mat.extendedset.wrappers.IntegerSet;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Map;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.Map.Entry;
 
 /**
  * Class for performance evaluation.
- * <p>
- * This class has been used to produce the pictures in <a
- * href="http://arxiv.org/abs/1004.0403">http://arxiv.org/abs/1004.0403</a>.
  * 
  * @author Alessandro Colantonio
  * @version $Id$
@@ -53,12 +48,14 @@ public class Performance {
 		private static final long serialVersionUID = -5048707825606872979L;
 		WAHSet() {super(true);}
 	}
-	private static class IntegerHashSet extends IntegerSet {IntegerHashSet() {super(new HashIntSet());}}
+	private static class IntegerArraySet extends IntegerSet {IntegerArraySet() {super(new ArraySet());}}
+//	private static class IntegerHashSet extends IntegerSet {IntegerHashSet() {super(new HashIntSet());}}
 	private static class IntegerFastSet extends IntegerSet {IntegerFastSet() {super(new FastSet());}}
-	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new ConciseSet());}}
-	private static class IntegerConcisePlusSet extends IntegerSet {IntegerConcisePlusSet() {super(new ConcisePlusSet());}}
-	private static class IntegerConcise2Set extends IntegerSet {IntegerConcise2Set() {super(new Concise2Set());}}
-	private static class IntegerWAHSet extends IntegerSet {IntegerWAHSet() {super(new WAHSet());}}
+//	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new ConciseSet());}}
+//	private static class IntegerConcisePlusSet extends IntegerSet {IntegerConcisePlusSet() {super(new ConcisePlusSet());}}
+//	private static class IntegerConcise2Set extends IntegerSet {IntegerConcise2Set() {super(new Concise2Set());}}
+	private static class IntegerConcise3Set extends IntegerSet {IntegerConcise3Set() {super(new Concise3Set());}}
+//	private static class IntegerWAHSet extends IntegerSet {IntegerWAHSet() {super(new WAHSet());}}
 
 	/** 
 	 * Class to test the sorted array
@@ -81,7 +78,7 @@ public class Performance {
 	}
 
 	/** number of times to repeat each test */
-	private final static int REPETITIONS = 5;
+	private final static int REPETITIONS = 10;
 
 	/** minimum element */
 	private final static int SHIFT = 1000;
@@ -141,6 +138,10 @@ public class Performance {
 		Collection<Integer>[] cRemoveAll = new Collection[REPETITIONS];
 		Collection<Integer>[] cRetainAll = new Collection[REPETITIONS];
 		Collection<Integer>[] cRighOperand = new Collection[REPETITIONS];
+		IntegerSet[] cLeftOperand = new IntegerSet[REPETITIONS];
+		IntegerSet[] cUnionResults = new IntegerSet[REPETITIONS];
+		IntegerSet[] cDifferenceResults = new IntegerSet[REPETITIONS];
+		IntegerSet[] cIntersectionResults = new IntegerSet[REPETITIONS];
 
 		// CREATION
 		for (int i = 0; i < REPETITIONS; i++) {
@@ -150,6 +151,7 @@ public class Performance {
 				cRemoveAll[i] = (Collection) classToTest.newInstance();
 				cRetainAll[i] = (Collection) classToTest.newInstance();
 				cRighOperand[i] = (Collection) classToTest.newInstance(); 
+				cLeftOperand[i] = (IntegerSet) classToTest.newInstance(); 
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			} 
@@ -158,18 +160,17 @@ public class Performance {
 		// APPEND/ADDITION
 		startTimer();
 		for (int i = 0; i < REPETITIONS; i++) {
-			for (Integer x : leftOperand)
-				cAddAndRemove[i].add(x);
 			for (Integer x : rightOperand)
 				cRighOperand[i].add(x);
-			for (Integer x : leftOperand)
+			for (Integer x : leftOperand) {
+				cAddAndRemove[i].add(x);
+				cLeftOperand[i].add(x);
 				cAddAll[i].add(x);
-			for (Integer x : leftOperand)
 				cRetainAll[i].add(x);
-			for (Integer x : leftOperand)
 				cRemoveAll[i].add(x);
+			}
 		}
-		endTimer(classToTest, "1) add()", REPETITIONS * (4 * leftOperand.size() + rightOperand.size()));
+		endTimer(classToTest, "01) add()", REPETITIONS * (4 * leftOperand.size() + rightOperand.size()));
 
 		// REMOVAL
 		startTimer();
@@ -177,7 +178,7 @@ public class Performance {
 			for (Integer x : rightOperand)
 				cAddAndRemove[i].remove(x);
 		}
-		endTimer(classToTest, "2) remove()", rightOperand.size() * REPETITIONS);
+		endTimer(classToTest, "02) remove()", rightOperand.size() * REPETITIONS);
 		
 		// CONTAINS
 		startTimer();
@@ -185,35 +186,56 @@ public class Performance {
 			for (Integer x : rightOperand)
 				cAddAll[i].contains(x);
 		}
-		endTimer(classToTest, "3) contains()", rightOperand.size() * REPETITIONS);
+		endTimer(classToTest, "03) contains()", rightOperand.size() * REPETITIONS);
 		
 		// AND SIZE
 		startTimer();
 		for (int i = 0; i < REPETITIONS; i++) {
 			cAddAll[i].containsAll(cRighOperand[i]);
 		}
-		endTimer(classToTest, "4) containsAll()", REPETITIONS);
+		endTimer(classToTest, "04) containsAll()", REPETITIONS);
 		
 		// UNION
 		startTimer();
 		for (int i = 0; i < REPETITIONS; i++) {
 			cAddAll[i].addAll(cRighOperand[i]);
 		}
-		endTimer(classToTest, "5) addAll()", REPETITIONS);
+		endTimer(classToTest, "05) addAll()", REPETITIONS);
 		
 		// DIFFERENCE
 		startTimer();
 		for (int i = 0; i < REPETITIONS; i++) {
 			cRemoveAll[i].removeAll(cRighOperand[i]);
 		}
-		endTimer(classToTest, "6) removeAll()", REPETITIONS);
+		endTimer(classToTest, "06) removeAll()", REPETITIONS);
 		
 		// INTERSECTION
 		startTimer();
 		for (int i = 0; i < REPETITIONS; i++) {
 			cRetainAll[i].retainAll(cRighOperand[i]);
 		}
-		endTimer(classToTest, "7) retainAll()", REPETITIONS);
+		endTimer(classToTest, "07) retainAll()", REPETITIONS);
+
+		// UNION
+		startTimer();
+		for (int i = 0; i < REPETITIONS; i++) {
+			cUnionResults[i] = cLeftOperand[i].union(cRighOperand[i]);
+		}
+		endTimer(classToTest, "08) union()", REPETITIONS);
+		
+		// DIFFERENCE
+		startTimer();
+		for (int i = 0; i < REPETITIONS; i++) {
+			cDifferenceResults[i] = cLeftOperand[i].difference(cRighOperand[i]);
+		}
+		endTimer(classToTest, "09) difference()", REPETITIONS);
+		
+		// INTERSECTION
+		startTimer();
+		for (int i = 0; i < REPETITIONS; i++) {
+			cIntersectionResults[i] = cLeftOperand[i].intersection(cRighOperand[i]);
+		}
+		endTimer(classToTest, "10) intersection()", REPETITIONS);
 	}
 	
 	/**
@@ -238,7 +260,7 @@ public class Performance {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		boolean calcMemory = true;
+		boolean calcMemory = false;
 		boolean calcTime = true;
 		
 		boolean calcUniform = true;
@@ -246,7 +268,7 @@ public class Performance {
 		boolean calcZipfian = false;
 		
 		int minCardinality = 10000;
-		int maxCardinality = 100000;
+		int maxCardinality = 10000;
 		
 		/*
 		 * MEMORY
@@ -316,15 +338,16 @@ public class Performance {
 //				LinkedList.class,
 //				ArrayListSet.class, 
 //				LinkedListSet.class, 
-				HashSet.class,
-				TreeSet.class,
-//				ArraySet.class, 
+//				HashSet.class,
+//				TreeSet.class,
+				IntegerArraySet.class, 
 				IntegerFastSet.class, 
-				IntegerHashSet.class,
-				IntegerWAHSet.class, 
-				IntegerConciseSet.class,
-				IntegerConcisePlusSet.class,
-				IntegerConcise2Set.class,
+//				IntegerHashSet.class,
+//				IntegerWAHSet.class, 
+//				IntegerConciseSet.class,
+//				IntegerConcisePlusSet.class,
+//				IntegerConcise2Set.class,
+				IntegerConcise3Set.class,
 				};
 
 		/*

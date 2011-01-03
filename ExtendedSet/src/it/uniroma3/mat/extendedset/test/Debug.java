@@ -25,6 +25,7 @@ import it.uniroma3.mat.extendedset.intset.ConciseSet;
 import it.uniroma3.mat.extendedset.intset.FastSet;
 import it.uniroma3.mat.extendedset.intset.HashIntSet;
 import it.uniroma3.mat.extendedset.intset.development.Concise2Set;
+import it.uniroma3.mat.extendedset.intset.development.Concise3Set;
 import it.uniroma3.mat.extendedset.intset.development.ConcisePlusSet;
 import it.uniroma3.mat.extendedset.others.GenericArraySet;
 import it.uniroma3.mat.extendedset.others.GenericExtendedSet;
@@ -303,7 +304,7 @@ public class Debug {
 		SortedSet<Integer> itemsLeft = new TreeSet<Integer>();
 		SortedSet<Integer> itemsRight = new TreeSet<Integer>();
 		
-		boolean testFillAndClear = false;
+		boolean testFillAndClear = true;
 
 		Random r = new MersenneTwister();
 		final int maxCardinality = 1000;
@@ -608,6 +609,7 @@ public class Debug {
 			 * symmetricDifference() and symmetricDifferenceSize()
 			 * complement() and complementSize()
 			 */
+			ExtendedSet<Integer> alternative = null;
 			int operationSize = 0;
 			boolean resItems = true, resBits = true;
 			switch (1 + r.nextInt(5)) {
@@ -615,6 +617,7 @@ public class Debug {
 				System.out.format(" union of %d elements with %d elements... ", itemsLeft.size(), itemsRight.size());
 				operationSize = bitsLeft.unionSize(bitsRight);
 				resItems = itemsLeft.addAll(itemsRight);
+				alternative = bitsLeft.union(bitsRight);
 				resBits = bitsLeft.addAll(bitsRight);
 				break;
 
@@ -622,6 +625,7 @@ public class Debug {
 				System.out.format(" difference of %d elements with %d elements... ", itemsLeft.size(), itemsRight.size());
 				operationSize = bitsLeft.differenceSize(bitsRight);
 				resItems = itemsLeft.removeAll(itemsRight);
+				alternative = bitsLeft.difference(bitsRight);
 				resBits = bitsLeft.removeAll(bitsRight);
 				break;
 
@@ -629,6 +633,7 @@ public class Debug {
 				System.out.format(" intersection of %d elements with %d elements... ", itemsLeft.size(), itemsRight.size());
 				operationSize = bitsLeft.intersectionSize(bitsRight);
 				resItems = itemsLeft.retainAll(itemsRight);
+				alternative = bitsLeft.intersection(bitsRight);
 				resBits = bitsLeft.retainAll(bitsRight);
 				break;
 
@@ -640,6 +645,7 @@ public class Debug {
 				itemsLeft.removeAll(itemsRight);
 				itemsLeft.addAll(temp);
 				bitsLeft = bitsLeft.symmetricDifference(bitsRight);
+				alternative = bitsLeft;
 				break;
 
 			case 5:
@@ -650,7 +656,10 @@ public class Debug {
 						if (!itemsLeft.add(j))
 							itemsLeft.remove(j);
 				bitsLeft.complement();
+				alternative = bitsLeft;
 				break;
+			default:
+				throw new RuntimeException("Unexpected error!");
 			}
 			
 			// check the list of elements
@@ -707,6 +716,16 @@ public class Debug {
 				return;
 			}
 
+			// check similar results
+			if (!bitsLeft.equals(alternative)) {
+				System.out.println("ALTERNATIVE OPERATION ERROR!");
+				System.out.println("bitsLeft:");
+				System.out.println(bitsLeft.debugInfo());
+				System.out.println("alternative:");
+				System.out.println(alternative.debugInfo());
+				return;
+			}
+			
 			System.out.println("done.");
 		}
 	}
@@ -1314,15 +1333,17 @@ public class Debug {
 	private static class IntegerHashSet extends IntegerSet {IntegerHashSet() {super(new IntSetStatistics(new HashIntSet()));}}
 	@SuppressWarnings("unused")
 	private static class IntegerFastSet extends IntegerSet {IntegerFastSet() {super(new IntSetStatistics(new FastSet()));}}
-//	@SuppressWarnings("unused")
+	@SuppressWarnings("unused")
 	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new IntSetStatistics(new ConciseSet()));}}
 	@SuppressWarnings("unused")
 	private static class IntegerConcise2Set extends IntegerSet {IntegerConcise2Set() {super(new IntSetStatistics(new Concise2Set()));}}
 	@SuppressWarnings("unused")
+	private static class IntegerConcise3Set extends IntegerSet {IntegerConcise3Set() {super(new IntSetStatistics(new Concise3Set()));}}
+	@SuppressWarnings("unused")
 	private static class IntegerWAHSet extends IntegerSet {IntegerWAHSet() {super(new IntSetStatistics(new ConciseSet(true)));}}
 	@SuppressWarnings("unused")
 	private static class IntegerConcisePlusSet extends IntegerSet {IntegerConcisePlusSet() {super(new IntSetStatistics(new ConcisePlusSet()));}}
-	@SuppressWarnings("unused")
+//	@SuppressWarnings("unused")
 	private static class IntegerArraySet extends IntegerSet {IntegerArraySet() {super(new IntSetStatistics(new ArraySet()));}}
 	@SuppressWarnings("unused")
 	private static class IntegerArraySet2 extends GenericArraySet<Integer> {public IntegerArraySet2() {/* */}}
@@ -1344,13 +1365,14 @@ public class Debug {
 		
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerHashSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerFastSet.class;
-		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConciseSet.class;
+//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConciseSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcise2Set.class;
+//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcise3Set.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcisePlusSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerWAHSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = ListSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = LinkedSet.class;
-//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerArraySet.class;
+		Class<? extends ExtendedSet<Integer>> classToTest = IntegerArraySet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerArraySet2.class;
 		
 		if (args != null && args.length > 0) {
