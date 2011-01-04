@@ -357,46 +357,6 @@ public interface ExtendedSet<T> extends SortedSet<T>, Cloneable, Comparable<Exte
 	public int powerSetSize(int min, int max);
 
 	/**
-	 * Adds the last item of the given set to the current set
-	 * 
-	 * @param set
-	 *            set where to pick the last item
-	 * @return <code>true</code> if this set did not already contain the
-	 *         specified element
-	 */
-	public boolean addLastOf(SortedSet<T> set);
-
-	/**
-	 * Adds the first item of the given set to the current set
-	 * 
-	 * @param set
-	 *            set where to pick the first item
-	 * @return <code>true</code> if this set did not already contain the
-	 *         specified element
-	 */
-	public boolean addFirstOf(SortedSet<T> set);
-
-	/**
-	 * Removes the last item of the given set from the current set
-	 * 
-	 * @param set
-	 *            set where to pick the last item
-	 * @return <code>true</code> if this set already contained the
-	 *         specified element
-	 */
-	public boolean removeLastOf(SortedSet<T> set);
-
-	/**
-	 * Removes the first item of the given set from the current set
-	 * 
-	 * @param set
-	 *            set where to pick the first item
-	 * @return <code>true</code> if this set already contained the
-	 *         specified element
-	 */
-	public boolean removeFirstOf(SortedSet<T> set);
-
-	/**
 	 * Prints debug info about the given {@link ExtendedSet} implementation
 	 * 
 	 * @return a string that describes the internal representation of the

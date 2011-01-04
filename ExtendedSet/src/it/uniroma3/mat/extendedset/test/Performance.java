@@ -113,7 +113,10 @@ public class Performance {
 		Map<Class<?>, Double> measure = TIME_VALUES.get(name);
 		if (measure == null)
 			TIME_VALUES.put(name, measure = new HashMap<Class<?>, Double>());
-		measure.put(c, t);	
+		
+		Double old = measure.get(c);
+		if (old == null || old > t)
+			measure.put(c, t);	
 	}
 
 	/**
@@ -158,8 +161,8 @@ public class Performance {
 		}
 		
 		// APPEND/ADDITION
-		startTimer();
 		for (int i = 0; i < REPETITIONS; i++) {
+			startTimer();
 			for (Integer x : rightOperand)
 				cRighOperand[i].add(x);
 			for (Integer x : leftOperand) {
@@ -169,73 +172,73 @@ public class Performance {
 				cRetainAll[i].add(x);
 				cRemoveAll[i].add(x);
 			}
+			endTimer(classToTest, "01) add()", (4 * leftOperand.size() + rightOperand.size()));
 		}
-		endTimer(classToTest, "01) add()", REPETITIONS * (4 * leftOperand.size() + rightOperand.size()));
 
 		// REMOVAL
-		startTimer();
 		for (int i = 0; i < REPETITIONS; i++) {
+			startTimer();
 			for (Integer x : rightOperand)
 				cAddAndRemove[i].remove(x);
+			endTimer(classToTest, "02) remove()", rightOperand.size());
 		}
-		endTimer(classToTest, "02) remove()", rightOperand.size() * REPETITIONS);
 		
 		// CONTAINS
-		startTimer();
 		for (int i = 0; i < REPETITIONS; i++) {
+			startTimer();
 			for (Integer x : rightOperand)
 				cAddAll[i].contains(x);
+			endTimer(classToTest, "03) contains()", rightOperand.size());
 		}
-		endTimer(classToTest, "03) contains()", rightOperand.size() * REPETITIONS);
 		
 		// AND SIZE
-		startTimer();
 		for (int i = 0; i < REPETITIONS; i++) {
+			startTimer();
 			cAddAll[i].containsAll(cRighOperand[i]);
+			endTimer(classToTest, "04) containsAll()", 1);
 		}
-		endTimer(classToTest, "04) containsAll()", REPETITIONS);
 		
 		// UNION
-		startTimer();
 		for (int i = 0; i < REPETITIONS; i++) {
+			startTimer();
 			cAddAll[i].addAll(cRighOperand[i]);
+			endTimer(classToTest, "05) addAll()", 1);
 		}
-		endTimer(classToTest, "05) addAll()", REPETITIONS);
 		
 		// DIFFERENCE
-		startTimer();
 		for (int i = 0; i < REPETITIONS; i++) {
+			startTimer();
 			cRemoveAll[i].removeAll(cRighOperand[i]);
+			endTimer(classToTest, "06) removeAll()", 1);
 		}
-		endTimer(classToTest, "06) removeAll()", REPETITIONS);
 		
 		// INTERSECTION
-		startTimer();
 		for (int i = 0; i < REPETITIONS; i++) {
+			startTimer();
 			cRetainAll[i].retainAll(cRighOperand[i]);
+			endTimer(classToTest, "07) retainAll()", 1);
 		}
-		endTimer(classToTest, "07) retainAll()", REPETITIONS);
 
 		// UNION
-		startTimer();
 		for (int i = 0; i < REPETITIONS; i++) {
+			startTimer();
 			cUnionResults[i] = cLeftOperand[i].union(cRighOperand[i]);
+			endTimer(classToTest, "08) union()", 1);
 		}
-		endTimer(classToTest, "08) union()", REPETITIONS);
 		
 		// DIFFERENCE
-		startTimer();
 		for (int i = 0; i < REPETITIONS; i++) {
 			cDifferenceResults[i] = cLeftOperand[i].difference(cRighOperand[i]);
+			startTimer();
+			endTimer(classToTest, "09) difference()", 1);
 		}
-		endTimer(classToTest, "09) difference()", REPETITIONS);
 		
 		// INTERSECTION
-		startTimer();
 		for (int i = 0; i < REPETITIONS; i++) {
+			startTimer();
 			cIntersectionResults[i] = cLeftOperand[i].intersection(cRighOperand[i]);
+			endTimer(classToTest, "10) intersection()", 1);
 		}
-		endTimer(classToTest, "10) intersection()", REPETITIONS);
 	}
 	
 	/**
@@ -252,6 +255,7 @@ public class Performance {
 			}
 			System.out.println();
 		}
+		TIME_VALUES.clear();
 	}
 
 	/**
@@ -398,7 +402,8 @@ public class Performance {
 					testClass(c, x, y);
 					testClass(c, x, y);
 				}
-				for (double density = .0001; density < 1D; density *= 1.7) {
+				for (double density = .0001; density < 1D; density *= 1.2) {
+//				for (double density = .0001; density < 1D; density *= 1.7) {
 //				for (double density = .0041; density < 1D; density *= 1.7) {
 //				for (double density = 0.8272; density > 0.00005; density /= 1.7) {
 					switch (i) {

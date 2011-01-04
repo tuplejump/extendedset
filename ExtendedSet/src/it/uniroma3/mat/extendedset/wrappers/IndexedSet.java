@@ -24,6 +24,7 @@ import it.uniroma3.mat.extendedset.ExtendedSet;
 import it.uniroma3.mat.extendedset.intset.IntSet;
 import it.uniroma3.mat.extendedset.intset.IntSet.IntIterator;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -31,7 +32,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.SortedSet;
 
 /**
  * An {@link ExtendedSet} implementation that maps each element of the universe
@@ -476,46 +476,6 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 * {@inheritDoc}
 	 */
 	@Override
-	public boolean addLastOf(SortedSet<T> set) {
-		if (hasSameIndices(set)) 
-			return indices.add(((IndexedSet<?>) set).indices.last());
-		return super.addLastOf(set);
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean addFirstOf(SortedSet<T> set) {
-		if (hasSameIndices(set)) 
-			return indices.add(((IndexedSet<?>) set).indices.first());
-		return super.addFirstOf(set);
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean removeLastOf(SortedSet<T> set) {
-		if (hasSameIndices(set)) 
-			return indices.remove(((IndexedSet<?>) set).indices.last());
-		return super.removeLastOf(set);
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public boolean removeFirstOf(SortedSet<T> set) {
-		if (hasSameIndices(set)) 
-			return indices.remove(((IndexedSet<?>) set).indices.first());
-		return super.removeFirstOf(set);
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
 	public IndexedSet<T> empty() {
 		return new IndexedSet<T>(itemToIndex, indexToItem, indices.empty());
 	}
@@ -564,22 +524,20 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 		return (IndexedSet<T>) super.convert(e);
 	}
 
-	/**
-	 * {@inheritDoc}
-	 */
-	@SuppressWarnings("unchecked")
+	/** {@inheritDoc} */
 	@Override
 	public List<? extends IndexedSet<T>> powerSet() {
-		return (List<? extends IndexedSet<T>>) super.powerSet();
+		return powerSet(1, Integer.MAX_VALUE);
 	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@SuppressWarnings("unchecked")
+
+	/** {@inheritDoc} */
 	@Override
 	public List<? extends IndexedSet<T>> powerSet(int min, int max) {
-		return (List<? extends IndexedSet<T>>) super.powerSet(min, max);
+		List<? extends IntSet> ps = indices.powerSet(min, max);
+		List<IndexedSet<T>> res = new ArrayList<IndexedSet<T>>(ps.size());
+		for (IntSet s : ps) 
+			res.add(new IndexedSet<T>(itemToIndex, indexToItem, s));
+		return res;
 	}
 
 	/**
@@ -591,6 +549,14 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 				indices.debugInfo(), itemToIndex.toString(), indexToItem.toString());
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public double jaccardSimilarity(ExtendedSet<T> other) {
+		return indices.jaccardSimilarity(convert(other).indices);
+	}
+	
 	//TODO
 //	/**
 //	 * {@inheritDoc}

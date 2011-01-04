@@ -19,7 +19,9 @@
 package it.uniroma3.mat.extendedset.intset;
 
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
@@ -442,5 +444,169 @@ public abstract class AbstractIntSet implements IntSet {
 				return 1;
 		}
 		return thisIterator.hasNext() ? 1 : (otherIterator.hasNext() ? -1 : 0);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	public List<? extends IntSet> powerSet() {
+		return powerSet(1, Integer.MAX_VALUE);
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public List<? extends IntSet> powerSet(int min, int max) {
+		if (min < 1 || max < min)
+			throw new IllegalArgumentException();
+
+		// special cases
+		List<IntSet> res = new ArrayList<IntSet>();
+		if (size() < min)
+			return res;
+		if (size() == min) {
+			res.add(clone());
+			return res;
+		}
+		if (size() == min + 1) {
+			IntIterator itr = descendingIterator();
+			while (itr.hasNext()) {
+				IntSet set = clone();
+				set.remove(itr.next());
+				res.add(set);
+			}
+			if (max > min)
+				res.add(clone());
+			return res;
+		}
+
+		// the first level contains only one prefix made up of all 1-subsets
+		List<List<IntSet>> level = new ArrayList<List<IntSet>>();
+		level.add(new ArrayList<IntSet>());
+		IntIterator itr = iterator();
+		while (itr.hasNext()) {
+			IntSet single = empty();
+			single.add(itr.next());
+			level.get(0).add(single);
+		}
+		if (min == 1)
+			res.addAll(level.get(0));
+
+		// all combinations
+		int lvl = 2;
+		while (!level.isEmpty() && lvl <= max) {
+			List<List<IntSet>> newLevel = new ArrayList<List<IntSet>>();
+			for (List<IntSet> prefix : level) {
+				for (int i = 0; i < prefix.size() - 1; i++) {
+					List<IntSet> newPrefix = new ArrayList<IntSet>();
+					for (int j = i + 1; j < prefix.size(); j++) {
+						IntSet x = prefix.get(i).clone();
+						x.add(prefix.get(j).last());
+						newPrefix.add(x);
+						if (lvl >= min)
+							res.add(x);
+					}
+					if (newPrefix.size() > 1)
+						newLevel.add(newPrefix);
+				}
+			}
+			level = newLevel;
+			lvl++;
+		}
+
+		return res;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public int powerSetSize() {
+		return isEmpty() ? 0 : (int) Math.pow(2, size()) - 1;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	public int powerSetSize(int min, int max) {
+		if (min < 1 || max < min)
+			throw new IllegalArgumentException();
+		final int size = size();
+
+		// special cases
+		if (size < min)
+			return 0;
+		if (size == min)
+			return 1;
+
+		/*
+		 * Compute the sum of binomial coefficients ranging from (size choose
+		 * max) to (size choose min) using dynamic programming
+		 */
+
+		// trivial cases
+		max = Math.min(size, max);
+		if (max == min && (max == 0 || max == size))
+			return 1;
+
+		// compute all binomial coefficients for "n"
+		int[] b = new int[size + 1];    
+		for (int i = 0; i <= size; i++)
+			b[i] = 1;
+		for (int i = 1; i <= size; i++)   
+			for (int j = i - 1; j > 0; j--)             
+				b[j] += b[j - 1];        
+		
+		// sum binomial coefficients
+		int res = 0;
+		for (int i = min; i <= max; i++)
+			res += b[i];
+		return res;
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public double jaccardSimilarity(IntSet other) {
+		if (isEmpty() && other.isEmpty())
+			return 1D;
+		int inters = intersectionSize(other);
+		return (double) inters / (size() + other.size() - inters);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public double jaccardDistance(IntSet other) {
+		return 1D - jaccardSimilarity(other);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public double weightedJaccardSimilarity(IntSet other) {
+		if (isEmpty() && other.isEmpty())
+			return 1D;
+		IntIterator itr = intersection(other).iterator();
+		double intersectionSum = 0D;
+		while (itr.hasNext()) 
+			intersectionSum += itr.next();
+
+		itr = symmetricDifference(other).iterator();
+		double symmetricDifferenceSum = 0D;
+		while (itr.hasNext()) 
+			symmetricDifferenceSum += itr.next();
+		
+		return intersectionSum / (intersectionSum + symmetricDifferenceSum);
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public double weightedJaccardDistance(IntSet other) {
+		return 1D - weightedJaccardSimilarity(other);
 	}
 }

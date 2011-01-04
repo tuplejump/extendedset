@@ -29,7 +29,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.NoSuchElementException;
-import java.util.SortedSet;
 
 /**
  * This class provides a skeletal implementation of the {@link ExtendedSet}
@@ -343,7 +342,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 					List<ExtendedSet<T>> newPrefix = new ArrayList<ExtendedSet<T>>();
 					for (int j = i + 1; j < prefix.size(); j++) {
 						ExtendedSet<T> x = prefix.get(i).clone();
-						x.addLastOf(prefix.get(j));
+						x.add(prefix.get(j).last());
 						newPrefix.add(x);
 						if (l >= min)
 							res.add(x);
@@ -380,70 +379,29 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		if (size == min)
 			return 1;
 
-		// sum all combinations of "size" elements from "min" to "max"
-		return binomialSum(size, Math.min(size, max), min);
-	}
+		/*
+		 * Compute the sum of binomial coefficients ranging from (size choose
+		 * max) to (size choose min) using dynamic programming
+		 */
 
-	/**
-	 * Computes the sum of binomial coefficients ranging from
-	 * <code>(n choose kMax)</code> to <code>(n choose kMin)</code> using
-	 * <i>dynamic programming</i>
-	 * 
-	 * @param n
-	 * @param kMax
-	 * @param kMin
-	 * @return the sum of binomial coefficients
-	 */
-	private static int binomialSum(int n, int kMax, int kMin) {
-		// illegal parameters
-		if (kMin < 0 || kMin > kMax || kMax > n)
-			throw new IllegalArgumentException();
-		
 		// trivial cases
-		if (kMax == kMin && (kMax == 0 || kMax == n))
+		max = Math.min(size, max);
+		if (max == min && (max == 0 || max == size))
 			return 1;
 
 		// compute all binomial coefficients for "n"
-		int[] b = new int[n + 1];    
-		for (int i = 0; i <= n; i++)
+		int[] b = new int[size + 1];    
+		for (int i = 0; i <= size; i++)
 			b[i] = 1;
-		for (int i = 1; i <= n; i++)   
+		for (int i = 1; i <= size; i++)   
 			for (int j = i - 1; j > 0; j--)             
 				b[j] += b[j - 1];        
 		
 		// sum binomial coefficients
 		int res = 0;
-		for (int i = kMin; i <= kMax; i++)
+		for (int i = min; i <= max; i++)
 			res += b[i];
 		return res;
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public boolean addLastOf(SortedSet<T> set) {
-		return add(set.last());
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public boolean addFirstOf(SortedSet<T> set) {
-		return add(set.first());
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public boolean removeLastOf(SortedSet<T> set) {
-		return remove(set.last());
-	}
-
-	/**
-	 * {@inheritDoc}
-	 */
-	public boolean removeFirstOf(SortedSet<T> set) {
-		return remove(set.first());
 	}
 
 	/**
@@ -749,12 +707,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		 */
 		@Override public boolean add(T e) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
 		@Override public boolean addAll(Collection<? extends T> c) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
-		@Override public boolean addFirstOf(SortedSet<T> set) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
-		@Override public boolean addLastOf(SortedSet<T> set) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
 		@Override public boolean remove(Object o) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
 		@Override public boolean removeAll(Collection<?> c) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
-		@Override public boolean removeFirstOf(SortedSet<T> set) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
-		@Override public boolean removeLastOf(SortedSet<T> set) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
 		@Override public boolean retainAll(Collection<?> c) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
 		@Override public void clear() {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
 		@Override public void clear(T from, T to) {throw new UnsupportedOperationException(UNSUPPORTED_MSG);}
@@ -1066,18 +1020,6 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 					min.toString(), max.toString(), range.debugInfo(), AbstractExtendedSet.this.toString());
 		}
 		
-		@Override public boolean addFirstOf(SortedSet<T> set) {
-			if (!isInRange(set.first()))
-				throw new IllegalArgumentException();
-			return AbstractExtendedSet.this.addFirstOf(set);
-		}
-
-		@Override public boolean addLastOf(SortedSet<T> set) {
-			if (!isInRange(set.last()))
-				throw new IllegalArgumentException();
-			return AbstractExtendedSet.this.addLastOf(set);
-		}
-
 		@Override public void clear(T from, T to) {
 			ExtendedSet<T> toRemove = empty();
 			toRemove.fill(from, to);
@@ -1130,14 +1072,6 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 			if (min != null)
 				minIndex = AbstractExtendedSet.this.indexOf(min);
 			return AbstractExtendedSet.this.indexOf(e) - minIndex;
-		}
-
-		@Override public boolean removeFirstOf(SortedSet<T> set) {
-			return isInRange(set.first()) && AbstractExtendedSet.this.removeFirstOf(set);
-		}
-
-		@Override public boolean removeLastOf(SortedSet<T> set) {
-			return isInRange(set.last()) && AbstractExtendedSet.this.removeLastOf(set);
 		}
 
 		@Override 

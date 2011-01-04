@@ -29,7 +29,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.SortedSet;
 
 /**
  * This class provides a "wrapper" for any {@link IntSet} instance in
@@ -69,7 +68,7 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	 *            the generic collection of {@link Integer} instances
 	 * @return the resulting {@link IntSet} instance
 	 */
-	private IntSet toExtendedIntSet(Collection<?> c) {
+	private IntSet toIntSet(Collection<?> c) {
 		// nothing to convert
 		if (c == null)
 			return null;
@@ -95,19 +94,7 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public boolean addAll(Collection<? extends Integer> c) {
-		return items.addAll(toExtendedIntSet(c));
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public boolean addFirstOf(SortedSet<Integer> set) {
-		return items.add(toExtendedIntSet(set).first());
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public boolean addLastOf(SortedSet<Integer> set) {
-		return items.add(toExtendedIntSet(set).last());
+		return items.addAll(toIntSet(c));
 	}
 
 	/** {@inheritDoc} */
@@ -138,7 +125,7 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public int compareTo(ExtendedSet<Integer> o) {
-		return items.compareTo(toExtendedIntSet(o));
+		return items.compareTo(toIntSet(o));
 	}
 
 	/** {@inheritDoc} */
@@ -156,19 +143,19 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public boolean containsAny(Collection<? extends Integer> other) {
-		return items.containsAny(toExtendedIntSet(other));
+		return items.containsAny(toIntSet(other));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public boolean containsAtLeast(Collection<? extends Integer> other, int minElements) {
-		return items.containsAtLeast(toExtendedIntSet(other), minElements);
+		return items.containsAtLeast(toIntSet(other), minElements);
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public IntegerSet convert(Collection<?> c) {
-		return new IntegerSet(toExtendedIntSet(c));
+		return new IntegerSet(toIntSet(c));
 	}
 
 	/** {@inheritDoc} */
@@ -200,13 +187,13 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public IntegerSet difference(Collection<? extends Integer> other) {
-		return new IntegerSet(items.difference(toExtendedIntSet(other)));
+		return new IntegerSet(items.difference(toIntSet(other)));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public int differenceSize(Collection<? extends Integer> other) {
-		return items.differenceSize(toExtendedIntSet(other));
+		return items.differenceSize(toIntSet(other));
 	}
 
 	/** {@inheritDoc} */
@@ -262,13 +249,13 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public IntegerSet intersection(Collection<? extends Integer> other) {
-		return new IntegerSet(items.intersection(toExtendedIntSet(other)));
+		return new IntegerSet(items.intersection(toIntSet(other)));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public int intersectionSize(Collection<? extends Integer> other) {
-		return items.intersectionSize(toExtendedIntSet(other));
+		return items.intersectionSize(toIntSet(other));
 	}
 
 	/**
@@ -294,65 +281,55 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	}
 
 	/** {@inheritDoc} */
-	@SuppressWarnings("unchecked")
 	@Override
 	public List<? extends IntegerSet> powerSet() {
-		return (List<? extends IntegerSet>) super.powerSet();
+		return powerSet(1, Integer.MAX_VALUE);
 	}
 
 	/** {@inheritDoc} */
-	@SuppressWarnings("unchecked")
 	@Override
 	public List<? extends IntegerSet> powerSet(int min, int max) {
-		return (List<? extends IntegerSet>) super.powerSet(min, max);
+		List<? extends IntSet> ps = items.powerSet(min, max);
+		List<IntegerSet> res = new ArrayList<IntegerSet>(ps.size());
+		for (IntSet s : ps) 
+			res.add(new IntegerSet(s));
+		return res;
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public boolean removeAll(Collection<?> c) {
-		return items.removeAll(toExtendedIntSet(c));
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public boolean removeFirstOf(SortedSet<Integer> set) {
-		return items.remove(toExtendedIntSet(set).first());
-	}
-
-	/** {@inheritDoc} */
-	@Override
-	public boolean removeLastOf(SortedSet<Integer> set) {
-		return items.remove(toExtendedIntSet(set).last());
+		return items.removeAll(toIntSet(c));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public boolean retainAll(Collection<?> c) {
-		return items.retainAll(toExtendedIntSet(c));
+		return items.retainAll(toIntSet(c));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public IntegerSet symmetricDifference(Collection<? extends Integer> other) {
-		return new IntegerSet(items.symmetricDifference(toExtendedIntSet(other)));
+		return new IntegerSet(items.symmetricDifference(toIntSet(other)));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public int symmetricDifferenceSize(Collection<? extends Integer> other) {
-		return items.symmetricDifferenceSize(toExtendedIntSet(other));
+		return items.symmetricDifferenceSize(toIntSet(other));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public IntegerSet union(Collection<? extends Integer> other) {
-		return new IntegerSet(items.union(toExtendedIntSet(other)));
+		return new IntegerSet(items.union(toIntSet(other)));
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public int unionSize(Collection<? extends Integer> other) {
-		return items.unionSize(toExtendedIntSet(other));
+		return items.unionSize(toIntSet(other));
 	}
 
 	/** {@inheritDoc} */
@@ -394,7 +371,7 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public boolean containsAll(Collection<?> c) {
-		return items.containsAll(toExtendedIntSet(c));
+		return items.containsAll(toIntSet(c));
 	}
 
 	/** {@inheritDoc} */
@@ -422,5 +399,21 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 		// Integer instances, thus avoiding to waste time and memory with garbage
 		// collection
 		return items.toString();
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public double jaccardSimilarity(ExtendedSet<Integer> other) {
+		return items.jaccardSimilarity(toIntSet(other));
+	}
+	
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public double weightedJaccardSimilarity(ExtendedSet<Integer> other) {
+		return items.weightedJaccardSimilarity(toIntSet(other));
 	}
 }

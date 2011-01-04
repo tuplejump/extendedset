@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.BitSet;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
@@ -534,4 +535,127 @@ public interface IntSet extends Cloneable, Comparable<IntSet> {
 	 *             if this set does not fit in the specified array 
 	 */
 	public int[] toArray(int[] a);
+
+	/**
+	 * Computes the power-set of the current set.
+	 * <p>
+	 * It is a particular implementation of the algorithm <i>Apriori</i> (see:
+	 * Rakesh Agrawal, Ramakrishnan Srikant, <i>Fast Algorithms for Mining
+	 * Association Rules in Large Databases</i>, in Proceedings of the
+	 * 20<sup>th</sup> International Conference on Very Large Data Bases,
+	 * p.487-499, 1994). The returned power-set does <i>not</i> contain the
+	 * empty set.
+	 * <p>
+	 * The subsets composing the powerset are returned in a list that is sorted
+	 * according to the lexicographical order provided by the integer set.
+	 * 
+	 * @return the power-set
+	 * @see #powerSet(int, int)
+	 * @see #powerSetSize()
+	 */
+	public List<? extends IntSet> powerSet();
+
+	/**
+	 * Computes a subset of the power-set of the current set, composed by those
+	 * subsets that have cardinality between <code>min</code> and
+	 * <code>max</code>.
+	 * <p>
+	 * It is a particular implementation of the algorithm <i>Apriori</i> (see:
+	 * Rakesh Agrawal, Ramakrishnan Srikant, <i>Fast Algorithms for Mining
+	 * Association Rules in Large Databases</i>, in Proceedings of the
+	 * 20<sup>th</sup> International Conference on Very Large Data Bases,
+	 * p.487-499, 1994). The power-set does <i>not</i> contains the empty set.
+	 * <p>
+	 * The subsets composing the powerset are returned in a list that is sorted
+	 * according to the lexicographical order provided by the integer set.
+	 * 
+	 * @param min
+	 *            minimum subset size (greater than zero)
+	 * @param max
+	 *            maximum subset size
+	 * @return the power-set
+	 * @see #powerSet()
+	 * @see #powerSetSize(int, int)
+	 */
+	public List<? extends IntSet> powerSet(int min, int max);
+
+	/**
+	 * Computes the power-set size of the current set.
+	 * <p>
+	 * The power-set does <i>not</i> contains the empty set.
+	 * 
+	 * @return the power-set size
+	 * @see #powerSet()
+	 */
+	public int powerSetSize();
+
+	/**
+	 * Computes the power-set size of the current set, composed by those subsets
+	 * that have cardinality between <code>min</code> and <code>max</code>.
+	 * <p>
+	 * The returned power-set does <i>not</i> contain the empty set.
+	 * 
+	 * @param min
+	 *            minimum subset size (greater than zero)
+	 * @param max
+	 *            maximum subset size
+	 * @return the power-set size
+	 * @see #powerSet(int, int)
+	 */
+	public int powerSetSize(int min, int max);
+
+	/**
+	 * Computes the Jaccard similarity coefficient between this set and the
+	 * given set.
+	 * <p>
+	 * The coefficient is defined as
+	 * <code>|A intersection B| / |A union B|</code>.
+	 * 
+	 * @param other
+	 *            the other set
+	 * @return the Jaccard similarity coefficient
+	 * @see #jaccardDistance(IntSet)
+	 */
+	public double jaccardSimilarity(IntSet other);
+
+	/**
+	 * Computes the Jaccard distance between this set and the given set.
+	 * <p>
+	 * The coefficient is defined as 
+	 * <code>1 - </code> {@link #jaccardSimilarity(IntSet)}.
+	 * 
+	 * @param other
+	 *            the other set
+	 * @return the Jaccard distance
+	 * @see #jaccardSimilarity(IntSet)
+	 */
+	public double jaccardDistance(IntSet other);
+
+	/**
+	 * Computes the weighted version of the Jaccard similarity coefficient
+	 * between this set and the given set.
+	 * <p>
+	 * The coefficient is defined as
+	 * <code>sum of min(A_i, B_i) / sum of max(A_i, B_i)</code>.
+	 * 
+	 * @param other
+	 *            the other set
+	 * @return the weighted Jaccard similarity coefficient
+	 * @see #weightedJaccardDistance(IntSet)
+	 */
+	public double weightedJaccardSimilarity(IntSet other);
+
+	/**
+	 * Computes the weighted version of the Jaccard distance between this set
+	 * and the given set.
+	 * <p>
+	 * The coefficient is defined as <code>1 - </code>
+	 * {@link #weightedJaccardSimilarity(IntSet)}.
+	 * 
+	 * @param other
+	 *            the other set
+	 * @return the weighted Jaccard distance
+	 * @see #weightedJaccardSimilarity(IntSet)
+	 */
+	public double weightedJaccardDistance(IntSet other);
 }

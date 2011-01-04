@@ -4,6 +4,7 @@ import it.uniroma3.mat.extendedset.intset.IntSet;
 
 import java.util.Collection;
 import java.util.Formatter;
+import java.util.List;
 
 /**
  * A wrapper class for classes that implement the {@link IntSet} interface to
@@ -192,6 +193,14 @@ public class IntSetStatistics implements IntSet {
 	/** {@inheritDoc} */ @Override public int[] toArray(int[] a) {return container.toArray(a);}
 	/** {@inheritDoc} */ @Override public int compareTo(IntSet o) {return container.compareTo(o);}
 	/** {@inheritDoc} */ @Override public String toString() {return container.toString();}
+	/** {@inheritDoc} */ @Override public List<? extends IntSet> powerSet() {return container.powerSet();}
+	/** {@inheritDoc} */ @Override public List<? extends IntSet> powerSet(int min, int max) {return container.powerSet(min, max);}
+	/** {@inheritDoc} */ @Override public int powerSetSize() {return container.powerSetSize();}
+	/** {@inheritDoc} */ @Override public int powerSetSize(int min, int max) {return container.powerSetSize(min, max);}
+	/** {@inheritDoc} */ @Override public double jaccardSimilarity(IntSet other) {return container.jaccardSimilarity(other);}
+	/** {@inheritDoc} */ @Override public double jaccardDistance(IntSet other) {return container.jaccardDistance(other);}
+	/** {@inheritDoc} */ @Override public double weightedJaccardSimilarity(IntSet other) {return container.weightedJaccardSimilarity(other);}
+	/** {@inheritDoc} */ @Override public double weightedJaccardDistance(IntSet other) {return container.weightedJaccardDistance(other);}
 	
 	/*
 	 * OTHERS

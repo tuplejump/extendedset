@@ -1337,13 +1337,13 @@ public class Debug {
 	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new IntSetStatistics(new ConciseSet()));}}
 	@SuppressWarnings("unused")
 	private static class IntegerConcise2Set extends IntegerSet {IntegerConcise2Set() {super(new IntSetStatistics(new Concise2Set()));}}
-	@SuppressWarnings("unused")
+//	@SuppressWarnings("unused")
 	private static class IntegerConcise3Set extends IntegerSet {IntegerConcise3Set() {super(new IntSetStatistics(new Concise3Set()));}}
 	@SuppressWarnings("unused")
 	private static class IntegerWAHSet extends IntegerSet {IntegerWAHSet() {super(new IntSetStatistics(new ConciseSet(true)));}}
 	@SuppressWarnings("unused")
 	private static class IntegerConcisePlusSet extends IntegerSet {IntegerConcisePlusSet() {super(new IntSetStatistics(new ConcisePlusSet()));}}
-//	@SuppressWarnings("unused")
+	@SuppressWarnings("unused")
 	private static class IntegerArraySet extends IntegerSet {IntegerArraySet() {super(new IntSetStatistics(new ArraySet()));}}
 	@SuppressWarnings("unused")
 	private static class IntegerArraySet2 extends GenericArraySet<Integer> {public IntegerArraySet2() {/* */}}
@@ -1367,12 +1367,12 @@ public class Debug {
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerFastSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConciseSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcise2Set.class;
-//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcise3Set.class;
+		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcise3Set.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcisePlusSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerWAHSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = ListSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = LinkedSet.class;
-		Class<? extends ExtendedSet<Integer>> classToTest = IntegerArraySet.class;
+//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerArraySet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerArraySet2.class;
 		
 		if (args != null && args.length > 0) {
