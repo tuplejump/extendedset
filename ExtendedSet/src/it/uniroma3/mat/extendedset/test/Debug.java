@@ -21,12 +21,10 @@ package it.uniroma3.mat.extendedset.test;
 import it.uniroma3.mat.extendedset.ExtendedSet;
 import it.uniroma3.mat.extendedset.ExtendedSet.ExtendedIterator;
 import it.uniroma3.mat.extendedset.intset.ArraySet;
+import it.uniroma3.mat.extendedset.intset.Concise2Set;
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 import it.uniroma3.mat.extendedset.intset.FastSet;
 import it.uniroma3.mat.extendedset.intset.HashIntSet;
-import it.uniroma3.mat.extendedset.intset.development.Concise2Set;
-import it.uniroma3.mat.extendedset.intset.development.Concise3Set;
-import it.uniroma3.mat.extendedset.intset.development.ConcisePlusSet;
 import it.uniroma3.mat.extendedset.others.GenericArraySet;
 import it.uniroma3.mat.extendedset.others.GenericExtendedSet;
 import it.uniroma3.mat.extendedset.utilities.IntSetStatistics;
@@ -298,20 +296,18 @@ public class Debug {
 	 * 
 	 * @param c class to test
 	 */
-	private static void testForRandomOperationsStress(Class<? extends ExtendedSet<Integer>> c) {
+	private static void testForRandomOperationsStress(Class<? extends ExtendedSet<Integer>> c, boolean testFillAndClear) {
 		ExtendedSet<Integer> bitsLeft = empty(c);
 		ExtendedSet<Integer> bitsRight = empty(c);
 		SortedSet<Integer> itemsLeft = new TreeSet<Integer>();
 		SortedSet<Integer> itemsRight = new TreeSet<Integer>();
 		
-		boolean testFillAndClear = true;
-
 		Random r = new MersenneTwister();
 		final int maxCardinality = 1000;
 		
 		// random operation loop
 		for (int i = 0; i < 1000000; i++) {
-			System.out.print("Test " + i + ": ");
+			System.out.format("Test %,d (%,d): ", i, System.currentTimeMillis());
 			
 			RandomNumbers rn;
 			switch (r.nextInt(3)) {
@@ -615,6 +611,7 @@ public class Debug {
 			switch (1 + r.nextInt(5)) {
 			case 1:
 				System.out.format(" union of %d elements with %d elements... ", itemsLeft.size(), itemsRight.size());
+				System.out.flush();
 				operationSize = bitsLeft.unionSize(bitsRight);
 				resItems = itemsLeft.addAll(itemsRight);
 				alternative = bitsLeft.union(bitsRight);
@@ -623,6 +620,7 @@ public class Debug {
 
 			case 2:
 				System.out.format(" difference of %d elements with %d elements... ", itemsLeft.size(), itemsRight.size());
+				System.out.flush();
 				operationSize = bitsLeft.differenceSize(bitsRight);
 				resItems = itemsLeft.removeAll(itemsRight);
 				alternative = bitsLeft.difference(bitsRight);
@@ -631,6 +629,7 @@ public class Debug {
 
 			case 3:
 				System.out.format(" intersection of %d elements with %d elements... ", itemsLeft.size(), itemsRight.size());
+				System.out.flush();
 				operationSize = bitsLeft.intersectionSize(bitsRight);
 				resItems = itemsLeft.retainAll(itemsRight);
 				alternative = bitsLeft.intersection(bitsRight);
@@ -639,6 +638,7 @@ public class Debug {
 
 			case 4:
 				System.out.format(" symmetric difference of %d elements with %d elements... ", itemsLeft.size(), itemsRight.size());
+				System.out.flush();
 				operationSize = bitsLeft.symmetricDifferenceSize(bitsRight);
 				TreeSet<Integer> temp = new TreeSet<Integer>(itemsRight);
 				temp.removeAll(itemsLeft);
@@ -650,6 +650,7 @@ public class Debug {
 
 			case 5:
 				System.out.format(" complement of %d elements... ", itemsLeft.size());
+				System.out.flush();
 				operationSize = bitsLeft.complementSize();
 				if (!itemsLeft.isEmpty())
 					for (int j = itemsLeft.last(); j >= 0; j--)
@@ -1304,6 +1305,7 @@ public class Debug {
 		ADDITION_STRESS,
 		REMOVAL_STRESS,
 		RANDOM_OPERATION_STRESS,
+		FILL_CLEAR_STRESS,
 		SUBSET_ADDITION_STRESS_CONCISESET,
 		SUBSET_REMOVAL_STRESS_CONCISESET,
 		SUBSET_RANDOM_OPERATION_STRESS_CONCISESET,
@@ -1335,14 +1337,10 @@ public class Debug {
 	private static class IntegerFastSet extends IntegerSet {IntegerFastSet() {super(new IntSetStatistics(new FastSet()));}}
 	@SuppressWarnings("unused")
 	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new IntSetStatistics(new ConciseSet()));}}
-	@SuppressWarnings("unused")
-	private static class IntegerConcise2Set extends IntegerSet {IntegerConcise2Set() {super(new IntSetStatistics(new Concise2Set()));}}
 //	@SuppressWarnings("unused")
-	private static class IntegerConcise3Set extends IntegerSet {IntegerConcise3Set() {super(new IntSetStatistics(new Concise3Set()));}}
+	private static class IntegerConcise2Set extends IntegerSet {IntegerConcise2Set() {super(new IntSetStatistics(new Concise2Set()));}}
 	@SuppressWarnings("unused")
 	private static class IntegerWAHSet extends IntegerSet {IntegerWAHSet() {super(new IntSetStatistics(new ConciseSet(true)));}}
-	@SuppressWarnings("unused")
-	private static class IntegerConcisePlusSet extends IntegerSet {IntegerConcisePlusSet() {super(new IntSetStatistics(new ConcisePlusSet()));}}
 	@SuppressWarnings("unused")
 	private static class IntegerArraySet extends IntegerSet {IntegerArraySet() {super(new IntSetStatistics(new ArraySet()));}}
 	@SuppressWarnings("unused")
@@ -1358,6 +1356,7 @@ public class Debug {
 //		TestCase testCase = TestCase.ADDITION_STRESS;
 //		TestCase testCase = TestCase.REMOVAL_STRESS;
 		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS;
+//		TestCase testCase = TestCase.FILL_CLEAR_STRESS;
 //		TestCase testCase = TestCase.SKIP;
 //		TestCase testCase = TestCase.POSITION;
 //		TestCase testCase = TestCase.COMPARATOR_COMPLEX;
@@ -1366,8 +1365,7 @@ public class Debug {
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerHashSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerFastSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConciseSet.class;
-//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcise2Set.class;
-		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcise3Set.class;
+		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcise2Set.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcisePlusSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerWAHSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = ListSet.class;
@@ -1391,7 +1389,10 @@ public class Debug {
 			testForRemovalStress(classToTest);
 			break;
 		case RANDOM_OPERATION_STRESS:
-			testForRandomOperationsStress(classToTest);
+			testForRandomOperationsStress(classToTest, false);
+			break;
+		case FILL_CLEAR_STRESS:
+			testForRandomOperationsStress(classToTest, true);
 			break;
 		case SUBSET_ADDITION_STRESS_CONCISESET:
 			testForSubSetAdditionStress();

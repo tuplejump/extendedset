@@ -813,7 +813,7 @@ public class HashIntSet extends AbstractIntSet {
 		final HashIntSet other = (HashIntSet) obj;
 		if (size != other.size)
 			return false;
-        for (int e : cells)
+        for (int e : other.cells)
         	if (e >= 0 && !contains(e))
         		return false;
 		return true;

@@ -20,10 +20,9 @@
 package it.uniroma3.mat.extendedset.test;
 
 import it.uniroma3.mat.extendedset.intset.ArraySet;
+import it.uniroma3.mat.extendedset.intset.Concise2Set;
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 import it.uniroma3.mat.extendedset.intset.FastSet;
-import it.uniroma3.mat.extendedset.intset.development.Concise2Set;
-import it.uniroma3.mat.extendedset.intset.development.Concise3Set;
 import it.uniroma3.mat.extendedset.others.GenericExtendedSet;
 import it.uniroma3.mat.extendedset.wrappers.IntegerSet;
 
@@ -51,10 +50,8 @@ public class Performance {
 	private static class IntegerArraySet extends IntegerSet {IntegerArraySet() {super(new ArraySet());}}
 //	private static class IntegerHashSet extends IntegerSet {IntegerHashSet() {super(new HashIntSet());}}
 	private static class IntegerFastSet extends IntegerSet {IntegerFastSet() {super(new FastSet());}}
-//	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new ConciseSet());}}
-//	private static class IntegerConcisePlusSet extends IntegerSet {IntegerConcisePlusSet() {super(new ConcisePlusSet());}}
-//	private static class IntegerConcise2Set extends IntegerSet {IntegerConcise2Set() {super(new Concise2Set());}}
-	private static class IntegerConcise3Set extends IntegerSet {IntegerConcise3Set() {super(new Concise3Set());}}
+	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new ConciseSet());}}
+	private static class IntegerConcise2Set extends IntegerSet {IntegerConcise2Set() {super(new Concise2Set());}}
 //	private static class IntegerWAHSet extends IntegerSet {IntegerWAHSet() {super(new WAHSet());}}
 
 	/** 
@@ -78,7 +75,7 @@ public class Performance {
 	}
 
 	/** number of times to repeat each test */
-	private final static int REPETITIONS = 10;
+	private final static int REPETITIONS = 5;
 
 	/** minimum element */
 	private final static int SHIFT = 1000;
@@ -160,7 +157,7 @@ public class Performance {
 			} 
 		}
 		
-		// APPEND/ADDITION
+		// APPEND
 		for (int i = 0; i < REPETITIONS; i++) {
 			startTimer();
 			for (Integer x : rightOperand)
@@ -172,8 +169,36 @@ public class Performance {
 				cRetainAll[i].add(x);
 				cRemoveAll[i].add(x);
 			}
-			endTimer(classToTest, "01) add()", (4 * leftOperand.size() + rightOperand.size()));
+			endTimer(classToTest, "00) append()", (5 * leftOperand.size() + rightOperand.size()));
 		}
+
+//		List<Integer> xxx = new ArrayList<Integer>(rightOperand);
+//		List<Integer> yyy = new ArrayList<Integer>(leftOperand);
+//		Collections.shuffle(xxx);
+//		Collections.shuffle(yyy);
+//		for (int i = 0; i < REPETITIONS; i++) {
+//			cRighOperand[i].clear();
+//			cAddAndRemove[i].clear();
+//			cLeftOperand[i].clear();
+//			cAddAll[i].clear();
+//			cRetainAll[i].clear();
+//			cRemoveAll[i].clear();
+//		}
+//		
+//		// ADDITION
+//		for (int i = 0; i < REPETITIONS; i++) {
+//			startTimer();
+//			for (Integer x : xxx)
+//				cRighOperand[i].add(x);
+//			for (Integer x : yyy) {
+//				cAddAndRemove[i].add(x);
+//				cLeftOperand[i].add(x);
+//				cAddAll[i].add(x);
+//				cRetainAll[i].add(x);
+//				cRemoveAll[i].add(x);
+//			}
+//			endTimer(classToTest, "01) add()", (5 * leftOperand.size() + rightOperand.size()));
+//		}
 
 		// REMOVAL
 		for (int i = 0; i < REPETITIONS; i++) {
@@ -191,7 +216,7 @@ public class Performance {
 			endTimer(classToTest, "03) contains()", rightOperand.size());
 		}
 		
-		// AND SIZE
+		// CONTAINS ALL
 		for (int i = 0; i < REPETITIONS; i++) {
 			startTimer();
 			cAddAll[i].containsAll(cRighOperand[i]);
@@ -228,8 +253,8 @@ public class Performance {
 		
 		// DIFFERENCE
 		for (int i = 0; i < REPETITIONS; i++) {
-			cDifferenceResults[i] = cLeftOperand[i].difference(cRighOperand[i]);
 			startTimer();
+			cDifferenceResults[i] = cLeftOperand[i].difference(cRighOperand[i]);
 			endTimer(classToTest, "09) difference()", 1);
 		}
 		
@@ -255,7 +280,6 @@ public class Performance {
 			}
 			System.out.println();
 		}
-		TIME_VALUES.clear();
 	}
 
 	/**
@@ -348,10 +372,8 @@ public class Performance {
 				IntegerFastSet.class, 
 //				IntegerHashSet.class,
 //				IntegerWAHSet.class, 
-//				IntegerConciseSet.class,
-//				IntegerConcisePlusSet.class,
-//				IntegerConcise2Set.class,
-				IntegerConcise3Set.class,
+				IntegerConciseSet.class,
+				IntegerConcise2Set.class,
 				};
 
 		/*
@@ -421,11 +443,10 @@ public class Performance {
 					}
 					x = r.generate(); 
 					y = r.generate();
-					for (Class<?> c : classes) {
+					for (Class<?> c : classes)
 						testClass(c, x, y);
-						testClass(c, x, y);
-					}
 					printSummary(cardinality, density, classes);
+					TIME_VALUES.clear();
 				}
 			}
 		}
