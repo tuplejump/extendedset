@@ -440,13 +440,19 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		this.addAll(toAdd);
 	}
 	
+	
 	/**
 	 * {@inheritDoc}
 	 */
+	@SuppressWarnings("unchecked")
+	@Override
 	public void clear(T from, T to) {
-		ExtendedSet<T> toRemove = empty();
-		toRemove.fill(from, to);
-		this.removeAll(toRemove);
+		ExtendedIterator<T> itr = iterator();
+		itr.skipAllBefore(from);
+		while (itr.hasNext()) {
+			if (((Comparable) itr.next()).compareTo(to) < 0)
+				itr.remove();
+		}
 	}
 	
 	/**

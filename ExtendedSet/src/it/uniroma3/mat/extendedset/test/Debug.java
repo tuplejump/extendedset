@@ -25,10 +25,10 @@ import it.uniroma3.mat.extendedset.intset.Concise2Set;
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 import it.uniroma3.mat.extendedset.intset.FastSet;
 import it.uniroma3.mat.extendedset.intset.HashIntSet;
-import it.uniroma3.mat.extendedset.others.GenericArraySet;
-import it.uniroma3.mat.extendedset.others.GenericExtendedSet;
 import it.uniroma3.mat.extendedset.utilities.IntSetStatistics;
 import it.uniroma3.mat.extendedset.utilities.MersenneTwister;
+import it.uniroma3.mat.extendedset.wrappers.GenericArraySet;
+import it.uniroma3.mat.extendedset.wrappers.GenericExtendedSet;
 import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
 import it.uniroma3.mat.extendedset.wrappers.IntegerSet;
 
@@ -1316,18 +1316,18 @@ public class Debug {
 		SKIP,
 		;
 	}
-
+	
 	@SuppressWarnings("unused")
 	private static class ListSet extends GenericExtendedSet<Integer> {
 		ListSet() {
-			super(ArrayList.class, GenericExtendedSet.ALL_POSITIVE_INTEGERS);
+			super(ArrayList.class);
 		}
 	}
 
 	@SuppressWarnings("unused")
 	private static class LinkedSet extends GenericExtendedSet<Integer> {
 		LinkedSet() {
-			super(LinkedList.class, GenericExtendedSet.ALL_POSITIVE_INTEGERS);
+			super(LinkedList.class);
 		}
 	}
 

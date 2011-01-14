@@ -23,7 +23,7 @@ import it.uniroma3.mat.extendedset.intset.ArraySet;
 import it.uniroma3.mat.extendedset.intset.Concise2Set;
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 import it.uniroma3.mat.extendedset.intset.FastSet;
-import it.uniroma3.mat.extendedset.others.GenericExtendedSet;
+import it.uniroma3.mat.extendedset.wrappers.GenericExtendedSet;
 import it.uniroma3.mat.extendedset.wrappers.IntegerSet;
 
 import java.util.ArrayList;
@@ -60,7 +60,7 @@ public class Performance {
 	@SuppressWarnings("unused")
 	private static class ArrayListSet extends GenericExtendedSet<Integer> {
 		ArrayListSet() {
-			super(ArrayList.class, GenericExtendedSet.ALL_POSITIVE_INTEGERS);
+			super(ArrayList.class);
 		}
 	}
 
@@ -70,7 +70,7 @@ public class Performance {
 	@SuppressWarnings("unused")
 	private static class LinkedListSet extends GenericExtendedSet<Integer> {
 		LinkedListSet() {
-			super(LinkedList.class, GenericExtendedSet.ALL_POSITIVE_INTEGERS);
+			super(LinkedList.class);
 		}
 	}
 

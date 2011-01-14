@@ -16,13 +16,12 @@
  * limitations under the License.
  */ 
 
-package it.uniroma3.mat.extendedset.others;
+package it.uniroma3.mat.extendedset.wrappers;
 
 
 import it.uniroma3.mat.extendedset.AbstractExtendedSet;
 import it.uniroma3.mat.extendedset.ExtendedSet;
 
-import java.util.AbstractSet;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -42,6 +41,9 @@ import java.util.SortedSet;
  * @param <T>
  *            the type of elements maintained by this set
  */
+// TODO: I metodi addAll, removeAll, retainAll, union, difference, intersection,
+//symmetricDifference devono essere ridefiniti solo nel caso di List, perché i
+//Set sono solitamente già performanti!
 public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtendedSet<T> {
 	/** elements of the set */
 	private /*final*/ Collection<T> elements;
@@ -51,77 +53,14 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	private final Class<? extends Collection> setClass;
 
 	/**
-	 * collection of all possible elements. If <code>null</code>,
-	 * {@link #fill(Comparable, Comparable)},
-	 * {@link #clear(Comparable, Comparable)}, and {@link #complement()} cannot
-	 * be used!
-	 */
-	private final Collection<T> universe;
-
-	/**
-	 * Set of all integers &gt;= 0.
-	 * <p>
-	 * To be used as a universe with
-	 * {@link GenericExtendedSet#GenericExtendedSet(Class, Collection)} when the
-	 * type <code>T</code> is {@link Integer}
-	 */
-	public static final SortedSet<Integer> ALL_POSITIVE_INTEGERS = new IntegerUniverse();
-	private static class IntegerUniverse extends AbstractSet<Integer> implements SortedSet<Integer> {
-		int min = 0;
-		int max = Integer.MAX_VALUE;
-		@Override
-		public Iterator<Integer> iterator() {
-			return new Iterator<Integer>() {
-				private Integer curr = min;
-				@Override public boolean hasNext() {return curr != null;}
-				@Override public Integer next() {
-					Integer prev = curr;
-					if (curr < max) curr++;
-					else curr = null;
-					return prev;
-				}
-				@Override public void remove() {throw new UnsupportedOperationException();}
-			};
-		}
-		@Override public boolean contains(Object o) {return o != null && o instanceof Integer && ((Integer) o) >= min && ((Integer) o) <= max;}
-		@Override public int size() {return max - min + 1;}
-		@Override public Comparator<? super Integer> comparator() {return null;}
-		@Override public Integer first() {return min;}
-		@Override public Integer last() {return max;}
-		@Override public SortedSet<Integer> subSet(Integer fromElement, Integer toElement) {
-			if (fromElement < 0 || fromElement > toElement)
-				throw new IllegalArgumentException();
-			IntegerUniverse sub = new IntegerUniverse();
-			sub.min = fromElement;
-			sub.max = toElement;
-			return sub;
-		}
-		@Override public SortedSet<Integer> headSet(Integer toElement) {return subSet(0, toElement);}
-		@Override public SortedSet<Integer> tailSet(Integer fromElement) {return subSet(fromElement, Integer.MAX_VALUE);}
-	}
-
-	/**
 	 * Empty-set constructor
 	 * 
 	 * @param setClass
 	 *            {@link Collection}-derived class
-	 * @param universe
-	 *            all possible elements manageable by the instance. It is used
-	 *            by, {@link ExtendedSet#complement()},
-	 *            {@link ExtendedSet#complemented()},
-	 *            {@link ExtendedSet#fill(Object, Object)}, and
-	 *            {@link ExtendedSet#clear(Object, Object)}, which will throw
-	 *            {@link UnsupportedOperationException} if the universe equals
-	 *            <code>null</code>. Notice that the universe <i>must</i> be
-	 *            aligned with the actual element set managed by the instance.
-	 *            No checks will be done to ensure that each element of the set
-	 *            is actually within the given universe.
-	 * @see GenericExtendedSet#ALL_POSITIVE_INTEGERS           
 	 */
 	@SuppressWarnings("unchecked")
-	public GenericExtendedSet(Class<? extends Collection> setClass, Collection<T> universe) {
+	public GenericExtendedSet(Class<? extends Collection> setClass) {
 		this.setClass = setClass;
-		this.universe = universe;
 		try {
 			elements = setClass.newInstance();
 		} catch (Exception e) {
@@ -134,14 +73,6 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 */
 	@Override
 	public double bitmapCompressionRatio() {
-		if (universe == null)
-			throw new UnsupportedOperationException("missing universe");
-		if (isEmpty())
-			return 0D;
-		if (universe instanceof SortedSet<?>) {
-			int last = ((SortedSet<T>) universe).headSet(last()).size();
-			return size() / Math.ceil(last / 32D);
-		}
 		throw new UnsupportedOperationException();
 	}
 
@@ -158,7 +89,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 */
 	@Override
 	public GenericExtendedSet<T> empty() {
-		return new GenericExtendedSet<T>(setClass, universe);
+		return new GenericExtendedSet<T>(setClass);
 	}
 
 	/**
@@ -728,17 +659,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 */
 	@Override
 	public void complement() {
-		if (universe == null)
-			throw new UnsupportedOperationException("missing universe");
-		Iterator<T> universeItr = universe.iterator();
-		Iterator<T> thisItr = clone().iterator(); // avoid concurrency
-		clear();
-		T u;
-		while (thisItr.hasNext()) {
-			T c = thisItr.next();
-			while ((u = universeItr.next()).compareTo(c) < 0)  
-				elements.add(u);
-		}
+		throw new UnsupportedOperationException();
 	}
 	
 	/**
@@ -756,35 +677,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	 */
 	@Override
 	public void fill(T from, T to) {
-		if (universe == null)
-			throw new UnsupportedOperationException("missing universe");
-		if (universe instanceof SortedSet<?>) { 
-			addAll(((SortedSet<T>) universe).subSet(from, to));
-		} else {
-			Iterator<T> uniItr = universe.iterator();
-			T curr = null;
-			while (uniItr.hasNext() && (curr = uniItr.next()).compareTo(from) < 0) {/*empty*/}
-			do add(curr);
-			while (uniItr.hasNext() && (curr = uniItr.next()).compareTo(to) <= 0);
-		}
-	}
-	
-	/**
-	 * {@inheritDoc}
-	 */
-	@Override
-	public void clear(T from, T to) {
-		if (universe == null)
-			throw new UnsupportedOperationException("missing universe");
-		if (universe instanceof SortedSet<?>) { 
-			removeAll(((SortedSet<T>) universe).subSet(from, to));
-		} else {
-			Iterator<T> uniItr = universe.iterator();
-			T curr = null;
-			while (uniItr.hasNext() && (curr = uniItr.next()).compareTo(from) < 0) {/*empty*/}
-			do remove(curr);
-			while (uniItr.hasNext() && (curr = uniItr.next()).compareTo(to) <= 0);
-		}
+		throw new UnsupportedOperationException();
 	}
 
 	/**
@@ -807,33 +700,5 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 		if (res.elements instanceof List<?>)
 			Collections.sort((List<T>) res.elements);
 		return res;
-	}
-	
-	/**
-	 * Test
-	 * 
-	 * @param args
-	 */
-	public static void main(String[] args) {
-//		GenericExtendedSet<Integer> s = new GenericExtendedSet<Integer>(HashSet.class, ALL_POSITIVE_INTEGERS);
-		GenericExtendedSet<Integer> s = new GenericExtendedSet<Integer>(ArrayList.class, ALL_POSITIVE_INTEGERS);
-		s = s.convert(4, 40, 3, 1, 11000);
-		System.out.println("s = " + s.debugInfo() + " ---> " + s);
-		
-		GenericExtendedSet<Integer> t = s.convert(2, 4, 3, 10, 11, 20, 40);
-		System.out.println("t = " + t.debugInfo() + " ---> " + t);
-		
-		System.out.println("t.intersection(s) = " + t.intersection(s));
-		System.out.println("t.union(s) = " + t.union(s));
-		System.out.println("t.difference(s) = " + t.difference(s));
-		System.out.println("t.symmetricDifference(s) = " + t.symmetricDifference(s));
-		System.out.println("t.intersectionSize(s) = " + t.intersectionSize(s));
-		System.out.println("t.subSet(3, 11).intersection(s) = " + t.subSet(3, 11).intersection(s));
-		
-		System.out.println("t.complemented() = " + t.complemented());
-		
-		t.fill(10, 50);
-		t.clear(20, 30);
-		System.out.println("t + from 10 to 50, 20-30 excluded: " + t);
 	}
 }

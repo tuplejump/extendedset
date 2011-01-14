@@ -17,7 +17,7 @@
  */ 
 
 
-package it.uniroma3.mat.extendedset.others;
+package it.uniroma3.mat.extendedset.wrappers;
 
 
 import it.uniroma3.mat.extendedset.AbstractExtendedSet;
@@ -43,6 +43,7 @@ import java.util.SortedSet;
  * @author Alessandro Colantonio
  * @version $Id$
  */
+// TODO: fondere dentro GenericExtendedSet e poi eliminare. 
 public class GenericArraySet<T> extends AbstractExtendedSet<T> {
 	/** elements of the set */
 	private T[] elements;
