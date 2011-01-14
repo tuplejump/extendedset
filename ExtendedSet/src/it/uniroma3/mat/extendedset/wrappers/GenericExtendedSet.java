@@ -41,9 +41,6 @@ import java.util.SortedSet;
  * @param <T>
  *            the type of elements maintained by this set
  */
-// TODO: I metodi addAll, removeAll, retainAll, union, difference, intersection,
-//symmetricDifference devono essere ridefiniti solo nel caso di List, perché i
-//Set sono solitamente già performanti!
 public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtendedSet<T> {
 	/** elements of the set */
 	private /*final*/ Collection<T> elements;
@@ -135,6 +132,50 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 		};
 	}
 
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public ExtendedIterator<T> descendingIterator() {
+		// prepare the sorted set
+		final Collection<T> sorted;
+//TODO
+//		if (elements instanceof SortedSet<?> || elements instanceof List<?>) {
+//			//NOTE: SortedSet.comparator() is null
+//			sorted = elements;
+//		} else {
+			sorted = new ArrayList<T>(elements);
+			Collections.sort((List<T>) sorted, Collections.reverseOrder());
+//		}
+		
+		// iterate over the sorted set
+		return new ExtendedIterator<T>() {
+			final Iterator<T> itr = sorted.iterator();
+			T current;
+			{
+				current = itr.hasNext() ? itr.next() : null;
+			}
+			@Override
+			public void skipAllBefore(T element) {
+				while (element.compareTo(current) > 0) 
+					next();
+			}
+			@Override public boolean hasNext() {
+				return current != null;
+			}
+			@Override public T next() {
+				if (!hasNext())
+					throw new NoSuchElementException();
+				T prev = current;
+				current = itr.hasNext() ? itr.next() : null;
+				return prev;
+			}
+			@Override public void remove() {
+				throw new UnsupportedOperationException();
+			}
+		};
+	}
+	
 	/** 
 	 * {@inheritDoc} 
 	 */ 
@@ -143,16 +184,14 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	public GenericExtendedSet<T> clone() {
 		// NOTE: do not use super.clone() since it is 10 times slower!
 		GenericExtendedSet<T> c = empty();
-		try {
-			if (elements instanceof Cloneable) {
+		if (elements instanceof Cloneable) 
+			try {
 				c.elements = (Collection<T>) elements.getClass().getMethod("clone").invoke(elements);
-			} else {
-				c.elements = setClass.newInstance();
-				c.elements.addAll(elements);
+			} catch (Exception e) {
+				throw new RuntimeException(e);
 			}
-		} catch (Exception e) {
-			throw new RuntimeException(e);
-		}
+		else 
+			c.elements.addAll(elements);
 		return c;
 	}
 	
@@ -262,6 +301,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	@Override
 	public boolean addAll(Collection<? extends T> c) {
 		if (elements instanceof List<?>) {
+			//TODO: copiare codice di union
 			Collection<T> res = union(c).elements;
 			boolean r = !res.equals(elements);
 			elements = res;
@@ -278,6 +318,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	public boolean retainAll(Collection<?> c) {
 		if (elements instanceof List<?>) {
 			try {
+				//TODO: copiare codice di intersection
 				Collection<T> res = intersection((Collection<T>) c).elements;
 				boolean r = !res.equals(elements);
 				elements = res;
@@ -297,6 +338,7 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	public boolean removeAll(Collection<?> c) {
 		if (elements instanceof List<?>) {
 			try {
+				//TODO: copiare codice di difference
 				Collection<T> res = difference((Collection<T>) c).elements;
 				boolean r = !res.equals(elements);
 				elements = res;

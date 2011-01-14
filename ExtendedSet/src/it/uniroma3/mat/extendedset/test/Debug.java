@@ -27,7 +27,6 @@ import it.uniroma3.mat.extendedset.intset.FastSet;
 import it.uniroma3.mat.extendedset.intset.HashIntSet;
 import it.uniroma3.mat.extendedset.utilities.IntSetStatistics;
 import it.uniroma3.mat.extendedset.utilities.MersenneTwister;
-import it.uniroma3.mat.extendedset.wrappers.GenericArraySet;
 import it.uniroma3.mat.extendedset.wrappers.GenericExtendedSet;
 import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
 import it.uniroma3.mat.extendedset.wrappers.IntegerSet;
@@ -1343,8 +1342,6 @@ public class Debug {
 	private static class IntegerWAHSet extends IntegerSet {IntegerWAHSet() {super(new IntSetStatistics(new ConciseSet(true)));}}
 	@SuppressWarnings("unused")
 	private static class IntegerArraySet extends IntegerSet {IntegerArraySet() {super(new IntSetStatistics(new ArraySet()));}}
-	@SuppressWarnings("unused")
-	private static class IntegerArraySet2 extends GenericArraySet<Integer> {public IntegerArraySet2() {/* */}}
 
 	/**
 	 * Test launcher
@@ -1370,8 +1367,6 @@ public class Debug {
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerWAHSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = ListSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = LinkedSet.class;
-//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerArraySet.class;
-//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerArraySet2.class;
 		
 		if (args != null && args.length > 0) {
 			try {
