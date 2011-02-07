@@ -20,16 +20,20 @@ package it.uniroma3.mat.extendedset.test;
 
 import it.uniroma3.mat.extendedset.ExtendedSet;
 import it.uniroma3.mat.extendedset.ExtendedSet.ExtendedIterator;
+import it.uniroma3.mat.extendedset.intset.AbstractIntSet;
 import it.uniroma3.mat.extendedset.intset.ArraySet;
 import it.uniroma3.mat.extendedset.intset.Concise2Set;
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 import it.uniroma3.mat.extendedset.intset.FastSet;
 import it.uniroma3.mat.extendedset.intset.HashIntSet;
+import it.uniroma3.mat.extendedset.intset.IntSet;
 import it.uniroma3.mat.extendedset.utilities.IntSetStatistics;
 import it.uniroma3.mat.extendedset.utilities.MersenneTwister;
 import it.uniroma3.mat.extendedset.wrappers.GenericExtendedSet;
 import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
 import it.uniroma3.mat.extendedset.wrappers.IntegerSet;
+import it.uniroma3.mat.extendedset.wrappers.matrix.BinaryMatrix;
+import it.uniroma3.mat.extendedset.wrappers.matrix.BinaryMatrix.CellIterator;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -37,6 +41,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.SortedSet;
@@ -148,6 +153,8 @@ public class Debug {
 			if (!checkContent(currentBits, currentItems)) {
 				System.out.println("add() error");
 				System.out.println("Same elements: " + (currentItems.toString().equals(currentBits.toString())));
+				System.out.println("\tcorrect: " + currentItems.toString());
+				System.out.println("\twrong:   " + currentBits.toString());
 				System.out.println("Original: " + currentItems);
 				System.out.println(currentBits.debugInfo());
 				System.out.println(previousBits.debugInfo());
@@ -202,10 +209,10 @@ public class Debug {
 		Random rnd = new MersenneTwister();
 
 		// create a 1-filled bitset
-		currentBits.add(10001);
+		currentBits.add((1 << MatrixIntSet.COL_POW) * 5 - 1);
 		currentBits.complement();
 		currentItems.addAll(currentBits);
-		if (currentItems.size() != 10001) {
+		if (currentItems.size() != (1 << MatrixIntSet.COL_POW) * 5 - 1) {
 			System.out.println("Unexpected error!");
 			System.out.println(currentBits.size());
 			System.out.println(currentItems.size());
@@ -651,10 +658,20 @@ public class Debug {
 				System.out.format(" complement of %d elements... ", itemsLeft.size());
 				System.out.flush();
 				operationSize = bitsLeft.complementSize();
-				if (!itemsLeft.isEmpty())
-					for (int j = itemsLeft.last(); j >= 0; j--)
-						if (!itemsLeft.add(j))
-							itemsLeft.remove(j);
+				if (!itemsLeft.isEmpty()) {
+					if ((bitsLeft instanceof IntegerSet) && (((IntegerSet) bitsLeft).intSet() instanceof MatrixIntSet)) {
+						BinaryMatrix m = ((MatrixIntSet) ((IntegerSet) bitsLeft).intSet()).matrix;
+						int x = m.colCount() - 1;
+						for (int rx = m.rowCount() - 1; rx >= 0; rx--)
+							for (int cx = x; cx >= 0; cx--)
+								if (!itemsLeft.add(MatrixIntSet.toInt(rx, cx)))
+									itemsLeft.remove(MatrixIntSet.toInt(rx, cx));
+					} else {
+						for (int j = itemsLeft.last(); j >= 0; j--)
+							if (!itemsLeft.add(j))
+								itemsLeft.remove(j);
+					}
+				}
 				bitsLeft.complement();
 				alternative = bitsLeft;
 				break;
@@ -1336,13 +1353,125 @@ public class Debug {
 	private static class IntegerFastSet extends IntegerSet {IntegerFastSet() {super(new IntSetStatistics(new FastSet()));}}
 	@SuppressWarnings("unused")
 	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new IntSetStatistics(new ConciseSet()));}}
-//	@SuppressWarnings("unused")
+	@SuppressWarnings("unused")
 	private static class IntegerConcise2Set extends IntegerSet {IntegerConcise2Set() {super(new IntSetStatistics(new Concise2Set()));}}
 	@SuppressWarnings("unused")
 	private static class IntegerWAHSet extends IntegerSet {IntegerWAHSet() {super(new IntSetStatistics(new ConciseSet(true)));}}
 	@SuppressWarnings("unused")
 	private static class IntegerArraySet extends IntegerSet {IntegerArraySet() {super(new IntSetStatistics(new ArraySet()));}}
+//	@SuppressWarnings("unused")
+	private static class MatrixSet extends IntegerSet {MatrixSet() {super(new MatrixIntSet());}}
 
+	final static class MatrixIntSet extends AbstractIntSet {
+		BinaryMatrix matrix = new BinaryMatrix(new FastSet());
+			
+		final static int COL_POW = 10;
+		final static int toInt(int row, int col) {return (row << COL_POW) + col;}
+		final static int toRow(int index) {return index >>> COL_POW;}
+		final static int toCol(int index) {return index & (0xFFFFFFFF >>> -COL_POW);}
+		
+		IntSet convert(BinaryMatrix m) {
+			MatrixIntSet res = new MatrixIntSet();
+			res.matrix = m;
+			return res;
+		}
+		
+		BinaryMatrix convert(IntSet s) {
+			return ((MatrixIntSet) s).matrix;
+		}
+
+		@Override public IntSet convert(int... a) {
+			MatrixIntSet res = new MatrixIntSet();
+			for (int i : a) res.add(i);
+			return res;
+		}
+		@Override public IntSet convert(Collection<Integer> c) {
+			MatrixIntSet res = new MatrixIntSet();
+			for (int i : c) res.add(i);
+			return res;
+		}
+
+		@Override public boolean add(int i) {return matrix.add(toRow(i), toCol(i));}
+		@Override public boolean addAll(IntSet c) {return matrix.addAll(convert(c));}
+		@Override public double bitmapCompressionRatio() {return matrix.bitmapCompressionRatio();}
+		@Override public void clear(int from, int to) {matrix.clear(toRow(from), toCol(from), toRow(to), toCol(to));}
+		@Override public void clear() {matrix.clear();}
+		@Override public double collectionCompressionRatio() {return matrix.collectionCompressionRatio();}
+		@Override public void complement() {matrix.complement();}
+		@Override public int complementSize() {return matrix.complementSize();}
+		@Override public IntSet complemented() {return convert(matrix.complemented());}
+		@Override public boolean contains(int i) {return matrix.contains(toRow(i), toCol(i));}
+		@Override public boolean containsAll(IntSet c) {return matrix.containsAll(convert(c));}
+		@Override public boolean containsAny(IntSet other) {return matrix.containsAny(convert(other));}
+		@Override public boolean containsAtLeast(IntSet other, int minElements) {return matrix.containsAtLeast(convert(other), minElements);}
+		@Override public IntSet difference(IntSet other) {return convert(matrix.difference(convert(other)));}
+		@Override public int differenceSize(IntSet other) {return matrix.differenceSize(convert(other));}
+		@Override public IntSet empty() {return new MatrixIntSet();}
+		@Override public void fill(int from, int to) {matrix.fill(toRow(from), toCol(from), toRow(to), toCol(to));}
+		@Override public int first() {return toInt(matrix.first()[0], matrix.first()[1]);}
+		@Override public void flip(int e) {matrix.flip(toRow(e), toCol(e));}
+		@Override public int get(int i) {return toInt(matrix.get(i)[0], matrix.get(i)[1]);}
+		@Override public int indexOf(int e) {return matrix.indexOf(toRow(e), toCol(e));}
+		@Override public IntSet intersection(IntSet other) {return convert(matrix.intersection(convert(other)));}
+		@Override public int intersectionSize(IntSet other) {return matrix.intersectionSize(convert(other));}
+		@Override public boolean isEmpty() {return matrix.isEmpty();}
+		@Override public int last() {return toInt(matrix.last()[0], matrix.last()[1]);}
+		@Override public boolean remove(int i) {return matrix.remove(toRow(i), toCol(i));}
+		@Override public boolean removeAll(IntSet c) {return matrix.removeAll(convert(c));}
+		@Override public boolean retainAll(IntSet c) {return matrix.retainAll(convert(c));}
+		@Override public int size() {return matrix.size();}
+		@Override public IntSet symmetricDifference(IntSet other) {return convert(matrix.symmetricDifference(convert(other)));}
+		@Override public int symmetricDifferenceSize(IntSet other) {return matrix.symmetricDifferenceSize(convert(other));}
+		@Override public IntSet union(IntSet other) {return convert(matrix.union(convert(other)));}
+		@Override public int unionSize(IntSet other) {return matrix.unionSize(convert(other));}
+		@Override public int compareTo(IntSet o) {return matrix.compareTo(convert(o));}
+
+		@Override public double jaccardDistance(IntSet other) {return 0;}
+		@Override public double jaccardSimilarity(IntSet other) {return 0;}
+		@Override public double weightedJaccardDistance(IntSet other) {return 0;}
+		@Override public double weightedJaccardSimilarity(IntSet other) {return 0;}
+
+		@Override public List<? extends IntSet> powerSet() {return null;}
+		@Override public List<? extends IntSet> powerSet(int min, int max) {return null;}
+		@Override public int powerSetSize() {return 0;}
+		@Override public int powerSetSize(int min, int max) {return 0;}
+
+		@Override public IntIterator iterator() {
+			return new IntIterator() {
+				CellIterator itr = matrix.iterator();
+				@Override public boolean hasNext() {return itr.hasNext();}
+				@Override public int next() {int[] c = itr.next(); return toInt(c[0], c[1]);}
+				@Override public void skipAllBefore(int element) {itr.skipAllBefore(toRow(element), toCol(element));}
+				@Override public void remove() {itr.remove();}
+			};
+		}
+
+		@Override public IntIterator descendingIterator() {
+			return new IntIterator() {
+				CellIterator itr = matrix.descendingIterator();
+				@Override public boolean hasNext() {return itr.hasNext();}
+				@Override public int next() {int[] c = itr.next(); return toInt(c[0], c[1]);}
+				@Override public void skipAllBefore(int element) {itr.skipAllBefore(toRow(element), toCol(element));}
+				@Override public void remove() {itr.remove();}
+			};
+		}
+
+		@Override
+		public IntSet clone() {
+			MatrixIntSet res = new MatrixIntSet();
+			res.matrix = matrix.clone();
+			return res;
+		}
+		
+		@Override public int hashCode() {return matrix.hashCode();}
+		@Override public boolean equals(Object obj) {return matrix.equals(((MatrixIntSet) obj).matrix);}
+		
+		@Override
+		public String debugInfo() {
+			return super.toString() + "\n" + matrix.debugInfo();
+		}
+	}
+	
 	/**
 	 * Test launcher
 	 * 
@@ -1352,21 +1481,22 @@ public class Debug {
 		// NOTE: the most complete test is TestCase.RANDOM_OPERATION_STRESS
 //		TestCase testCase = TestCase.ADDITION_STRESS;
 //		TestCase testCase = TestCase.REMOVAL_STRESS;
-		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS;
+//		TestCase testCase = TestCase.RANDOM_OPERATION_STRESS;
 //		TestCase testCase = TestCase.FILL_CLEAR_STRESS;
 //		TestCase testCase = TestCase.SKIP;
-//		TestCase testCase = TestCase.POSITION;
+		TestCase testCase = TestCase.POSITION;
 //		TestCase testCase = TestCase.COMPARATOR_COMPLEX;
 //		TestCase testCase = TestCase.DESCENDING_ITERATOR;
 		
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerHashSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerFastSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConciseSet.class;
-		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcise2Set.class;
+//		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcise2Set.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerConcisePlusSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = IntegerWAHSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = ListSet.class;
 //		Class<? extends ExtendedSet<Integer>> classToTest = LinkedSet.class;
+		Class<? extends ExtendedSet<Integer>> classToTest = MatrixSet.class;
 		
 		if (args != null && args.length > 0) {
 			try {

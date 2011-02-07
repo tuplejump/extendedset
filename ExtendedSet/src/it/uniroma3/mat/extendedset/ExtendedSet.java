@@ -26,7 +26,7 @@ import it.uniroma3.mat.extendedset.wrappers.GenericExtendedSet;
 import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
 import it.uniroma3.mat.extendedset.wrappers.IntegerSet;
 import it.uniroma3.mat.extendedset.wrappers.LongSet;
-import it.uniroma3.mat.extendedset.wrappers.pairs.PairSet;
+import it.uniroma3.mat.extendedset.wrappers.matrix.PairSet;
 
 import java.util.ArrayList;
 import java.util.BitSet;

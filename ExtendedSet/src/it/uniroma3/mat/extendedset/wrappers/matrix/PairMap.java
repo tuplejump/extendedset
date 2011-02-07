@@ -16,7 +16,7 @@
  * limitations under the License.
  */ 
 
-package it.uniroma3.mat.extendedset.wrappers.pairs;
+package it.uniroma3.mat.extendedset.wrappers.matrix;
 
 import java.io.Serializable;
 import java.util.AbstractCollection;
