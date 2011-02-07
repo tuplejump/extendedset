@@ -19,7 +19,6 @@
 
 package it.uniroma3.mat.extendedset.test;
 
-import it.uniroma3.mat.extendedset.utilities.MersenneTwister;
 
 import java.util.Collection;
 import java.util.Random;
