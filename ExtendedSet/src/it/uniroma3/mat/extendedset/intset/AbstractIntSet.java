@@ -398,13 +398,13 @@ public abstract class AbstractIntSet implements IntSet {
 	@Override
 	public int[] toArray(int[] a) {
 		if (a.length < size())
-			throw new IllegalArgumentException();
-		if (isEmpty())
-			return a;
+			a = new int[size()];
 		IntIterator itr = iterator();
 		int i = 0;
 		while (itr.hasNext()) 
 			a[i++] = itr.next();
+		for (; i < a.length; i++)
+			a[i] = 0;
 		return a;
 	}
 	

@@ -61,10 +61,10 @@ public class BinaryMatrix implements Cloneable, Comparable<BinaryMatrix> {
 	}
 	
 	/**
-	 * @return {@link IntSet} instance user internally used to represent rows
+	 * @return {@link IntSet} instance internally used to represent rows
 	 */
-	public IntSet template() {
-		return template;
+	public IntSet emptyRow() {
+		return template.empty();
 	}
 	
 	/**
@@ -233,27 +233,6 @@ public class BinaryMatrix implements Cloneable, Comparable<BinaryMatrix> {
 	}
 	
 	/**
-	 * @return the number of involved columns
-	 */
-	public int colCount() {
-		int res = -1;
-		for (IntSet row : rows) {
-			if (row != null) {
-				assert !row.isEmpty();
-				res = Math.max(res, row.last());
-			}
-		}
-		return res + 1;
-	}
-
-	/**
-	 * @return the number of involved rows
-	 */
-	public int rowCount() {
-		return rows.size();
-	}
-
-	/**
 	 * Generates the complement matrix, namely flipping all the cells.
 	 * 
 	 * @return the complement matrix
@@ -263,16 +242,16 @@ public class BinaryMatrix implements Cloneable, Comparable<BinaryMatrix> {
 	public BinaryMatrix complemented() {
 		BinaryMatrix res = empty();
 		
-		final int colCount = colCount();
+		final int maxCol = maxCol();
 		
 		for (int i = 0; i < rows.size(); i++) {
 			IntSet s = rows.get(i);
 			
 			if (s == null) {
 				s = template.empty();
-				s.fill(0, colCount - 1);
+				s.fill(0, maxCol);
 			} else {
-				s.add(colCount);
+				s.add(maxCol + 1);
 				s.complemented();
 				if (s.isEmpty())
 					s = null;
@@ -291,17 +270,17 @@ public class BinaryMatrix implements Cloneable, Comparable<BinaryMatrix> {
 	 * @see BinaryMatrix#complemented()
 	 */
 	public void complement() {
-		final int colCount = colCount();
+		final int maxCol = maxCol();
 		
 		for (int i = 0; i < rows.size(); i++) {
 			IntSet s = rows.get(i);
 			
 			if (s == null) {
 				s = template.empty();
-				s.fill(0, colCount - 1);
+				s.fill(0, maxCol - 1);
 				rows.set(i, s);
 			} else {
-				s.add(colCount);
+				s.add(maxCol + 1);
 				s.complement();
 				if (s.isEmpty())
 					rows.set(i, null);
@@ -456,11 +435,11 @@ public class BinaryMatrix implements Cloneable, Comparable<BinaryMatrix> {
 	 * @return the size
 	 */
 	public int complementSize() {
-		final int colCount = colCount();
+		final int maxCol = maxCol();
 		int res = 0;
 		for (int i = 0; i < rows.size(); i++) {
 			IntSet s = rows.get(i);
-			res += colCount;
+			res += maxCol + 1;
 			if (s != null) 
 				res -= s.size();
 		}
@@ -1456,7 +1435,7 @@ public class BinaryMatrix implements Cloneable, Comparable<BinaryMatrix> {
 			throw new IllegalArgumentException("negative column index: " + col);
 		IntSet res = template.empty();
 		for (int row = 0; row < rows.size(); row++) {
-			IntSet r = rows.get(row);
+			final IntSet r = rows.get(row);
 			if (r != null && r.contains(col))
 				res.add(row);
 		}
@@ -1488,11 +1467,11 @@ public class BinaryMatrix implements Cloneable, Comparable<BinaryMatrix> {
 	public String toString() {
 		StringBuilder s = new StringBuilder();
 		
-		final int colCount = colCount();
+		final int maxCol = maxCol();
 
 		// initial line
 		s.append('+');
-		for (int i = 0; i < colCount; i++)
+		for (int i = 0; i <= maxCol; i++)
 			s.append('-');
 		s.append("+\n");
 
@@ -1509,14 +1488,14 @@ public class BinaryMatrix implements Cloneable, Comparable<BinaryMatrix> {
 					s.append('*');
 				}
 			}
-			while (col++ < colCount)
+			while (col++ <= maxCol)
 				s.append(' ');
 			s.append("|\n");
 		}
 
 		// final line
 		s.append('+');
-		for (int i = 0; i < colCount; i++)
+		for (int i = 0; i <= maxCol; i++)
 			s.append('-');
 		s.append("+\n");
 		
@@ -1547,5 +1526,47 @@ public class BinaryMatrix implements Cloneable, Comparable<BinaryMatrix> {
 				h += s.hashCode();
 		}
 		return h;
+	}
+
+	/**
+	 * @return the greatest non-empty row
+	 */
+	public int maxRow() {
+		return rows.size() - 1;
+	}
+
+	/**
+	 * @return the greatest non-empty column
+	 */
+	public int maxCol() {
+		int res = 0;
+		for (IntSet row : rows) {
+			if (row != null) {
+				assert !row.isEmpty();
+				res = Math.max(res, row.last());
+			}
+		}
+		return res;
+	}
+
+	/**
+	 * @return the index set of non-empty rows
+	 */
+	public IntSet involvedRows() {
+		IntSet res = template.empty();
+		for (int i = 0; i < rows.size(); i++)
+			if (rows.get(i) != null)
+				res.add(i);
+		return res;
+	}
+
+	/**
+	 * @return the index set of non-empty columns
+	 */
+	public IntSet involvedCols() {
+		IntSet res = template.empty();
+		for (int i = 0; i < rows.size(); i++)
+			res.addAll(rows.get(i));
+		return res;
 	}
 }

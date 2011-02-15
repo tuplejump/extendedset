@@ -103,6 +103,13 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	}
 	
 	/**
+	 * A shortcut for <code>new IndexedSet&lt;T&gt;(itemToIndex, indexToItem, indices)</code>
+	 */
+	private IndexedSet<T> createFromIndices(IntSet indx) {
+		return new IndexedSet<T>(itemToIndex, indexToItem, indx);
+	}
+	
+	/**
 	 * Checks if the given collection is a instance of {@link IndexedSet} with
 	 * the same index mappings
 	 * 
@@ -124,7 +131,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 */
 	@Override
 	public IndexedSet<T> clone() {
-		return new IndexedSet<T>(itemToIndex, indexToItem, indices.clone());
+		return createFromIndices(indices.clone());
 	}
 
 	/**
@@ -340,8 +347,9 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 */
 	@Override
 	public IndexedSet<T> intersection(Collection<? extends T> other) {
-		return other == null ? empty() : new IndexedSet<T>(itemToIndex, indexToItem, 
-				indices.intersection(convert(other).indices));
+		if (other == null)
+			return empty();
+		return createFromIndices(indices.intersection(convert(other).indices));
 	}
 
 	/**
@@ -349,8 +357,9 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 */
 	@Override
 	public IndexedSet<T> union(Collection<? extends T> other) {
-		return other == null ? clone() : new IndexedSet<T>(itemToIndex, indexToItem, 
-				indices.union(convert(other).indices));
+		if (other == null)
+			return clone();
+		return createFromIndices(indices.union(convert(other).indices));
 	}
 
 	/**
@@ -358,8 +367,9 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 */
 	@Override
 	public IndexedSet<T> difference(Collection<? extends T> other) {
-		return other == null ? clone() : new IndexedSet<T>(itemToIndex, indexToItem, 
-				indices.difference(convert(other).indices));
+		if (other == null)
+			return clone();
+		return createFromIndices(indices.difference(convert(other).indices));
 	}
 
 	/**
@@ -367,8 +377,9 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 */
 	@Override
 	public IndexedSet<T> symmetricDifference(Collection<? extends T> other) {
-		return other == null ? clone() : new IndexedSet<T>(itemToIndex, indexToItem, 
-				indices.symmetricDifference(convert(other).indices));
+		if (other == null)
+			return clone();
+		return createFromIndices(indices.symmetricDifference(convert(other).indices));
 	}
 
 	/**
@@ -376,7 +387,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 */
 	@Override
 	public IndexedSet<T> complemented() {
-		return new IndexedSet<T>(itemToIndex, indexToItem, indices.complemented());
+		return createFromIndices(indices.complemented());
 	}
 
 	/**
@@ -392,7 +403,9 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 */
 	@Override
 	public int intersectionSize(Collection<? extends T> other) {
-		return other == null ? 0 : indices.intersectionSize(convert(other).indices);
+		if (other == null)
+			return 0;
+		return indices.intersectionSize(convert(other).indices);
 	}
 
 	/**
@@ -400,7 +413,9 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 */
 	@Override
 	public int unionSize(Collection<? extends T> other) {
-		return other == null ? size() : indices.unionSize(convert(other).indices);
+		if (other == null)
+			return size();
+		return indices.unionSize(convert(other).indices);
 	}
 
 	/**
@@ -408,7 +423,9 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 */
 	@Override
 	public int symmetricDifferenceSize(Collection<? extends T> other) {
-		return other == null ? size() : indices.symmetricDifferenceSize(convert(other).indices);
+		if (other == null)
+			return size();
+		return indices.symmetricDifferenceSize(convert(other).indices);
 	}
 
 	/**
@@ -416,7 +433,9 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 */
 	@Override
 	public int differenceSize(Collection<? extends T> other) {
-		return other == null ? size() : indices.differenceSize(convert(other).indices);
+		if (other == null)
+			return size();
+		return indices.differenceSize(convert(other).indices);
 	}
 
 	/**
@@ -435,7 +454,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	public IndexedSet<T> universe() {
 		IntSet allItems = indices.empty();
 		allItems.fill(0, indexToItem.length - 1);
-		return new IndexedSet<T>(itemToIndex, indexToItem, allItems);
+		return createFromIndices(allItems);
 	}
 
 	/**
@@ -477,7 +496,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 */
 	@Override
 	public IndexedSet<T> empty() {
-		return new IndexedSet<T>(itemToIndex, indexToItem, indices.empty());
+		return createFromIndices(indices.empty());
 	}
 
 	/**
@@ -536,7 +555,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 		List<? extends IntSet> ps = indices.powerSet(min, max);
 		List<IndexedSet<T>> res = new ArrayList<IndexedSet<T>>(ps.size());
 		for (IntSet s : ps) 
-			res.add(new IndexedSet<T>(itemToIndex, indexToItem, s));
+			res.add(createFromIndices(s));
 		return res;
 	}
 
@@ -563,7 +582,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 //	 */
 //	@Override
 //	public IndexedSet<T> unmodifiable() {
-//		return new IndexedSet<T>(itemToIndex, indexToItem, indices.unmodifiable());
+//		return createFromIndices(indices.unmodifiable());
 //	}
 //	
 //	/**
@@ -571,8 +590,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 //	 */
 //	@Override
 //	public IndexedSet<T> subSet(T fromElement, T toElement) {
-//		return new IndexedSet<T>(itemToIndex, indexToItem, 
-//				indices.subSet(itemToIndex.get(fromElement), itemToIndex.get(toElement)));
+//		return createFromIndices(indices.subSet(itemToIndex.get(fromElement), itemToIndex.get(toElement)));
 //	}
 //	
 //	/**
@@ -580,8 +598,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 //	 */
 //	@Override
 //	public IndexedSet<T> headSet(T toElement) {
-//		return new IndexedSet<T>(itemToIndex, indexToItem, 
-//				indices.headSet(itemToIndex.get(toElement)));
+//		return createFromIndices(indices.headSet(itemToIndex.get(toElement)));
 //	}
 //	
 //	/**
@@ -589,8 +606,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 //	 */
 //	@Override
 //	public IndexedSet<T> tailSet(T fromElement) {
-//		return new IndexedSet<T>(itemToIndex, indexToItem, 
-//				indices.tailSet(itemToIndex.get(fromElement)));
+//		return createFromIndices(indices.tailSet(itemToIndex.get(fromElement)));
 //	}
 
 	/**
@@ -598,7 +614,6 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 */
 	@Override
 	public T get(int i) {
-//		return indexToItem.get(indices.get(i));
 		return indexToItem[indices.get(i)];
 	}
 

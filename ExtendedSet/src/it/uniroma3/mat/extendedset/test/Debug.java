@@ -28,6 +28,7 @@ import it.uniroma3.mat.extendedset.intset.FastSet;
 import it.uniroma3.mat.extendedset.intset.HashIntSet;
 import it.uniroma3.mat.extendedset.intset.IntSet;
 import it.uniroma3.mat.extendedset.utilities.IntSetStatistics;
+import it.uniroma3.mat.extendedset.utilities.random.MersenneTwister;
 import it.uniroma3.mat.extendedset.wrappers.GenericExtendedSet;
 import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
 import it.uniroma3.mat.extendedset.wrappers.IntegerSet;
@@ -660,8 +661,8 @@ public class Debug {
 				if (!itemsLeft.isEmpty()) {
 					if ((bitsLeft instanceof IntegerSet) && (((IntegerSet) bitsLeft).intSet() instanceof MatrixIntSet)) {
 						BinaryMatrix m = ((MatrixIntSet) ((IntegerSet) bitsLeft).intSet()).matrix;
-						int x = m.colCount() - 1;
-						for (int rx = m.rowCount() - 1; rx >= 0; rx--)
+						int x = m.maxCol();
+						for (int rx = m.maxRow(); rx >= 0; rx--)
 							for (int cx = x; cx >= 0; cx--)
 								if (!itemsLeft.add(MatrixIntSet.toInt(rx, cx)))
 									itemsLeft.remove(MatrixIntSet.toInt(rx, cx));

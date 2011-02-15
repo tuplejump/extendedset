@@ -56,14 +56,14 @@ public class PairMap<T, I, V> extends AbstractMap<Pair<T, I>, V> implements Seri
 	/**
 	 * Creates an empty map
 	 * 
-	 * @param keySet
+	 * @param keys
 	 *            {@link PairSet} instance internally used to store indices. If
 	 *            not empty, {@link #get(Object)} will return <code>null</code>
 	 *            for each existing pair if we do not also put a value.
 	 */
-	public PairMap(PairSet<T, I> keySet) {
-		keys = keySet;
-		values = new ArrayList<V>(keySet.size());
+	public PairMap(PairSet<T, I> keys) {
+		this.keys = keys;
+		values = new ArrayList<V>(keys.size());
 		for (int i = 0; i < keys.size(); i++)
 			values.add(null);
 	}
