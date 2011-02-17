@@ -65,10 +65,10 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	private final BinaryMatrix matrix;
 
 	/** all possible transactions */
-	final IndexedSet<T> allTransactions;
+	private final IndexedSet<T> allTransactions;
 
 	/** all possible items */
-	final IndexedSet<I> allItems;
+	private final IndexedSet<I> allItems;
 	
 	/** maps a transaction to its index and returns -1 if not found */
 	private int transactionToIndex(T t) {
@@ -145,12 +145,12 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 * Converts a generic collection of transaction-item pairs to a
 	 * {@link PairSet} instance.
 	 * 
-	 * @param indices
+	 * @param matrix
 	 *            {@link IntSet} instance used to internally represent the set
 	 * @param pairs
 	 *            collection of {@link Pair} instances
 	 */
-	public PairSet(BinaryMatrix indices, Collection<? extends Pair<T, I>> pairs) {
+	public PairSet(BinaryMatrix matrix, Collection<? extends Pair<T, I>> pairs) {
 		if (pairs == null)
 			throw new RuntimeException("null pair set");
 		if (pairs.isEmpty())
@@ -198,17 +198,44 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 		});
 
 		// identify all transactions and items
-		this.matrix = indices;
-		indices.add(0, 0);
-		allTransactions = new IndexedSet<T>(indices.getRow(0), sortedTransactions).universe(); // .unmodifiable();
-		allItems = new IndexedSet<I>(indices.getRow(0), sortedItems).universe(); // .unmodifiable();
-		indices.clear();
+		this.matrix = matrix;
+		matrix.add(0, 0);
+		allTransactions = new IndexedSet<T>(matrix.getRow(0), sortedTransactions).universe(); // .unmodifiable();
+		allItems = new IndexedSet<I>(matrix.getRow(0), sortedItems).universe(); // .unmodifiable();
+		matrix.clear();
 		
 		// create the matrix
 		for (Pair<T, I> p : sortedPairs) 
 			add(p);
 	}
 
+	/**
+	 * Wraps a {@link BinaryMatrix} instance with a {@link PairSet} instance.
+	 * <p>
+	 * <b>NOTE:</b> the maximum item and transaction IDs are those existing in
+	 * the binary matrix when the wrapping take place
+	 * 
+	 * @param b
+	 *            a {@link BinaryMatrix} instance to wrap
+	 * @return a new {@link PairSet} instance, indexed by the given matrix
+	 */
+	public static PairSet<Integer, Integer> createFromBinaryMatrix(BinaryMatrix b) {
+		// TODO this is a little bit costly since PairSet will allocate an array
+		// and a HashMap of Integers to map elements of BinaryMatrix...
+		// Think about a IntegerPairSet class or to an "fake" IntegerIndexedSet
+		// just for this purpose.
+
+		IntegerSet t = new IntegerSet(b.emptyRow());
+        t.intSet().add(b.maxRow() + 1);
+        t.intSet().complement();
+
+        IntegerSet i = new IntegerSet(b.emptyRow());
+        i.intSet().add(b.maxCol() + 1);
+        i.intSet().complement();
+		
+        return new PairSet<Integer, Integer>(b, t, i);
+	}
+	
 	/**
 	 * A shortcut for <code>new PairSet&lt;T, I&gt;(matrix, mapping)</code>
 	 * 
@@ -917,8 +944,6 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	@Override
 	public PairSet<T, I> subSet(Pair<T, I> fromElement, Pair<T, I> toElement) {
 		return (PairSet<T, I>) super.subSet(fromElement, toElement);
-//		return new PairSet<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount,  
-//				indices.subSet(pairToIndex(fromElement), pairToIndex(toElement)));
 	}
 	
 	/**
@@ -928,8 +953,6 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	@Override
 	public PairSet<T, I> headSet(Pair<T, I> toElement) {
 		return (PairSet<T, I>) super.headSet(toElement);
-//		return new PairSet<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount, 
-//				indices.headSet(pairToIndex(toElement)));
 	}
 	
 	/**
@@ -939,8 +962,6 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	@Override
 	public PairSet<T, I> tailSet(Pair<T, I> fromElement) {
 		return (PairSet<T, I>) super.tailSet(fromElement);
-//		return new PairSet<T, I>(allTransactions, allItems, maxTransactionCount, maxItemCount,  
-//				indices.tailSet(pairToIndex(fromElement)));
 	}
 
 	/**
@@ -1031,6 +1052,13 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	@Override
 	public int compareTo(ExtendedSet<Pair<T, I>> o) {
 		return matrix.compareTo(convert(o).matrix);
+	}
+	
+	/**
+	 * @return a transposed {@link PairSet} instance 
+	 */
+	public PairSet<I, T> transposed() {
+		return new PairSet<I, T>(matrix.transposed(), allItems, allTransactions);
 	}
 
 	
