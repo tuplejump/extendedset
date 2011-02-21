@@ -751,7 +751,7 @@ public class BinaryMatrix implements Cloneable, Comparable<BinaryMatrix> {
 			rows.add(null);
 		IntSet r = rows.get(row);
 		if (r == null)
-			rows.set(row, r = template.clone());
+			rows.set(row, r = template.empty());
 		r.flip(col);
 		if (r.isEmpty()) {
 			rows.set(row, null);
@@ -929,7 +929,7 @@ public class BinaryMatrix implements Cloneable, Comparable<BinaryMatrix> {
 			rows.add(null);
 		IntSet r = rows.get(row);
 		if (r == null)
-			rows.set(row, r = template.clone());
+			rows.set(row, r = template.empty());
 		return r.add(col);
 	}
 
@@ -952,7 +952,7 @@ public class BinaryMatrix implements Cloneable, Comparable<BinaryMatrix> {
 			rows.add(null);
 		IntSet r = rows.get(row);
 		if (r == null)
-			rows.set(row, r = template.clone());
+			rows.set(row, r = template.empty());
 		return r.addAll(cols);
 	}
 
@@ -984,6 +984,42 @@ public class BinaryMatrix implements Cloneable, Comparable<BinaryMatrix> {
 				res = true;
 			} else {
 				res |= s.add(col);
+			}
+		}
+		return res;
+	}
+
+	/**
+	 * Adds the specified cells to this matrix, if not already present. The
+	 * cells are represented by the Cartesian product of a given set of rows and
+	 * columns
+	 * 
+	 * @param rowSet
+	 *            indices of the rows
+	 * @param colSet
+	 *            indices of the columns
+	 * @return <tt>true</tt> if this matrix did not already contain the
+	 *         specified cells
+	 * @throws IllegalArgumentException
+	 *             if some property of the specified cell prevents it from being
+	 *             added to this matrix
+	 */
+	public boolean addAll(IntSet rowSet, IntSet colSet) {
+		if (rowSet == null || rowSet.isEmpty() || colSet == null || colSet.isEmpty())
+			return false;
+		
+		boolean res = false;
+		IntIterator itr = rowSet.iterator();
+		while (itr.hasNext()) {
+			int row = itr.next();
+			IntSet cols = rows.get(row);
+			if (cols == null) {
+				IntSet newCols = template.empty();
+				newCols.addAll(colSet);
+				rows.set(row, newCols);
+				res = true;
+			} else {
+				res |= cols.addAll(colSet);
 			}
 		}
 		return res;
@@ -1082,6 +1118,191 @@ public class BinaryMatrix implements Cloneable, Comparable<BinaryMatrix> {
 	}
 
 	/**
+	 * Removes the specified cells from this matrix. The cells are represented
+	 * by the Cartesian product of a given set of rows and columns
+	 * 
+	 * @param rowSet
+	 *            indices of the rows
+	 * @param colSet
+	 *            indices of the columns
+	 * @return <tt>true</tt> if this matrix contains at least one of the
+	 *         specified cells
+	 * @throws IllegalArgumentException
+	 *             if some property of the specified cell prevents it from being
+	 *             added to this matrix
+	 */
+	public boolean removeAll(IntSet rowSet, IntSet colSet) {
+		if (rowSet == null || rowSet.isEmpty() || colSet == null || colSet.isEmpty())
+			return false;
+		
+		boolean res = false;
+		IntIterator itr = rowSet.iterator();
+		while (itr.hasNext()) {
+			int r = itr.next();
+			IntSet s = rows.get(r);
+			if (s == null) 
+				continue;
+			res |= s.removeAll(colSet);
+			if (s.isEmpty())
+				rows.set(r, null);
+		}
+		if (res)
+			fixRows();
+		return res;
+	}
+
+	/**
+	 * Retains the specified cells from this matrix. The cells are represented by
+	 * a given row and a set of columns.
+	 * 
+	 * @param row
+	 *            index of the row
+	 * @param cols
+	 *            indices of the columns
+	 * @return <tt>true</tt> if this matrix contains at least one of the
+	 *         specified cells
+	 * @throws IllegalArgumentException
+	 *             if some property of the specified cell prevents it from being
+	 *             removed from this matrix
+	 */
+	public boolean retainAll(int row, IntSet cols) {
+		if (isEmpty())
+			return false;
+		if (row < 0 || row >= rows.size()) {
+			clear();
+			return true;
+		}
+		
+		IntSet r = rows.get(row);
+		if (r == null) {
+			clear();
+			return true;
+		}
+		boolean res = false;
+		for (int i = 0; i < rows.size(); i++) {
+			if (i == row)
+				continue;
+			final IntSet r1 = rows.get(i);
+			if (r1 != null) {
+				res = true;
+				rows.set(i, null);
+			}
+		}
+		res |= r.retainAll(cols);
+		fixRows();
+		return res;
+	}
+
+	/**
+	 * Removes the specified cells from this matrix. The cells are represented
+	 * by a given set of rows and a given column
+	 * 
+	 * @param rowSet
+	 *            indices of the rows
+	 * @param col
+	 *            index of the column
+	 * @return <tt>true</tt> if this matrix contains at least one of the
+	 *         specified cells
+	 * @throws IllegalArgumentException
+	 *             if some property of the specified cell prevents it from being
+	 *             added to this matrix
+	 */
+	public boolean retainAll(IntSet rowSet, int col) {
+		if (isEmpty())
+			return false;
+		if (rowSet == null || rowSet.isEmpty()) {
+			clear();
+			return false;
+		}
+		
+		boolean res = false;
+		IntIterator itr = rowSet.iterator();
+		int i = 0;
+		int r = itr.next();
+		do {
+			IntSet rr = rows.get(i);
+			if (rr == null) {
+				i++;
+			} else if (i < r) {
+				rows.set(i, null);
+				res = true;
+				i++;
+			} else if (i > r) {
+				r = itr.next();
+			} else {
+				if (!rr.contains(col)) {
+					rows.set(i, null);
+					res = true;
+				} else if (rr.size() > 1) {
+					rr.clear();
+					rr.add(col);
+					res = true;
+				}
+				i++;
+				r = itr.next();
+			}
+		} while (i < rows.size() && itr.hasNext());
+		res |= i < rows.size();
+		for (; i < rows.size(); i++)
+			rows.set(i, null);
+		if (res)
+			fixRows();
+		return res;
+	}
+
+	/**
+	 * Removes the specified cells from this matrix. The cells are represented
+	 * by the Cartesian product of a given set of rows and columns
+	 * 
+	 * @param rowSet
+	 *            indices of the rows
+	 * @param colSet
+	 *            indices of the columns
+	 * @return <tt>true</tt> if this matrix contains at least one of the
+	 *         specified cells
+	 * @throws IllegalArgumentException
+	 *             if some property of the specified cell prevents it from being
+	 *             added to this matrix
+	 */
+	public boolean retainAll(IntSet rowSet, IntSet colSet) {
+		if (isEmpty())
+			return false;
+		if (rowSet == null || rowSet.isEmpty() || colSet == null || colSet.isEmpty()) {
+			clear();
+			return false;
+		}
+		
+		boolean res = false;
+		IntIterator itr = rowSet.iterator();
+		int i = 0;
+		int r = itr.next();
+		do {
+			IntSet rr = rows.get(i);
+			if (rr == null) {
+				i++;
+			} else if (i < r) {
+				rows.set(i, null);
+				res = true;
+				i++;
+			} else if (i > r) {
+				r = itr.next();
+			} else {
+				res |= rr.retainAll(colSet);
+				if (rr.isEmpty())
+					rows.set(i, null);
+				i++;
+				r = itr.next();
+			}
+		} while (i < rows.size() && itr.hasNext());
+		res |= i < rows.size();
+		for (; i < rows.size(); i++)
+			rows.set(i, null);
+		if (res)
+			fixRows();
+		return res;
+	}
+
+	/**
 	 * Returns <tt>true</tt> if this matrix contains all of the cells of the
 	 * specified collection.
 	 * 
@@ -1107,6 +1328,80 @@ public class BinaryMatrix implements Cloneable, Comparable<BinaryMatrix> {
 			if (s2 == null) 
 				continue;
 			if (s1 == null || !s1.containsAll(s2))
+				return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Returns <tt>true</tt> if this matrix contains all of the cells of the
+	 * specified collection.
+	 * 
+	 * @param rowSet
+	 *            indices of the rows
+	 * @param colSet
+	 *            indices of the columns
+	 * @return <tt>true</tt> if this matrix contains all of the cells of the
+	 *         specified collection
+	 */
+	public boolean containsAll(IntSet rowSet, IntSet colSet) {
+		if (rowSet == null || rowSet.isEmpty() || colSet == null || colSet.isEmpty())
+			return true;
+		if (isEmpty())
+			return false;
+
+		IntIterator itr = rowSet.iterator();
+		while (itr.hasNext()) {
+			int i = itr.next();
+			IntSet cols = rows.get(i);
+			if (cols == null || !cols.containsAll(colSet))
+				return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Returns <tt>true</tt> if this matrix contains all of the cells of the
+	 * specified collection.
+	 * 
+	 * @param row
+	 *            index of the row
+	 * @param colSet
+	 *            indices of the columns
+	 * @return <tt>true</tt> if this matrix contains all of the cells of the
+	 *         specified collection
+	 */
+	public boolean containsAll(int row, IntSet colSet) {
+		if (colSet == null || colSet.isEmpty())
+			return true;
+		if (isEmpty() || row < 0 || row >= rows.size())
+			return false;
+		IntSet cols = rows.get(row);
+		return cols != null && cols.containsAll(colSet);
+	}
+
+	/**
+	 * Returns <tt>true</tt> if this matrix contains all of the cells of the
+	 * specified collection.
+	 * 
+	 * @param rowSet
+	 *            indices of the rows
+	 * @param col
+	 *            index of the column
+	 * @return <tt>true</tt> if this matrix contains all of the cells of the
+	 *         specified collection
+	 */
+	public boolean containsAll(IntSet rowSet, int col) {
+		if (rowSet == null || rowSet.isEmpty())
+			return true;
+		if (isEmpty() || col < 0)
+			return false;
+
+		IntIterator itr = rowSet.iterator();
+		while (itr.hasNext()) {
+			int i = itr.next();
+			IntSet cols = rows.get(i);
+			if (cols == null || !cols.contains(col))
 				return false;
 		}
 		return true;

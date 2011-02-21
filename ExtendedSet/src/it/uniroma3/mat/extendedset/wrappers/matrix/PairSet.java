@@ -313,15 +313,41 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 * @return <code>true</code> if the set set has been changed
 	 */
 	public boolean addAll(Collection<T> trans, Collection<I> items) {
-		if (trans == null || trans.isEmpty())
+		if (trans == null || trans.isEmpty() || items == null || items.isEmpty())
 			return false;
-		if (items == null || items.isEmpty())
-			return false;
+		return matrix.addAll(allTransactions.convert(trans).indices(), allItems.convert(items).indices());
+	}
 
-		boolean m = false;
-		for (T u : trans)
-			m |= matrix.addAll(transactionToIndex(u), allItems.convert(items).indices());
-		return m;
+	/**
+	 * Add the pairs obtained from the Cartesian product of transactions
+	 * and items
+	 * 
+	 * @param trans
+	 *            the given transaction
+	 * @param items
+	 *            collection of items
+	 * @return <code>true</code> if the set set has been changed
+	 */
+	public boolean addAll(T trans, Collection<I> items) {
+		if (trans == null || items == null || items.isEmpty())
+			return false;
+		return matrix.addAll(transactionToIndex(trans), allItems.convert(items).indices());
+	}
+
+	/**
+	 * Add the pairs obtained from the Cartesian product of transactions
+	 * and items
+	 * 
+	 * @param trans
+	 *            collection of transactions
+	 * @param item
+	 *            the given item
+	 * @return <code>true</code> if the set set has been changed
+	 */
+	public boolean addAll(Collection<T> trans, I item) {
+		if (trans == null || trans.isEmpty() || item == null)
+			return false;
+		return matrix.addAll(allTransactions.convert(trans).indices(), itemToIndex(item));
 	}
 
 	/**
@@ -382,16 +408,47 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 * @return <code>true</code> if the pairs set set has been changed
 	 */
 	public boolean containsAll(Collection<T> trans, Collection<I> items) {
-		if (trans == null || trans.isEmpty())
+		if (trans == null || trans.isEmpty() || items == null || items.isEmpty())
+			return true;
+		if (isEmpty())
 			return false;
-		if (items == null || items.isEmpty())
-			return false;
+		return matrix.containsAll(allTransactions.convert(trans).indices(), allItems.convert(items).indices());
+	}
 
-		for (T u : trans)
-			for (I p : items) 
-				if (!contains(u, p)) 
-					return false;
-		return true;
+	/**
+	 * Checks if the pairs obtained from the Cartesian product of
+	 * transactions and items are contained
+	 * 
+	 * @param trans
+	 *            the transaction
+	 * @param items
+	 *            collection of items
+	 * @return <code>true</code> if the pairs set set has been changed
+	 */
+	public boolean containsAll(T trans, Collection<I> items) {
+		if (trans == null || items == null || items.isEmpty())
+			return true;
+		if (isEmpty())
+			return false;
+		return matrix.containsAll(transactionToIndex(trans), allItems.convert(items).indices());
+	}
+	
+	/**
+	 * Checks if the pairs obtained from the Cartesian product of
+	 * transactions and items are contained
+	 * 
+	 * @param trans
+	 *            collection of transactions
+	 * @param item
+	 *            the item
+	 * @return <code>true</code> if the pairs set set has been changed
+	 */
+	public boolean containsAll(Collection<T> trans, I item) {
+		if (trans == null || trans.isEmpty() || item == null)
+			return true;
+		if (isEmpty())
+			return false;
+		return matrix.containsAll(allTransactions.convert(trans).indices(), itemToIndex(item));
 	}
 
 	/**
@@ -493,15 +550,41 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 * @return <code>true</code> if the set set has been changed
 	 */
 	public boolean removeAll(Collection<T> trans, Collection<I> items) {
-		if (trans == null || trans.isEmpty())
+		if (trans == null || trans.isEmpty() || items == null || items.isEmpty())
 			return false;
-		if (items == null || items.isEmpty())
-			return false;
+		return matrix.removeAll(allTransactions.convert(trans).indices(), allItems.convert(items).indices());
+	}
 
-		boolean m = false;
-		for (T u : trans)
-			m |= matrix.removeAll(transactionToIndex(u), allItems.convert(items).indices());
-		return m;
+	/**
+	 * Removes the pairs obtained from the Cartesian product of transactions and
+	 * items
+	 * 
+	 * @param trans
+	 *            a transaction
+	 * @param items
+	 *            collection of items
+	 * @return <code>true</code> if the set set has been changed
+	 */
+	public boolean removeAll(T trans, Collection<I> items) {
+		if (trans == null || items == null || items.isEmpty())
+			return false;
+		return matrix.removeAll(transactionToIndex(trans), allItems.convert(items).indices());
+	}
+
+	/**
+	 * Removes the pairs obtained from the Cartesian product of transactions and
+	 * items
+	 * 
+	 * @param trans
+	 *            collection of transactions
+	 * @param item
+	 *            collection of items
+	 * @return <code>true</code> if the set set has been changed
+	 */
+	public boolean removeAll(Collection<T> trans, I item) {
+		if (trans == null || trans.isEmpty() || item == null)
+			return false;
+		return matrix.removeAll(allTransactions.convert(trans).indices(), itemToIndex(item));
 	}
 
 	/**
@@ -515,22 +598,53 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 * @return <code>true</code> if the set set has been changed
 	 */
 	public boolean retainAll(Collection<T> trans, Collection<I> items) {
-		if (trans == null || trans.isEmpty()) {
-			clear();
+		if (isEmpty())
 			return false;
-		}
-		if (items == null || items.isEmpty()) {
+		if (trans == null || trans.isEmpty() || items == null || items.isEmpty()) {
 			clear();
-			return false;
+			return true;
 		}
+		return matrix.retainAll(allTransactions.convert(trans).indices(), allItems.convert(items).indices());
+	}
 
-		boolean m = false;
-		for (Pair<T, I> p : this)
-			if (!trans.contains(p.transaction) || !items.contains(p.item)) {
-				remove(p);
-				m = true;
-			}
-		return m;
+	/**
+	 * Retains the pairs obtained from the Cartesian product of transactions and
+	 * items
+	 * 
+	 * @param trans
+	 *            the transaction
+	 * @param items
+	 *            collection of items
+	 * @return <code>true</code> if the set set has been changed
+	 */
+	public boolean retainAll(T trans, Collection<I> items) {
+		if (isEmpty())
+			return false;
+		if (trans == null || items == null || items.isEmpty()) {
+			clear();
+			return true;
+		}
+		return matrix.retainAll(transactionToIndex(trans), allItems.convert(items).indices());
+	}
+
+	/**
+	 * Retains the pairs obtained from the Cartesian product of transactions and
+	 * items
+	 * 
+	 * @param trans
+	 *            collection of transactions
+	 * @param item
+	 *            the item
+	 * @return <code>true</code> if the set set has been changed
+	 */
+	public boolean retainAll(Collection<T> trans, I item) {
+		if (isEmpty())
+			return false;
+		if (trans == null || trans.isEmpty() || item == null) {
+			clear();
+			return true;
+		}
+		return matrix.retainAll(allTransactions.convert(trans).indices(), itemToIndex(item));
 	}
 
 	/**
