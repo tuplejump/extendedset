@@ -123,14 +123,11 @@ public class PairMap<T, I, V> extends AbstractMap<Pair<T, I>, V> implements Seri
 	public V put(Pair<T, I> key, V value) {
 		boolean isNew = keys.add(key);
 		int index = keys.indexOf(key);
-		Object old;
-		if (isNew) {
-			old = null;
+		Object old = null;
+		if (isNew)
 			values.add(index, value);
-		} else {
-			old = values.get(index);
-			values.set(index, value);
-		}
+		else
+			old = values.set(index, value);
 		return (V) old;
 	}
 
