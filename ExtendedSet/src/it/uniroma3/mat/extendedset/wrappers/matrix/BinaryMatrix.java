@@ -973,7 +973,12 @@ public class BinaryMatrix implements Cloneable, Comparable<BinaryMatrix> {
 	public boolean addAll(IntSet rowSet, int col) {
 		if (rowSet == null || rowSet.isEmpty())
 			return false;
-		
+
+		// prepare the space
+		final int l = rowSet.last();
+		while(l >= rows.size())
+			rows.add(null);
+
 		boolean res = false;
 		IntIterator itr = rowSet.iterator();
 		while (itr.hasNext()) {
@@ -1007,6 +1012,11 @@ public class BinaryMatrix implements Cloneable, Comparable<BinaryMatrix> {
 	public boolean addAll(IntSet rowSet, IntSet colSet) {
 		if (rowSet == null || rowSet.isEmpty() || colSet == null || colSet.isEmpty())
 			return false;
+		
+		// prepare the space
+		final int l = rowSet.last();
+		while(l >= rows.size())
+			rows.add(null);
 		
 		boolean res = false;
 		IntIterator itr = rowSet.iterator();
