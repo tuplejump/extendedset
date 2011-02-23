@@ -952,10 +952,8 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 		PairSet<T, I> res = empty();
 		for (int i = matrix.maxRow(); i >= 0; i--) {
 			IntegerSet r = transToItems.get(i);
-			if (r == null)
-				continue;
-			for (int col : r)
-				matrix.add(i, col);
+			if (r != null)
+				matrix.addAll(i, r.intSet());
 		}
 		return res;
 	}
@@ -1173,6 +1171,23 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 */
 	public PairSet<I, T> transposed() {
 		return new PairSet<I, T>(matrix.transposed(), allItems, allTransactions);
+	}
+
+	/**
+	 * Creates a new {@link PairSet} instance with the union of all possible
+	 * transactions and items as result for {@link #allTransactions()} and
+	 * {@link #allItems()}, respectively, and the union of pairs.
+	 * 
+	 * @param other the other {@link PairSet} instance to merge
+	 * @return the merged {@link PairSet} instance
+	 */
+	public PairSet<T, I> merged(PairSet<T, I> other) {
+		PairSet<T, I> res = new PairSet<T, I>(
+				matrix.clone(), 
+				allTransactions.union(other.allTransactions), 
+				allItems.union(other.allItems));
+		res.addAll(other);
+		return res;
 	}
 
 	
