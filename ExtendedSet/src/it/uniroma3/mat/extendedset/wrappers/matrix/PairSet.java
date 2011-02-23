@@ -22,7 +22,6 @@ package it.uniroma3.mat.extendedset.wrappers.matrix;
 import it.uniroma3.mat.extendedset.AbstractExtendedSet;
 import it.uniroma3.mat.extendedset.ExtendedSet;
 import it.uniroma3.mat.extendedset.intset.IntSet;
-import it.uniroma3.mat.extendedset.intset.IntSet.IntIterator;
 import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
 import it.uniroma3.mat.extendedset.wrappers.IntegerSet;
 import it.uniroma3.mat.extendedset.wrappers.matrix.BinaryMatrix.CellIterator;
@@ -874,22 +873,11 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 *         subset
 	 */
 	public PairSet<T, I> subSet(Collection<T> involvedTransactions, Collection<I> involvedItems) {
-		IndexedSet<I> items = allItems.convert(involvedItems);
-		IndexedSet<T> trans = allTransactions.convert(involvedTransactions);
 		BinaryMatrix mask = matrix.empty();
-		
-		IntIterator iItr = items.indices().iterator();
-		while (iItr.hasNext()) {
-			int i = iItr.next();
-			
-			IntIterator tItr = trans.indices().iterator();
-			while (tItr.hasNext())
-				mask.add(tItr.next(), i);
-		}
-		
-		PairSet<T, I> res = clone();
-		res.matrix.retainAll(mask);
-		return res;
+		mask.addAll(
+				allTransactions.convert(involvedTransactions).indices(), 
+				allItems.convert(involvedItems).indices());
+		return new PairSet<T, I>(matrix.intersection(mask), allTransactions, allItems);
 	}
 
 	/**
@@ -1173,6 +1161,9 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 * @return the merged {@link PairSet} instance
 	 */
 	public PairSet<T, I> merged(PairSet<T, I> other) {
+		if (other == null)
+			return clone();
+		
 		// compute the new universe
 		Set<T> newAllTransactions = new LinkedHashSet<T>(allTransactions);
 		Set<I> newAllItems = new LinkedHashSet<I>(allItems);
@@ -1184,7 +1175,8 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 				matrix.clone(), 
 				newAllTransactions, 
 				newAllItems);
-		res.addAll(other);
+		if (!other.isEmpty())
+			res.addAll(other);
 		return res;
 	}
 
