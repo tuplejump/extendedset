@@ -21,10 +21,8 @@ package it.uniroma3.mat.extendedset.wrappers.matrix;
 
 import it.uniroma3.mat.extendedset.AbstractExtendedSet;
 import it.uniroma3.mat.extendedset.ExtendedSet;
-import it.uniroma3.mat.extendedset.intset.FastSet;
 import it.uniroma3.mat.extendedset.intset.IntSet;
 import it.uniroma3.mat.extendedset.intset.IntSet.IntIterator;
-import it.uniroma3.mat.extendedset.utilities.CollectionMap;
 import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
 import it.uniroma3.mat.extendedset.wrappers.IntegerSet;
 import it.uniroma3.mat.extendedset.wrappers.matrix.BinaryMatrix.CellIterator;
@@ -36,8 +34,10 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * A set of pairs internally represented by a binary matrix.
@@ -941,20 +941,11 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 		// useless to convert...
 		if (hasSameIndices(c))
 			return (PairSet<T, I>) c;
-		
-		CollectionMap<Integer, Integer, IntegerSet> transToItems = new CollectionMap<Integer, Integer, IntegerSet>(
-				new IntegerSet(new FastSet()));
-		for (Pair<T, I> p : (Collection<Pair<T,I>>) c)
-			transToItems.putItem(
-					transactionToIndex(p.transaction), 
-					itemToIndex(p.item));
 
+		// convert
 		PairSet<T, I> res = empty();
-		for (int i = matrix.maxRow(); i >= 0; i--) {
-			IntegerSet r = transToItems.get(i);
-			if (r != null)
-				matrix.addAll(i, r.intSet());
-		}
+		for (Pair<T, I> p : (Collection<Pair<T,I>>) c)
+			res.matrix.add(transactionToIndex(p.transaction), itemToIndex(p.item));
 		return res;
 	}
 	
@@ -1182,10 +1173,17 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 * @return the merged {@link PairSet} instance
 	 */
 	public PairSet<T, I> merged(PairSet<T, I> other) {
+		// compute the new universe
+		Set<T> newAllTransactions = new LinkedHashSet<T>(allTransactions);
+		Set<I> newAllItems = new LinkedHashSet<I>(allItems);
+		newAllTransactions.addAll(other.allTransactions);
+		newAllItems.addAll(other.allItems);
+		
+		// compute the union of pairs
 		PairSet<T, I> res = new PairSet<T, I>(
 				matrix.clone(), 
-				allTransactions.union(other.allTransactions), 
-				allItems.union(other.allItems));
+				newAllTransactions, 
+				newAllItems);
 		res.addAll(other);
 		return res;
 	}
