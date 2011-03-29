@@ -48,6 +48,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public ExtendedSet<T> intersection(Collection<? extends T> other) {
 		ExtendedSet<T> clone = clone();
 		clone.retainAll(other);
@@ -57,6 +58,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public ExtendedSet<T> union(Collection<? extends T> other) {
 		ExtendedSet<T> clone = clone();
 		clone.addAll(other);
@@ -66,6 +68,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public ExtendedSet<T> difference(Collection<? extends T> other) {
 		ExtendedSet<T> clone = clone();
 		clone.removeAll(other);
@@ -75,6 +78,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public ExtendedSet<T> symmetricDifference(Collection<? extends T> other) {
 		ExtendedSet<T> res = union(other);
 		res.removeAll(intersection(other));
@@ -84,6 +88,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public ExtendedSet<T> complemented() {
 		ExtendedSet<T> clone = clone();
 		clone.complement();
@@ -93,6 +98,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public boolean containsAny(Collection<? extends T> other) {
 		return other == null || other.isEmpty() || intersectionSize(other) > 0;
 	}
@@ -100,6 +106,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public boolean containsAtLeast(Collection<? extends T> other, int minElements) {
 		if (minElements < 1)
 			throw new IllegalArgumentException();
@@ -109,6 +116,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public int intersectionSize(Collection<? extends T> other) {
 		if (other == null || other.isEmpty() || isEmpty())
 			return 0;
@@ -118,6 +126,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public int unionSize(Collection<? extends T> other) {
 		return other == null ? size() : size() + other.size() - intersectionSize(other);
 	}
@@ -125,6 +134,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public int symmetricDifferenceSize(Collection<? extends T> other) {
 		return other == null ? size() : size() + other.size() - 2 * intersectionSize(other);
 	}
@@ -132,6 +142,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public int differenceSize(Collection<? extends T> other) {
 		return other == null ? size() : size() - intersectionSize(other);
 	}
@@ -139,6 +150,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public int complementSize() {
 		return complemented().size();
 	}
@@ -146,6 +158,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public abstract ExtendedSet<T> empty();
 
 	/**
@@ -212,16 +225,19 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public abstract double bitmapCompressionRatio();
 
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public abstract double collectionCompressionRatio();
 
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	@SuppressWarnings("unchecked")
 	public ExtendedIterator<T> descendingIterator() {
 		// used to compare items
@@ -280,6 +296,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public Iterable<T> descending() {
 		return new Iterable<T>() {
 			@Override
@@ -292,6 +309,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public List<? extends ExtendedSet<T>> powerSet() {
 		return powerSet(1, Integer.MAX_VALUE);
 	}
@@ -299,6 +317,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public List<? extends ExtendedSet<T>> powerSet(int min, int max) {
 		if (min < 1 || max < min)
 			throw new IllegalArgumentException();
@@ -361,6 +380,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public int powerSetSize() {
 		return isEmpty() ? 0 : (int) Math.pow(2, size()) - 1;
 	}
@@ -368,6 +388,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public int powerSetSize(int min, int max) {
 		if (min < 1 || max < min)
 			throw new IllegalArgumentException();
@@ -425,6 +446,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public void fill(T from, T to) {
 		ExtendedSet<T> toAdd = empty();
 		toAdd.add(to);
@@ -632,7 +654,7 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		 */
 		@Override public ExtendedSet<T> convert(Collection<?> c) {
 			if (c instanceof AbstractExtendedSet<?>.FilteredSet)
-				convert(((FilteredSet) c).raw());
+				convert(((AbstractExtendedSet<?>.FilteredSet) c).raw());
 			return raw().convert(c);
 		}
 
