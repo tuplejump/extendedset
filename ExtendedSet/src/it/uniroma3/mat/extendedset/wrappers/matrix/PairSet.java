@@ -829,56 +829,54 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 		return matrix;
 	}
 
-	/**
-	 * Extracts a subset represented by a certain range of transactions and
-	 * items, according to the ordering provided by {@link #allTransactions()}
-	 * and {@link #allItems()}.
-	 * 
-	 * @param fromTransaction
-	 *            the first transaction of the range (if <code>null</code> it
-	 *            represents the first one)
-	 * @param toTransaction
-	 *            the last transaction of the range (if <code>null</code> it
-	 *            represents the last one)
-	 * @param fromItem
-	 *            the first item of the range (if <code>null</code> it
-	 *            represents the first one)
-	 * @param toItem
-	 *            the last item of the range (if <code>null</code> it represents
-	 *            the last one)
-	 * @return the specified subset
-	 */
-	public PairSet<T, I> subSet(T fromTransaction, T toTransaction, I fromItem, I toItem) {
-		BinaryMatrix mask = matrix.empty();
-		mask.fill(
-				transactionToIndex(fromTransaction), 
-				itemToIndex(fromItem), 
-				transactionToIndex(toTransaction), 
-				itemToIndex(toItem));
-		PairSet<T, I> res = clone();
-		res.matrix.retainAll(mask);
-		return res;
-	}
-
-	/**
-	 * Extracts a subset represented by a collection of transactions and items
-	 * 
-	 * @param involvedTransactions
-	 *            involved transactions (if <code>null</code>, it represents all
-	 *            transactions in {@link #allTransactions()})
-	 * @param involvedItems
-	 *            involved items (if <code>null</code>, it represents all items
-	 *            in {@link #allItems()})
-	 * @return all the transaction-item pairs that represent the specified
-	 *         subset
-	 */
-	public PairSet<T, I> subSet(Collection<T> involvedTransactions, Collection<I> involvedItems) {
-		BinaryMatrix mask = matrix.empty();
-		mask.addAll(
-				allTransactions.convert(involvedTransactions).indices(), 
-				allItems.convert(involvedItems).indices());
-		return new PairSet<T, I>(matrix.intersection(mask), allTransactions, allItems);
-	}
+//	/**
+//	 * Extracts a subset represented by a certain range of transactions and
+//	 * items, according to the ordering provided by {@link #allTransactions()}
+//	 * and {@link #allItems()}.
+//	 * 
+//	 * @param fromTransaction
+//	 *            the first transaction of the range (if <code>null</code> it
+//	 *            represents the first one)
+//	 * @param toTransaction
+//	 *            the last transaction of the range (if <code>null</code> it
+//	 *            represents the last one)
+//	 * @param fromItem
+//	 *            the first item of the range (if <code>null</code> it
+//	 *            represents the first one)
+//	 * @param toItem
+//	 *            the last item of the range (if <code>null</code> it represents
+//	 *            the last one)
+//	 * @return the specified subset
+//	 */
+//	public PairSet<T, I> subSet(T fromTransaction, T toTransaction, I fromItem, I toItem) {
+//		BinaryMatrix mask = matrix.empty();
+//		mask.fill(
+//				transactionToIndex(fromTransaction), 
+//				itemToIndex(fromItem), 
+//				transactionToIndex(toTransaction), 
+//				itemToIndex(toItem));
+//		return new PairSet<T, I>(matrix.intersection(mask), allTransactions, allItems);
+//	}
+//
+//	/**
+//	 * Extracts a subset represented by a collection of transactions and items
+//	 * 
+//	 * @param involvedTransactions
+//	 *            involved transactions (if <code>null</code>, it represents all
+//	 *            transactions in {@link #allTransactions()})
+//	 * @param involvedItems
+//	 *            involved items (if <code>null</code>, it represents all items
+//	 *            in {@link #allItems()})
+//	 * @return all the transaction-item pairs that represent the specified
+//	 *         subset
+//	 */
+//	public PairSet<T, I> subSet(Collection<T> involvedTransactions, Collection<I> involvedItems) {
+//		BinaryMatrix mask = matrix.empty();
+//		mask.addAll(
+//				allTransactions.convert(involvedTransactions).indices(), 
+//				allItems.convert(involvedItems).indices());
+//		return new PairSet<T, I>(matrix.intersection(mask), allTransactions, allItems);
+//	}
 
 	/**
 	 * {@inheritDoc}
