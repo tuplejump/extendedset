@@ -28,7 +28,7 @@ import java.util.Map.Entry;
  * @param <C>
  *            {@link Collection} subclass used to collect items
  */
-public class CollectionMap<K, I, C extends Collection<I>> extends LinkedHashMap<K, C> implements Cloneable {
+public class CollectionMap<K, I, C extends Collection<I>> extends LinkedHashMap<K, C> {
 	private static final long serialVersionUID = -2613391212228461025L;
 
 	/** empty collection */

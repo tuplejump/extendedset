@@ -449,6 +449,7 @@ public abstract class AbstractIntSet implements IntSet {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public List<? extends IntSet> powerSet() {
 		return powerSet(1, Integer.MAX_VALUE);
 	}
@@ -456,6 +457,7 @@ public abstract class AbstractIntSet implements IntSet {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public List<? extends IntSet> powerSet(int min, int max) {
 		if (min < 1 || max < min)
 			throw new IllegalArgumentException();
@@ -520,6 +522,7 @@ public abstract class AbstractIntSet implements IntSet {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public int powerSetSize() {
 		return isEmpty() ? 0 : (int) Math.pow(2, size()) - 1;
 	}
@@ -527,6 +530,7 @@ public abstract class AbstractIntSet implements IntSet {
 	/**
 	 * {@inheritDoc}
 	 */
+	@Override
 	public int powerSetSize(int min, int max) {
 		if (min < 1 || max < min)
 			throw new IllegalArgumentException();

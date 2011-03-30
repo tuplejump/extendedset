@@ -341,10 +341,12 @@ public class HashIntSet extends AbstractIntSet {
 			expectedModCount = modCount;
 		}
 
+		@Override
 		public boolean hasNext() {
 			return nextIndex < cells.length;
 		}
 
+		@Override
 		public int next() {
 			if (modCount != expectedModCount)
 				throw new ConcurrentModificationException();
@@ -357,6 +359,7 @@ public class HashIntSet extends AbstractIntSet {
 			return cells[current];
 		}
 
+		@Override
 		public void remove() {
 			if (modCount != expectedModCount)
 				throw new ConcurrentModificationException();
@@ -383,16 +386,19 @@ public class HashIntSet extends AbstractIntSet {
 		int[] elements = toArray();
 		int next = 0;
 
+		@Override
 		public boolean hasNext() {
 			return next < size;
 		}
 
+		@Override
 		public int next() {
 			if (!hasNext())
 				throw new NoSuchElementException();
 			return elements[next++];
 		}
 
+		@Override
 		public void remove() {
 			if (elements[next - 1] == REMOVED)
 				throw new IllegalStateException();
@@ -417,16 +423,19 @@ public class HashIntSet extends AbstractIntSet {
 		int[] elements = toArray();
 		int next = size - 1;
 
+		@Override
 		public boolean hasNext() {
 			return next >= 0;
 		}
 
+		@Override
 		public int next() {
 			if (!hasNext())
 				throw new NoSuchElementException();
 			return elements[next--];
 		}
 
+		@Override
 		public void remove() {
 			if (elements[next + 1] == REMOVED)
 				throw new IllegalStateException();

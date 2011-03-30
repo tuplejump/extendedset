@@ -26,6 +26,7 @@ import it.uniroma3.mat.extendedset.wrappers.IndexedSet;
 import it.uniroma3.mat.extendedset.wrappers.IntegerSet;
 import it.uniroma3.mat.extendedset.wrappers.matrix.BinaryMatrix.CellIterator;
 
+import java.io.Serializable;
 import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -56,7 +57,7 @@ import java.util.Set;
  * @see Pair
  * @see IntSet
  */
-public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cloneable, java.io.Serializable {
+public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Serializable {
 	/** generated serial ID */
 	private static final long serialVersionUID = 7902458899512666217L;
 	
@@ -264,7 +265,6 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Cl
 	 * @return <code>true</code> if the given collection is a instance of
 	 *         {@link PairSet} with the same index mappings
 	 */
-	@SuppressWarnings("unchecked")
 	private boolean hasSameIndices(Collection<?> c) {
 		return c != null 
 				&& (c instanceof PairSet) 

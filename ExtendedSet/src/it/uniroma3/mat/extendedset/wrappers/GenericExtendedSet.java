@@ -46,7 +46,6 @@ public class GenericExtendedSet<T extends Comparable<T>> extends AbstractExtende
 	private /*final*/ Collection<T> elements;
 	
 	/** class implementing {@link Collection} that is used to collect elements */
-	@SuppressWarnings("unchecked")
 	private final Class<? extends Collection> setClass;
 
 	/**

@@ -118,7 +118,6 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 * @return <code>true</code> if the given collection is a instance of
 	 *         {@link IndexedSet} with the same index mappings
 	 */
-	@SuppressWarnings("unchecked")
 	private boolean hasSameIndices(Collection<?> c) {
 		// since indices are always re-created through constructor and
 		// referenced through clone(), it is sufficient to check just only one
