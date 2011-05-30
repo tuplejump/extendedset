@@ -25,6 +25,7 @@ import it.uniroma3.mat.extendedset.intset.IntSet;
 import it.uniroma3.mat.extendedset.intset.IntSet.IntIterator;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -562,7 +563,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	@Override
 	public String debugInfo() {
 		return String.format("items = %s\nitemToIndex = %s\nindexToItem = %s\n", 
-				indices.debugInfo(), itemToIndex.toString(), indexToItem.toString());
+				indices.debugInfo(), itemToIndex.toString(), Arrays.toString(indexToItem));
 	}
 
 	/**

@@ -953,32 +953,32 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 			return;
 		}
 
-		Long firstBlockIndex = Long.valueOf((from / SUBSET_SIZE) * SUBSET_SIZE);
-		Long lastBlockIndex = Long.valueOf((to / SUBSET_SIZE) * SUBSET_SIZE);
+		final long firstBlockIndex = (from / SUBSET_SIZE) * SUBSET_SIZE;
+		final long lastBlockIndex = (to / SUBSET_SIZE) * SUBSET_SIZE;
 		if (firstBlockIndex == lastBlockIndex) {
 			// Case 1: One block
-			if (firstBlockIndex.longValue() == 0L) {
+			if (firstBlockIndex == 0L) {
 				firstIndices.fill((int) from, (int) to);
 			} else {
 				IntSet s = otherIndices.get(firstBlockIndex);
 				if (s == null)
 					otherIndices.put(firstBlockIndex, s = firstIndices.empty());
-				s.fill((int) (from - firstBlockIndex.longValue()), (int) (to - firstBlockIndex.longValue()));
+				s.fill((int) (from - firstBlockIndex), (int) (to - firstBlockIndex));
 			}
 		} else {
 			// Case 2: Multiple blocks
 			// Handle first block
-			if (firstBlockIndex.longValue() == 0L) {
+			if (firstBlockIndex == 0L) {
 				firstIndices.fill((int) from, SUBSET_SIZE - 1);
 			} else {
 				IntSet s = otherIndices.get(firstBlockIndex);
 				if (s == null)
 					otherIndices.put(firstBlockIndex, s = firstIndices.empty());
-				s.fill((int) (from - firstBlockIndex.longValue()), SUBSET_SIZE - 1);
+				s.fill((int) (from - firstBlockIndex), SUBSET_SIZE - 1);
 			}
 
 			// Handle intermediate words, if any
-			for (long i = firstBlockIndex.longValue() + SUBSET_SIZE; i < lastBlockIndex.longValue(); i += SUBSET_SIZE) {
+			for (long i = firstBlockIndex + SUBSET_SIZE; i < lastBlockIndex; i += SUBSET_SIZE) {
 				IntSet s = firstIndices.empty();
 				s.fill(0, SUBSET_SIZE - 1);
 				otherIndices.put(Long.valueOf(i), s);
@@ -988,7 +988,7 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 			IntSet s = otherIndices.get(lastBlockIndex);
 			if (s == null)
 				otherIndices.put(lastBlockIndex, s = firstIndices.empty());
-			s.fill(0, (int) (to - lastBlockIndex.longValue()));
+			s.fill(0, (int) (to - lastBlockIndex));
 		}
 	}
 
@@ -1009,16 +1009,16 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 			return;
 		}
 
-		Long firstBlockIndex = Long.valueOf((from / SUBSET_SIZE) * SUBSET_SIZE);
-		Long lastBlockIndex = Long.valueOf((to / SUBSET_SIZE) * SUBSET_SIZE);
+		final long firstBlockIndex = (from / SUBSET_SIZE) * SUBSET_SIZE;
+		final long lastBlockIndex = (to / SUBSET_SIZE) * SUBSET_SIZE;
 		if (firstBlockIndex == lastBlockIndex) {
 			// Case 1: One block
-			if (firstBlockIndex.longValue() == 0L) {
+			if (firstBlockIndex == 0L) {
 				firstIndices.clear((int) from, (int) to);
 			} else {
 				IntSet s = otherIndices.get(firstBlockIndex);
 				if (s != null) {
-					s.clear((int) (from - firstBlockIndex.longValue()), (int) (to - firstBlockIndex.longValue()));
+					s.clear((int) (from - firstBlockIndex), (int) (to - firstBlockIndex));
 					if (s.isEmpty())
 						otherIndices.remove(firstBlockIndex);
 				}
@@ -1026,25 +1026,25 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 		} else {
 			// Case 2: Multiple blocks
 			// Handle first block
-			if (firstBlockIndex.longValue() == 0L) {
+			if (firstBlockIndex == 0L) {
 				firstIndices.clear((int) from, SUBSET_SIZE - 1);
 			} else {
 				IntSet s = otherIndices.get(firstBlockIndex);
 				if (s != null) {
-					s.clear((int) (from - firstBlockIndex.longValue()), SUBSET_SIZE - 1);
+					s.clear((int) (from - firstBlockIndex), SUBSET_SIZE - 1);
 					if (s.isEmpty())
 						otherIndices.remove(firstBlockIndex);
 				}
 			}
 
 			// Handle intermediate words, if any
-			for (long i = firstBlockIndex.longValue() + SUBSET_SIZE; i < lastBlockIndex.longValue(); i += SUBSET_SIZE)
+			for (long i = firstBlockIndex + SUBSET_SIZE; i < lastBlockIndex; i += SUBSET_SIZE)
 				otherIndices.remove(Long.valueOf(i));
 
 			// Handle last word
 			IntSet s = otherIndices.get(lastBlockIndex);
 			if (s != null) {
-				s.clear(0, (int) (to - lastBlockIndex.longValue()));
+				s.clear(0, (int) (to - lastBlockIndex));
 				if (s.isEmpty())
 					otherIndices.remove(lastBlockIndex);
 			}
@@ -1064,11 +1064,11 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 			return;
 		}
 		
-		Long block = Long.valueOf((e / SUBSET_SIZE) * SUBSET_SIZE);
+		final long block = (e / SUBSET_SIZE) * SUBSET_SIZE;
 		IntSet s = otherIndices.get(block);
 		if (s == null)
 			otherIndices.put(block, s = firstIndices.empty());
-		s.flip((int) (e - block.longValue()));
+		s.flip((int) (e - block));
 		if (s.isEmpty())
 			otherIndices.remove(block);
 	}
@@ -1241,11 +1241,11 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 	public boolean contains(long i) {
 		if (i < SUBSET_SIZE)
 			return firstIndices.contains((int) i);
-		Long first = Long.valueOf((i / SUBSET_SIZE) * SUBSET_SIZE);
+		long first = (i / SUBSET_SIZE) * SUBSET_SIZE;
 		IntSet s = otherIndices.get(first);
 		if (s == null)
 			return false;
-		return s.contains((int) (i - first.longValue()));
+		return s.contains((int) (i - first));
 	}
 
 	/**
@@ -1263,11 +1263,11 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 	public boolean add(long i) {
 		if (i < SUBSET_SIZE)
 			return firstIndices.add((int) i);
-		Long first = Long.valueOf((i / SUBSET_SIZE) * SUBSET_SIZE);
+		long first = (i / SUBSET_SIZE) * SUBSET_SIZE;
 		IntSet s = otherIndices.get(first);
 		if (s == null)
 			otherIndices.put(first, s = firstIndices.empty());
-		return s.add((int) (i - first.longValue()));
+		return s.add((int) (i - first));
 	}
 
 	/**
@@ -1282,11 +1282,11 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 	public boolean remove(long i) {
 		if (i < SUBSET_SIZE)
 			return firstIndices.remove((int) i);
-		Long first = Long.valueOf((i / SUBSET_SIZE) * SUBSET_SIZE);
+		long first = (i / SUBSET_SIZE) * SUBSET_SIZE;
 		IntSet s = otherIndices.get(first);
 		if (s == null)
 			return false;
-		boolean res = s.remove((int) (i - first.longValue()));
+		boolean res = s.remove((int) (i - first));
 		if (res && s.isEmpty())
 			otherIndices.remove(first);
 		return res;
