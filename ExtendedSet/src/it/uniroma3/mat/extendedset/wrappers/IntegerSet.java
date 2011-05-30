@@ -31,14 +31,16 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * This class provides a "wrapper" for any {@link IntSet} instance in
- * order to be used as an {@link ExtendedSet} instance.
- * 
- * @author Alessandro Colantonio
- * @version $Id$
+ * This class provides a "wrapper" for any  {@link IntSet}  instance in order to be used as an  {@link ExtendedSet}  instance.
+ * @author  Alessandro Colantonio
+ * @version  $Id$
  */
 public class IntegerSet extends AbstractExtendedSet<Integer> {
-	/** the collection of <code>int</code> numbers */
+	/**
+	 * the collection of <code>int</code> numbers
+	 * @uml.property  name="items"
+	 * @uml.associationEnd  
+	 */
 	private final IntSet items;
 
 	/**

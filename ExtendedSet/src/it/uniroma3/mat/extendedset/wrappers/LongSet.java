@@ -37,11 +37,9 @@ import java.util.TreeMap;
 import java.util.Map.Entry;
 
 /**
- * Very similar to {@link ExtendedSet} but for the primitive <code>long</code>
- * type.
- * 
- * @author Alessandro Colantonio
- * @version $Id$
+ * Very similar to  {@link ExtendedSet}  but for the primitive <code>long</code> type.
+ * @author  Alessandro Colantonio
+ * @version  $Id$
  */
 public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializable, Iterable<Long> {
 	/** generated ID */
@@ -50,7 +48,11 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 	/** maximum cardinality of each subset */
 	private static int SUBSET_SIZE = ConciseSet.MAX_ALLOWED_INTEGER + 1;
 
-	/** transaction-item pair indices (from 0 to {@link #SUBSET_SIZE} - 1) */
+	/**
+	 * transaction-item pair indices (from 0 to   {@link #SUBSET_SIZE}   - 1)
+	 * @uml.property  name="firstIndices"
+	 * @uml.associationEnd  
+	 */
 	private final IntSet firstIndices;
 
 	/** transaction-item pair indices (from {@link #SUBSET_SIZE}) */
@@ -748,13 +750,20 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 	}
 
 	/**
-	 * A {@link Iterator}-like interface that allows to "skip" some elements of
-	 * the set
+	 * A  {@link Iterator} -like interface that allows to "skip" some elements of the set
 	 */
 	public class ExtendedLongIterator {
+		/**
+		 * @uml.property  name="itr"
+		 * @uml.associationEnd  
+		 */
 		protected IntIterator itr;
 		protected Iterator<Entry<Long, IntSet>> otherItrs;
 		protected long first = 0;
+		/**
+		 * @uml.property  name="current"
+		 * @uml.associationEnd  
+		 */
 		protected IntSet current = null;
 		
 		private ExtendedLongIterator() {

@@ -472,8 +472,9 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 	 * Possible operations
 	 */
 	private enum Operator {
-		/** 
-		 * Bitwise <code>and</code> between literals 
+		/**
+		 * @uml.property  name="aND"
+		 * @uml.associationEnd  
 		 */
 		AND {
 			@Override 
@@ -510,8 +511,9 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 			}
 		},
 		
-		/** 
-		 * Bitwise <code>or</code> between literals
+		/**
+		 * @uml.property  name="oR"
+		 * @uml.associationEnd  
 		 */
 		OR {
 			@Override 
@@ -571,8 +573,9 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 			}
 		},
 
-		/** 
-		 * Bitwise <code>xor</code> between literals 
+		/**
+		 * @uml.property  name="xOR"
+		 * @uml.associationEnd  
 		 */
 		XOR {
 			@Override 
@@ -614,8 +617,9 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 			}
 		},
 
-		/** 
-		 * Bitwise <code>and-not</code> between literals (i.e. <code>X and (not Y)</code>) 
+		/**
+		 * @uml.property  name="aNDNOT"
+		 * @uml.associationEnd  
 		 */
 		ANDNOT {
 			@Override 
@@ -1260,7 +1264,7 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 	@Override
 	public int indexOf(int e) {
 		if (e < 0)
-			throw new IndexOutOfBoundsException();
+			throw new IllegalArgumentException("positive integer expected: " + Integer.toString(e));
 		if (isEmpty())
 			return -1;
 
@@ -1600,11 +1604,23 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 	}
 	
 	/**
-	 * Iterator for all the integers of a {@link ConciseSet} instance
+	 * Iterator for all the integers of a  {@link ConciseSet}  instance
 	 */
 	private class BitIterator implements IntIterator {
+		/**
+		 * @uml.property  name="litExp"
+		 * @uml.associationEnd  
+		 */
 		final LiteralAndZeroFillExpander litExp = new LiteralAndZeroFillExpander();
+		/**
+		 * @uml.property  name="oneExp"
+		 * @uml.associationEnd  
+		 */
 		final OneFillExpander oneExp = new OneFillExpander();
+		/**
+		 * @uml.property  name="exp"
+		 * @uml.associationEnd  
+		 */
 		WordExpander exp;
 		int nextIndex = 0;
 		int nextOffset = 0;
@@ -1657,9 +1673,24 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 		}
 	}
 	
+	/**
+	 * @author  alessandrocolantonio
+	 */
 	private class ReverseBitIterator implements IntIterator {
+		/**
+		 * @uml.property  name="litExp"
+		 * @uml.associationEnd  
+		 */
 		final LiteralAndZeroFillExpander litExp = new LiteralAndZeroFillExpander();
+		/**
+		 * @uml.property  name="oneExp"
+		 * @uml.associationEnd  
+		 */
 		final OneFillExpander oneExp = new OneFillExpander();
+		/**
+		 * @uml.property  name="exp"
+		 * @uml.associationEnd  
+		 */
 		WordExpander exp;
 		int nextIndex = lastWordIndex;
 		int nextOffset = maxLiteralLengthMultiplication(maxLiteralLengthDivision(last) + 1);
@@ -2695,6 +2726,7 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 	 */
     private void writeObject(ObjectOutputStream s) throws IOException {
     	if (words != null && lastWordIndex < words.length - 1)
+    		// compact before serializing
     		words = Arrays.copyOf(words, lastWordIndex + 1);
     	s.defaultWriteObject();
     }
@@ -2704,6 +2736,10 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 	 */
     private void readObject(ObjectInputStream s) throws IOException, ClassNotFoundException {
 		s.defaultReadObject();
+		if (words == null) {
+			reset();
+			return;
+		}
 		lastWordIndex = words.length - 1;
 		updateLast();
 		size = -1;

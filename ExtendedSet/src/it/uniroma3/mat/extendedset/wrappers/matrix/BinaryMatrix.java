@@ -29,19 +29,20 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 /**
- * Very similar to {@link IntSet} but for pairs of <code>int</code>s, that is a
- * binary matrix
- * 
- * @author Alessandro Colantonio
- * @version $Id$
- * 
- * @see IntSet
+ * Very similar to  {@link IntSet}  but for pairs of <code>int</code>s, that is a binary matrix
+ * @author  Alessandro Colantonio
+ * @version  $Id$
+ * @see  IntSet
  */
 public class BinaryMatrix implements Cloneable, Comparable<BinaryMatrix> {
 	/** set of all rows */
 	private final List<IntSet> rows = new ArrayList<IntSet>();
 	
-	/** {@link IntSet} instance to create empty rows */
+	/**
+	 * {@link IntSet}   instance to create empty rows
+	 * @uml.property  name="template"
+	 * @uml.associationEnd  
+	 */
 	private final IntSet template;
 
 	/** used to cache the returned value */

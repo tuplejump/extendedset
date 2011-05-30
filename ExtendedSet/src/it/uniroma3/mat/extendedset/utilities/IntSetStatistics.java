@@ -7,34 +7,81 @@ import java.util.Formatter;
 import java.util.List;
 
 /**
- * A wrapper class for classes that implement the {@link IntSet} interface to
- * count method calls
- * 
- * @author Alessandro Colantonio
- * @version $Id$
+ * A wrapper class for classes that implement the  {@link IntSet}  interface to count method calls
+ * @author  Alessandro Colantonio
+ * @version  $Id$
  */
 public class IntSetStatistics implements IntSet {
-	/** instance to monitor */
+	/**
+	 * instance to monitor
+	 * @uml.property  name="container"
+	 * @uml.associationEnd  
+	 */
 	private final IntSet container;
 
 	
 	/*
 	 * Monitored characteristics
 	 */
+	/**
+	 * @uml.property  name="unionCount"
+	 */
 	private static long unionCount = 0;
+	/**
+	 * @uml.property  name="intersectionCount"
+	 */
 	private static long intersectionCount = 0;
+	/**
+	 * @uml.property  name="differenceCount"
+	 */
 	private static long differenceCount = 0;
+	/**
+	 * @uml.property  name="symmetricDifferenceCount"
+	 */
 	private static long symmetricDifferenceCount = 0;
+	/**
+	 * @uml.property  name="complementCount"
+	 */
 	private static long complementCount = 0;
+	/**
+	 * @uml.property  name="unionSizeCount"
+	 */
 	private static long unionSizeCount = 0;
+	/**
+	 * @uml.property  name="intersectionSizeCount"
+	 */
 	private static long intersectionSizeCount = 0;
+	/**
+	 * @uml.property  name="differenceSizeCount"
+	 */
 	private static long differenceSizeCount = 0;
+	/**
+	 * @uml.property  name="symmetricDifferenceSizeCount"
+	 */
 	private static long symmetricDifferenceSizeCount = 0;
+	/**
+	 * @uml.property  name="complementSizeCount"
+	 */
 	private static long complementSizeCount = 0;
+	/**
+	 * @uml.property  name="equalsCount"
+	 */
 	private static long equalsCount = 0;
+	/**
+	 * @uml.property  name="hashCodeCount"
+	 */
 	private static long hashCodeCount = 0;
+	/**
+	 * @uml.property  name="containsAllCount"
+	 */
 	private static long containsAllCount = 0;
+	/**
+	 * @uml.property  name="containsAnyCount"
+	 */
 	private static long containsAnyCount = 0;
+	/**
+	 * @uml.property  name="containsAtLeastCount"
+	 */
 	private static long containsAtLeastCount = 0;
 	
 	
@@ -42,35 +89,80 @@ public class IntSetStatistics implements IntSet {
 	 * Statistics getters
 	 */
 	
-	/** @return number of union operations (i.e., {@link #addAll(IntSet)}, {@link #union(IntSet)}) */
+	/**
+	 * @return  number of union operations (i.e.,  {@link #addAll(IntSet)}  ,  {@link #union(IntSet)}  )
+	 * @uml.property  name="unionCount"
+	 */
 	public static long getUnionCount() {return unionCount;}
-	/** @return number of intersection operations (i.e., {@link #retainAll(IntSet)}, {@link #intersection(IntSet)}) */
+	/**
+	 * @return  number of intersection operations (i.e.,  {@link #retainAll(IntSet)}  ,  {@link #intersection(IntSet)}  )
+	 * @uml.property  name="intersectionCount"
+	 */
 	public static long getIntersectionCount() {return intersectionCount;}
-	/** @return number of difference operations (i.e., {@link #removeAll(IntSet)}, {@link #difference(IntSet)}) */
+	/**
+	 * @return  number of difference operations (i.e.,  {@link #removeAll(IntSet)}  ,  {@link #difference(IntSet)}  )
+	 * @uml.property  name="differenceCount"
+	 */
 	public static long getDifferenceCount() {return differenceCount;}
-	/** @return number of symmetric difference operations (i.e., {@link #symmetricDifference(IntSet)}) */
+	/**
+	 * @return  number of symmetric difference operations (i.e.,  {@link #symmetricDifference(IntSet)}  )
+	 * @uml.property  name="symmetricDifferenceCount"
+	 */
 	public static long getSymmetricDifferenceCount() {return symmetricDifferenceCount;}
-	/** @return number of complement operations (i.e., {@link #complement()}, {@link #complemented()}) */
+	/**
+	 * @return  number of complement operations (i.e.,  {@link #complement()}  ,  {@link #complemented()}  )
+	 * @uml.property  name="complementCount"
+	 */
 	public static long getComplementCount() {return complementCount;}
-	/** @return cardinality of union operations (i.e., {@link #addAll(IntSet)}, {@link #union(IntSet)}) */
+	/**
+	 * @return  cardinality of union operations (i.e.,  {@link #addAll(IntSet)}  ,  {@link #union(IntSet)}  )
+	 * @uml.property  name="unionSizeCount"
+	 */
 	public static long getUnionSizeCount() {return unionSizeCount;}
-	/** @return cardinality of intersection operations (i.e., {@link #retainAll(IntSet)}, {@link #intersection(IntSet)}) */
+	/**
+	 * @return  cardinality of intersection operations (i.e.,  {@link #retainAll(IntSet)}  ,  {@link #intersection(IntSet)}  )
+	 * @uml.property  name="intersectionSizeCount"
+	 */
 	public static long getIntersectionSizeCount() {return intersectionSizeCount;}
-	/** @return cardinality of difference operations (i.e., {@link #removeAll(IntSet)}, {@link #difference(IntSet)}) */
+	/**
+	 * @return  cardinality of difference operations (i.e.,  {@link #removeAll(IntSet)}  ,  {@link #difference(IntSet)}  )
+	 * @uml.property  name="differenceSizeCount"
+	 */
 	public static long getDifferenceSizeCount() {return differenceSizeCount;}
-	/** @return cardinality of symmetric difference operations (i.e., {@link #symmetricDifference(IntSet)}) */
+	/**
+	 * @return  cardinality of symmetric difference operations (i.e.,  {@link #symmetricDifference(IntSet)}  )
+	 * @uml.property  name="symmetricDifferenceSizeCount"
+	 */
 	public static long getSymmetricDifferenceSizeCount() {return symmetricDifferenceSizeCount;}
-	/** @return cardinality of complement operations (i.e., {@link #complement()}, {@link #complemented()}) */
+	/**
+	 * @return  cardinality of complement operations (i.e.,  {@link #complement()}  ,  {@link #complemented()}  )
+	 * @uml.property  name="complementSizeCount"
+	 */
 	public static long getComplementSizeCount() {return complementSizeCount;}
-	/** @return number of equality check operations (i.e., {@link #equals(Object)}) */
+	/**
+	 * @return  number of equality check operations (i.e.,  {@link #equals(Object)}  )
+	 * @uml.property  name="equalsCount"
+	 */
 	public static long getEqualsCount() {return equalsCount;}
-	/** @return number of hash code computations (i.e., {@link #hashCode()}) */
+	/**
+	 * @return  number of hash code computations (i.e.,  {@link #hashCode()}  )
+	 * @uml.property  name="hashCodeCount"
+	 */
 	public static long getHashCodeCount() {return hashCodeCount;}
-	/** @return number of {@link #containsAll(IntSet)} calls */
+	/**
+	 * @return  number of  {@link #containsAll(IntSet)}  calls
+	 * @uml.property  name="containsAllCount"
+	 */
 	public static long getContainsAllCount() {return containsAllCount;}
-	/** @return number of {@link #containsAny(IntSet)} calls */
+	/**
+	 * @return  number of  {@link #containsAny(IntSet)}  calls
+	 * @uml.property  name="containsAnyCount"
+	 */
 	public static long getContainsAnyCount() {return containsAnyCount;}
-	/** @return number of {@link #containsAtLeast(IntSet, int)} calls */
+	/**
+	 * @return  number of  {@link #containsAtLeast(IntSet,int)}  calls
+	 * @uml.property  name="containsAtLeastCount"
+	 */
 	public static long getContainsAtLeastCount() {return containsAtLeastCount;}
 	/** @return the sum of the cardinality of set operations */
 	public static long getSizeCheckCount() {return getIntersectionSizeCount() + 

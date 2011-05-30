@@ -14,10 +14,9 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ */
 
 package it.uniroma3.mat.extendedset.intset;
-
 
 // update CompactIdentityHashSet.java, UniqueSet.java and
 // SoftHashMapIndex.java accordingly.
@@ -31,8 +30,10 @@ import java.util.NoSuchElementException;
 /**
  * Implements a fast hash-set.
  * <p>
- * Inspired by <a href="http://code.google.com/p/ontopia/source/browse/trunk/ontopia/src/java/net/ontopia/utils/CompactHashSet.java"
- * >http://code.google.com/p/ontopia/source/browse/trunk/ontopia/src/java/net/ontopia/utils/CompactHashSet.java</a>
+ * Inspired by <a href=
+ * "http://code.google.com/p/ontopia/source/browse/trunk/ontopia/src/java/net/ontopia/utils/CompactHashSet.java"
+ * >http://code.google.com/p/ontopia/source/browse/trunk/ontopia/src/java/net/
+ * ontopia/utils/CompactHashSet.java</a>
  * 
  * @author Alessandro Colantonio
  * @version $Id$
@@ -51,7 +52,7 @@ public class HashIntSet extends AbstractIntSet {
 	 * chain.
 	 */
 	protected final static int REMOVED = -2;
-	
+
 	/** number of elements */
 	protected int size;
 
@@ -60,10 +61,10 @@ public class HashIntSet extends AbstractIntSet {
 	 * objects.length - elements, because some cells may contain REMOVED.
 	 */
 	protected int freecells;
-	
+
 	/** cells */
 	protected int[] cells;
-	
+
 	/** concurrent modification during iteration */
 	protected int modCount;
 
@@ -76,7 +77,8 @@ public class HashIntSet extends AbstractIntSet {
 
 	/**
 	 * Constructs a new, empty set.
-	 * @param initialSize 
+	 * 
+	 * @param initialSize
 	 */
 	public HashIntSet(int initialSize) {
 		if (initialSize <= 0)
@@ -157,7 +159,7 @@ public class HashIntSet extends AbstractIntSet {
 			// element found!
 			if (cells[index] == element)
 				return index;
-			
+
 			// compute the next index to check
 			index = toIndex(index + offset);
 			offset <<= 1;
@@ -165,11 +167,11 @@ public class HashIntSet extends AbstractIntSet {
 			if (offset < 0)
 				offset = 2;
 		}
-		
+
 		// element not found!
 		return -(index + 1);
 	}
-	
+
 	/**
 	 * Find position of the integer in {@link #cells}. If not found, returns the
 	 * first removed cell.
@@ -236,13 +238,13 @@ public class HashIntSet extends AbstractIntSet {
 			throw new IndexOutOfBoundsException("element < 0: " + element);
 		int index = findElementOrRemoved(element);
 		if (index >= 0) {
-			if (cells[index] == element) 
+			if (cells[index] == element)
 				return false;
 			freecells--;
 		} else {
 			index = -(index + 1);
 		}
-		
+
 		modCount++;
 		size++;
 
@@ -265,7 +267,7 @@ public class HashIntSet extends AbstractIntSet {
 		int index = findElementOrEmpty(element);
 		if (index < 0)
 			return false;
-		
+
 		cells[index] = REMOVED;
 		modCount++;
 		size--;
@@ -315,12 +317,11 @@ public class HashIntSet extends AbstractIntSet {
 
 			// add the element
 			cells[-(rehashed.findElementOrEmpty(element) + 1)] = element;
-		}		
+		}
 		this.cells = cells;
 		freecells = newCapacity - size;
 		modCount++;
 	}
-
 
 	/**
 	 * Iterates over the hashset, with no sorting
@@ -331,10 +332,11 @@ public class HashIntSet extends AbstractIntSet {
 		private int expectedModCount = modCount;
 
 		void skipEmpty() {
-			while (nextIndex < cells.length && (cells[nextIndex] == EMPTY || cells[nextIndex] == REMOVED)) 
+			while (nextIndex < cells.length
+					&& (cells[nextIndex] == EMPTY || cells[nextIndex] == REMOVED))
 				nextIndex++;
 		}
-		
+
 		public UnsortedIterator() {
 			nextIndex = 0;
 			skipEmpty();
@@ -514,7 +516,7 @@ public class HashIntSet extends AbstractIntSet {
 	@Override
 	public HashIntSet clone() {
 		HashIntSet cloned = new HashIntSet(cells.length);
-        System.arraycopy(cells, 0, cloned.cells, 0, cells.length);
+		System.arraycopy(cells, 0, cloned.cells, 0, cells.length);
 		cloned.freecells = freecells;
 		cloned.size = size;
 		cloned.modCount = 0;
@@ -623,7 +625,8 @@ public class HashIntSet extends AbstractIntSet {
 	 */
 	@Override
 	public String debugInfo() {
-		return "size: " + size + ", freecells: " + freecells + ", " + Arrays.toString(cells);
+		return "size: " + size + ", freecells: " + freecells + ", "
+				+ Arrays.toString(cells);
 	}
 
 	/**
@@ -694,7 +697,7 @@ public class HashIntSet extends AbstractIntSet {
 		} else {
 			index = -(index + 1);
 		}
-		
+
 		// ADD
 		cells[index] = element;
 		size++;
@@ -717,6 +720,8 @@ public class HashIntSet extends AbstractIntSet {
 	 */
 	@Override
 	public int indexOf(int e) {
+		if (e < 0)
+			throw new IllegalArgumentException("positive integer expected: " + Integer.toString(e));
 		return Arrays.binarySearch(toArray(), e);
 	}
 
@@ -743,7 +748,7 @@ public class HashIntSet extends AbstractIntSet {
 	 */
 	@Override
 	public int last() {
-		if (isEmpty()) 
+		if (isEmpty())
 			throw new NoSuchElementException();
 		int max = 0;
 		for (int element : cells)
@@ -757,7 +762,7 @@ public class HashIntSet extends AbstractIntSet {
 	 */
 	@Override
 	public int first() {
-		if (isEmpty()) 
+		if (isEmpty())
 			throw new NoSuchElementException();
 		int min = Integer.MAX_VALUE;
 		for (int element : cells)
@@ -766,7 +771,7 @@ public class HashIntSet extends AbstractIntSet {
 		return min;
 	}
 
-	/** 
+	/**
 	 * {@inheritDoc}
 	 */
 	@Override
@@ -783,11 +788,11 @@ public class HashIntSet extends AbstractIntSet {
 
 			// copy the element
 			a[i++] = element;
-		}		
+		}
 		Arrays.sort(a, 0, size);
 		return a;
 	}
-	
+
 	/**
 	 * {@inheritDoc}
 	 */
@@ -801,13 +806,13 @@ public class HashIntSet extends AbstractIntSet {
 	 */
 	@Override
 	public int hashCode() {
-        if (isEmpty())
-            return 0;
-        int h = 1;
-        for (int e : cells)
-        	if (e >= 0)
-        		h ^= IntHashCode.hashCode(e);
-        return h;
+		if (isEmpty())
+			return 0;
+		int h = 1;
+		for (int e : cells)
+			if (e >= 0)
+				h ^= IntHashCode.hashCode(e);
+		return h;
 	}
 
 	/**
@@ -822,9 +827,9 @@ public class HashIntSet extends AbstractIntSet {
 		final HashIntSet other = (HashIntSet) obj;
 		if (size != other.size)
 			return false;
-        for (int e : other.cells)
-        	if (e >= 0 && !contains(e))
-        		return false;
+		for (int e : other.cells)
+			if (e >= 0 && !contains(e))
+				return false;
 		return true;
 	}
 }

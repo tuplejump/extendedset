@@ -979,7 +979,7 @@ public class ArraySet extends AbstractIntSet {
 	@Override
 	public int indexOf(int e) {
 		if (e < 0)
-			throw new IllegalArgumentException(Integer.toString(e));
+			throw new IllegalArgumentException("positive integer expected: " + Integer.toString(e));
 		int pos = Arrays.binarySearch(elements, 0, size, e);
 		if (pos < 0)
 			return -1;

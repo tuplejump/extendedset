@@ -807,21 +807,25 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 	}
 
 	/**
-	 * Used by {@link AbstractExtendedSet#headSet(T)},
-	 * {@link AbstractExtendedSet#tailSet(T)} and {@link AbstractExtendedSet#subSet(T, T)}
-	 * to offer a restricted view of the entire set
+	 * Used by  {@link AbstractExtendedSet#headSet(T)} , {@link AbstractExtendedSet#tailSet(T)}  and  {@link AbstractExtendedSet#subSet(T,T)} to offer a restricted view of the entire set
 	 */
 	protected class ExtendedSubSet extends AbstractExtendedSet<T>.FilteredSet {
 		/**
 		 * Minimun allowed element (included) and maximum allowed element
 		 * (excluded)
 		 */
-		private final T min, max;
+		private final T min;
 
 		/**
-		 * When <code>max != null</code>, it contains all elements from
-		 * {@link #min} to {@link #max} - 1. Otherwise, it contains all the
-		 * elements <i>strictly</i> below {@link #min}
+		 * Minimun allowed element (included) and maximum allowed element
+		 * (excluded)
+		 */
+		private final T max;
+
+		/**
+		 * When <code>max != null</code>, it contains all elements from  {@link #min}   to   {@link #max}   - 1. Otherwise, it contains all the elements <i>strictly</i> below   {@link #min} 
+		 * @uml.property  name="range"
+		 * @uml.associationEnd  
 		 */
 		private final ExtendedSet<T> range;
 

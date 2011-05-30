@@ -29,25 +29,23 @@ import java.util.Iterator;
 import java.util.Set;
 
 /**
- * An class that associates a value to each pair within a {@link PairSet}
- * instance. It is not as fast as {@link HashMap}, but requires much less memory.
- * 
- * @author Alessandro Colantonio
- * @version $Id$
- * 
- * @param <T>
- *            transaction type
- * @param <I>
- *            item type
- * @param <V>
- *            type of the value to associate
- * @see PairSet
+ * An class that associates a value to each pair within a  {@link PairSet} instance. It is not as fast as  {@link HashMap} , but requires much less memory.
+ * @author  Alessandro Colantonio
+ * @version  $Id$
+ * @param  < T  >  transaction type
+ * @param  < I  >  item type
+ * @param  < V  >  type of the value to associate
+ * @see  PairSet
  */
 public class PairMap<T, I, V> extends AbstractMap<Pair<T, I>, V> implements Serializable, Cloneable {
 	/** generated serial ID */
 	private static final long serialVersionUID = 4699094886888004702L;
 
-	/** all existing keys */
+	/**
+	 * all existing keys
+	 * @uml.property  name="keys"
+	 * @uml.associationEnd  
+	 */
 	private final PairSet<T, I> keys;
 	
 	/** values related to existing keys, according to the ordering provided by {@link #keys} */

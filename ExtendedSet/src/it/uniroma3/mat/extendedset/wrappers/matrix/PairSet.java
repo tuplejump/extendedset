@@ -40,34 +40,37 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A set of pairs internally represented by a binary matrix.
- * <p>
- * This class can be used to represent a set of transactions, where each
- * transaction is a set of items. Rows are transactions, columns are the items
- * involved with each transaction.
- * 
- * @author Alessandro Colantonio
- * @version $Id$
- * 
- * @param <T>
- *            transaction type
- * @param <I>
- *            item type
- * 
+ * A set of pairs internally represented by a binary matrix. <p> This class can be used to represent a set of transactions, where each transaction is a set of items. Rows are transactions, columns are the items involved with each transaction.
+ * @author  Alessandro Colantonio
+ * @version  $Id$
+ * @param  < T  >  transaction type
+ * @param  < I  >  item type
  * @see Pair
- * @see IntSet
+ * @see  IntSet
  */
 public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Serializable {
 	/** generated serial ID */
 	private static final long serialVersionUID = 7902458899512666217L;
 	
-	/** binary matrix */
+	/**
+	 * binary matrix
+	 * @uml.property  name="matrix"
+	 * @uml.associationEnd  
+	 */
 	private final BinaryMatrix matrix;
 
-	/** all possible transactions */
+	/**
+	 * all possible transactions
+	 * @uml.property  name="allTransactions"
+	 * @uml.associationEnd  
+	 */
 	private final IndexedSet<T> allTransactions;
 
-	/** all possible items */
+	/**
+	 * all possible items
+	 * @uml.property  name="allItems"
+	 * @uml.associationEnd  
+	 */
 	private final IndexedSet<I> allItems;
 	
 	/** maps a transaction to its index and returns -1 if not found */
@@ -1175,6 +1178,33 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Se
 				newAllItems);
 		if (!other.isEmpty())
 			res.addAll(other);
+		return res;
+	}
+
+	/**
+	 * Creates a new {@link PairSet} instance with only non-empty transactions
+	 * and items.
+	 * 
+	 * @return the compacted {@link PairSet} instance
+	 */
+	public PairSet<T, I> compacted() {
+		// trivial case
+		if (isEmpty())
+			return empty();
+		
+		// compute the new universe
+		final Set<T> newAllTransactions = new LinkedHashSet<T>(involvedTransactions());
+		final Set<I> newAllItems = new LinkedHashSet<I>(involvedItems());
+		if (newAllTransactions.size() == allTransactions.size()
+				&& newAllItems.size() == allItems.size())
+			return clone();
+
+		// compute the union of pairs
+		PairSet<T, I> res = new PairSet<T, I>(
+				matrix.empty(), 
+				newAllTransactions, 
+				newAllItems);
+		res.addAll(this);
 		return res;
 	}
 

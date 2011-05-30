@@ -1317,18 +1317,69 @@ public class Debug {
 		System.out.println("Done!");
 	}
 
+	/**
+	 * @author   alessandrocolantonio
+	 */
 	private enum TestCase {
+		/**
+		 * @uml.property  name="aDDITION_STRESS"
+		 * @uml.associationEnd  
+		 */
 		ADDITION_STRESS,
+		/**
+		 * @uml.property  name="rEMOVAL_STRESS"
+		 * @uml.associationEnd  
+		 */
 		REMOVAL_STRESS,
+		/**
+		 * @uml.property  name="rANDOM_OPERATION_STRESS"
+		 * @uml.associationEnd  
+		 */
 		RANDOM_OPERATION_STRESS,
+		/**
+		 * @uml.property  name="fILL_CLEAR_STRESS"
+		 * @uml.associationEnd  
+		 */
 		FILL_CLEAR_STRESS,
+		/**
+		 * @uml.property  name="sUBSET_ADDITION_STRESS_CONCISESET"
+		 * @uml.associationEnd  
+		 */
 		SUBSET_ADDITION_STRESS_CONCISESET,
+		/**
+		 * @uml.property  name="sUBSET_REMOVAL_STRESS_CONCISESET"
+		 * @uml.associationEnd  
+		 */
 		SUBSET_REMOVAL_STRESS_CONCISESET,
+		/**
+		 * @uml.property  name="sUBSET_RANDOM_OPERATION_STRESS_CONCISESET"
+		 * @uml.associationEnd  
+		 */
 		SUBSET_RANDOM_OPERATION_STRESS_CONCISESET,
+		/**
+		 * @uml.property  name="cOMPARATOR_SIMPLE"
+		 * @uml.associationEnd  
+		 */
 		COMPARATOR_SIMPLE,
+		/**
+		 * @uml.property  name="cOMPARATOR_COMPLEX"
+		 * @uml.associationEnd  
+		 */
 		COMPARATOR_COMPLEX,
+		/**
+		 * @uml.property  name="dESCENDING_ITERATOR"
+		 * @uml.associationEnd  
+		 */
 		DESCENDING_ITERATOR,
+		/**
+		 * @uml.property  name="pOSITION"
+		 * @uml.associationEnd  
+		 */
 		POSITION,
+		/**
+		 * @uml.property  name="sKIP"
+		 * @uml.associationEnd  
+		 */
 		SKIP,
 		;
 	}
@@ -1362,7 +1413,14 @@ public class Debug {
 //	@SuppressWarnings("unused")
 	private static class MatrixSet extends IntegerSet {MatrixSet() {super(new MatrixIntSet());}}
 
+	/**
+	 * @author  alessandrocolantonio
+	 */
 	final static class MatrixIntSet extends AbstractIntSet {
+		/**
+		 * @uml.property  name="matrix"
+		 * @uml.associationEnd  
+		 */
 		BinaryMatrix matrix = new BinaryMatrix(new FastSet());
 			
 		final static int COL_POW = 10;

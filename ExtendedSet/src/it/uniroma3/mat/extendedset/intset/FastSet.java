@@ -976,7 +976,9 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 	 */
 	@Override
 	public int indexOf(int e) {
-		if (isEmpty() || e < 0)
+		if (e < 0)
+			throw new IllegalArgumentException("positive integer expected: " + Integer.toString(e));
+		if (isEmpty())
 			return -1;
 
 		int index = wordIndex(e);

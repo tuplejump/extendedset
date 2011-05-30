@@ -34,24 +34,22 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * An {@link ExtendedSet} implementation that maps each element of the universe
- * (i.e., the collection of all possible elements) to an integer referred to as
- * its "index".
- * 
- * @author Alessandro Colantonio
- * @version $Id$
- * 
- * @param <T>
- *            the type of elements maintained by this set
- * 
+ * An  {@link ExtendedSet}  implementation that maps each element of the universe (i.e., the collection of all possible elements) to an integer referred to as its "index".
+ * @author  Alessandro Colantonio
+ * @version  $Id$
+ * @param  < T  >  the type of elements maintained by this set
  * @see ExtendedSet
- * @see AbstractExtendedSet
+ * @see  AbstractExtendedSet
  */
 public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Serializable {
 	/** generated serial ID */
 	private static final long serialVersionUID = -2386771695765773453L;
 
 	// indices
+	/**
+	 * @uml.property  name="indices"
+	 * @uml.associationEnd  
+	 */
 	private final IntSet indices;
 
 	// mapping to translate items to indices and vice-versa
