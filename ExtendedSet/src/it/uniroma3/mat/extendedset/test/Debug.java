@@ -22,7 +22,7 @@ import it.uniroma3.mat.extendedset.ExtendedSet;
 import it.uniroma3.mat.extendedset.ExtendedSet.ExtendedIterator;
 import it.uniroma3.mat.extendedset.intset.AbstractIntSet;
 import it.uniroma3.mat.extendedset.intset.ArraySet;
-import it.uniroma3.mat.extendedset.intset.Concise2Set;
+//import it.uniroma3.mat.extendedset.intset.Concise2Set;
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 import it.uniroma3.mat.extendedset.intset.FastSet;
 import it.uniroma3.mat.extendedset.intset.HashIntSet;
@@ -1404,8 +1404,8 @@ public class Debug {
 	private static class IntegerFastSet extends IntegerSet {IntegerFastSet() {super(new IntSetStatistics(new FastSet()));}}
 	@SuppressWarnings("unused")
 	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new IntSetStatistics(new ConciseSet()));}}
-	@SuppressWarnings("unused")
-	private static class IntegerConcise2Set extends IntegerSet {IntegerConcise2Set() {super(new IntSetStatistics(new Concise2Set()));}}
+//	@SuppressWarnings("unused")
+//	private static class IntegerConcise2Set extends IntegerSet {IntegerConcise2Set() {super(new IntSetStatistics(new Concise2Set()));}}
 	@SuppressWarnings("unused")
 	private static class IntegerWAHSet extends IntegerSet {IntegerWAHSet() {super(new IntSetStatistics(new ConciseSet(true)));}}
 	@SuppressWarnings("unused")

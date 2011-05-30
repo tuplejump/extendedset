@@ -20,7 +20,7 @@
 package it.uniroma3.mat.extendedset.test;
 
 import it.uniroma3.mat.extendedset.intset.ArraySet;
-import it.uniroma3.mat.extendedset.intset.Concise2Set;
+//import it.uniroma3.mat.extendedset.intset.Concise2Set;
 import it.uniroma3.mat.extendedset.intset.ConciseSet;
 import it.uniroma3.mat.extendedset.intset.FastSet;
 import it.uniroma3.mat.extendedset.wrappers.GenericExtendedSet;
@@ -51,7 +51,7 @@ public class Performance {
 //	private static class IntegerHashSet extends IntegerSet {IntegerHashSet() {super(new HashIntSet());}}
 	private static class IntegerFastSet extends IntegerSet {IntegerFastSet() {super(new FastSet());}}
 	private static class IntegerConciseSet extends IntegerSet {IntegerConciseSet() {super(new ConciseSet());}}
-	private static class IntegerConcise2Set extends IntegerSet {IntegerConcise2Set() {super(new Concise2Set());}}
+//	private static class IntegerConcise2Set extends IntegerSet {IntegerConcise2Set() {super(new Concise2Set());}}
 //	private static class IntegerWAHSet extends IntegerSet {IntegerWAHSet() {super(new WAHSet());}}
 
 	/** 
@@ -354,9 +354,9 @@ public class Performance {
 					s2.addAll(integers);
 					System.out.format("%7d\t", (int) (s2.collectionCompressionRatio() * cardinality));
 
-					IntegerSet s3 = new IntegerSet(new Concise2Set());
-					s3.addAll(integers);
-					System.out.format("%7d\n", (int) (s3.collectionCompressionRatio() * cardinality));
+//					IntegerSet s3 = new IntegerSet(new Concise2Set());
+//					s3.addAll(integers);
+//					System.out.format("%7d\n", (int) (s3.collectionCompressionRatio() * cardinality));
 				}
 			}
 		}
@@ -373,7 +373,7 @@ public class Performance {
 //				IntegerHashSet.class,
 //				IntegerWAHSet.class, 
 				IntegerConciseSet.class,
-				IntegerConcise2Set.class,
+//				IntegerConcise2Set.class,
 				};
 
 		/*
