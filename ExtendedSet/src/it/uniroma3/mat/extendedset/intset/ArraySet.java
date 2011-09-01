@@ -455,7 +455,7 @@ public class ArraySet extends AbstractIntSet {
 		if (this == obj)
 			return true;
 		if (!(obj instanceof ArraySet))
-			return false;
+			return super.equals(obj);
 		final ArraySet other = (ArraySet) obj;
 		if (size != other.size)
 			return false;

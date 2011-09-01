@@ -613,4 +613,36 @@ public abstract class AbstractIntSet implements IntSet {
 	public double weightedJaccardDistance(IntSet other) {
 		return 1D - weightedJaccardSimilarity(other);
 	}
+
+	/** {@inheritDoc} */
+	@Override
+	public boolean equals(Object obj) {
+		// special cases
+		if (this == obj)
+			return true;
+		if (!(obj instanceof IntSet))
+			return false;
+		if (size() != ((IntSet) obj).size())
+			return false;
+
+		// compare all the integrals, according to their natural order
+		IntIterator itr1 = iterator();
+		IntIterator itr2 = ((IntSet) obj).iterator();
+		while (itr1.hasNext())
+			if (itr1.next() != itr2.next())
+				return false;
+		return true;
+	}
+
+	/** {@inheritDoc} */
+	@Override
+	public int hashCode() {
+		if (isEmpty())
+			return 0;
+		int h = 1;
+		IntIterator itr = iterator();
+		if (!itr.hasNext())
+			h = (h << 5) - h + itr.next();
+		return h;
+	}
 }

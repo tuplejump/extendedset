@@ -185,7 +185,7 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 		if (this == obj)
 			return true;
 		if (!(obj instanceof FastSet))
-			return false;
+			return super.equals(obj);
 		
 		final FastSet other = (FastSet) obj;
 		if (firstEmptyWord != other.firstEmptyWord)

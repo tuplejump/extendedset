@@ -1801,7 +1801,7 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 	 * Convert a given collection to a {@link ConciseSet} instance
 	 */
 	private ConciseSet convert(IntSet c) {
-		if (c instanceof ConciseSet)
+		if (c instanceof ConciseSet && simulateWAH == ((ConciseSet) c).simulateWAH)
 			return (ConciseSet) c;
 		if (c == null)
 			return empty();
@@ -2439,9 +2439,12 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 		if (this == obj)
 			return true;
 		if (!(obj instanceof ConciseSet))
-			return false;
+			return super.equals(obj);
 		
 		final ConciseSet other = (ConciseSet) obj;
+		if (simulateWAH != other.simulateWAH)
+			return super.equals(obj);
+		
 		if (size() != other.size())
 			return false;
 		if (isEmpty())
