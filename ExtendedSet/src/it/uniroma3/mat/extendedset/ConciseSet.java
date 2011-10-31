@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.SortedSet;
+import java.io.Serializable;
 
 /**
  * This is CONCISE: COmpressed 'N' Composable Integer Set.
@@ -57,7 +58,7 @@ import java.util.SortedSet;
  * iterators should be used only to detect bugs.</i>
  * 
  * @author Alessandro Colantonio
- * @version $Id$
+ * @version $Id: ConciseSet.java 83 2010-04-08 14:33:46Z cocciasik $
  * 
  * @see ExtendedSet
  * @see AbstractExtendedSet
@@ -65,7 +66,7 @@ import java.util.SortedSet;
  * @see IndexedSet
  */
 public class ConciseSet extends AbstractExtendedSet<Integer> implements
-		SortedSet<Integer>, Cloneable {
+								 SortedSet<Integer>, Cloneable, Serializable {
 	/**
 	 * This is the compressed bitmap, that is a collection of words. For each
 	 * word:
