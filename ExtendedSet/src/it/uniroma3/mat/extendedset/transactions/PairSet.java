@@ -226,8 +226,10 @@ public class PairSet<T, I> extends AbstractSet<Pair<T, I>> implements Cloneable 
 	 */
 	@SuppressWarnings("unchecked")
 	public static <XT, XI> PairSet<XT, XI> newPairSet(Collection<? extends Pair<XT, XI>> ps, boolean compressed) {
-		if (ps instanceof PairSet)
-			return (PairSet<XT, XI>) ps;
+		if (ps instanceof PairSet) {
+            Object result = ps;
+			return (PairSet<XT, XI>) result;
+        }
 
 		PairSet<XT, XI> res;
 		
