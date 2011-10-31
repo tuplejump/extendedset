@@ -23,12 +23,7 @@ import it.uniroma3.mat.extendedset.ExtendedSet;
 import it.uniroma3.mat.extendedset.intset.IntSet;
 import it.uniroma3.mat.extendedset.intset.IntSet.IntIterator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
 
 /**
  * This class provides a "wrapper" for any  {@link IntSet}  instance in order to be used as an  {@link ExtendedSet}  instance.
@@ -89,7 +84,7 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 		}
 		Collections.sort(sorted);
 		for (Integer i : sorted) 
-			res.add(i.intValue());
+			res.add(i);
 		return res;
 	}
 
@@ -108,7 +103,7 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public void clear(Integer from, Integer to) {
-		items.clear(from.intValue(), to.intValue());
+		items.clear(from, to);
 	}
 
 	/** {@inheritDoc} */
@@ -180,9 +175,9 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 		return new ExtendedIterator<Integer>() {
 			final IntIterator itr = items.descendingIterator();
 			@Override public void remove() {itr.remove();}
-			@Override public Integer next() {return Integer.valueOf(itr.next());}
+			@Override public Integer next() {return itr.next();}
 			@Override public boolean hasNext() {return itr.hasNext();}
-			@Override public void skipAllBefore(Integer element) {itr.skipAllBefore(element.intValue());}
+			@Override public void skipAllBefore(Integer element) {itr.skipAllBefore(element);}
 		};
 	}
 
@@ -217,7 +212,7 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public void fill(Integer from, Integer to) {
-		items.fill(from.intValue(), to.intValue());
+		items.fill(from, to);
 	}
 
 	/** 
@@ -225,13 +220,13 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public Integer first() {
-		return Integer.valueOf(items.first());
+		return items.first();
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public void flip(Integer e) {
-		items.flip(e.intValue());
+		items.flip(e);
 	}
 
 	/** 
@@ -239,13 +234,13 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public Integer get(int i) {
-		return Integer.valueOf(items.get(i));
+		return items.get(i);
 	}
 
 	/** {@inheritDoc} */
 	@Override
 	public int indexOf(Integer e) {
-		return items.indexOf(e.intValue());
+		return items.indexOf(e);
 	}
 
 	/** {@inheritDoc} */
@@ -268,9 +263,9 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 		return new ExtendedIterator<Integer>() {
 			final IntIterator itr = items.iterator();
 			@Override public void remove() {itr.remove();}
-			@Override public Integer next() {return Integer.valueOf(itr.next());}
+			@Override public Integer next() {return itr.next();}
 			@Override public boolean hasNext() {return itr.hasNext();}
-			@Override public void skipAllBefore(Integer element) {itr.skipAllBefore(element.intValue());}
+			@Override public void skipAllBefore(Integer element) {itr.skipAllBefore(element);}
 		};
 	}
 
@@ -279,7 +274,7 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	 */
 	@Override
 	public Integer last() {
-		return Integer.valueOf(items.last());
+		return items.last();
 	}
 
 	/** {@inheritDoc} */
@@ -355,7 +350,7 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public boolean add(Integer e) {
-		return items.add(e.intValue());
+		return items.add(e);
 	}
 
 	/** {@inheritDoc} */
@@ -367,7 +362,7 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public boolean contains(Object o) {
-		return o instanceof Integer && items.contains(((Integer) o).intValue());
+		return o instanceof Integer && items.contains((Integer) o);
 	}
 
 	/** {@inheritDoc} */
@@ -385,7 +380,7 @@ public class IntegerSet extends AbstractExtendedSet<Integer> {
 	/** {@inheritDoc} */
 	@Override
 	public boolean remove(Object o) {
-		return o instanceof Integer && items.remove(((Integer) o).intValue());
+		return o instanceof Integer && items.remove((Integer) o);
 	}
 
 	/** {@inheritDoc} */

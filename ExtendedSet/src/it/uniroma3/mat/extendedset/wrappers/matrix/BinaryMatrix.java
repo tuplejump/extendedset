@@ -21,12 +21,7 @@ package it.uniroma3.mat.extendedset.wrappers.matrix;
 import it.uniroma3.mat.extendedset.intset.IntSet;
 import it.uniroma3.mat.extendedset.intset.IntSet.IntIterator;
 
-import java.util.ArrayList;
-import java.util.BitSet;
-import java.util.Formatter;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 /**
  * Very similar to  {@link IntSet}  but for pairs of <code>int</code>s, that is a binary matrix
@@ -438,12 +433,11 @@ public class BinaryMatrix implements Cloneable, Comparable<BinaryMatrix> {
 	public int complementSize() {
 		final int maxCol = maxCol();
 		int res = 0;
-		for (int i = 0; i < rows.size(); i++) {
-			IntSet s = rows.get(i);
-			res += maxCol + 1;
-			if (s != null) 
-				res -= s.size();
-		}
+        for (IntSet s : rows) {
+            res += maxCol + 1;
+            if (s != null)
+                res -= s.size();
+        }
 		return res;
 	}
 
@@ -556,7 +550,7 @@ public class BinaryMatrix implements Cloneable, Comparable<BinaryMatrix> {
 				@Override public boolean hasNext() {return false;}
 				@Override public int[] next() {throw new NoSuchElementException();}
 				@Override public void remove() {throw new IllegalStateException();}
-				@Override public void skipAllBefore(int row, int col) {return;}
+				@Override public void skipAllBefore(int row, int col) {}
 		};
 		
 		return new CellIterator() {
@@ -609,7 +603,7 @@ public class BinaryMatrix implements Cloneable, Comparable<BinaryMatrix> {
 				@Override public boolean hasNext() {return false;}
 				@Override public int[] next() {throw new NoSuchElementException();}
 				@Override public void remove() {throw new IllegalStateException();}
-				@Override public void skipAllBefore(int row, int col) {return;}
+				@Override public void skipAllBefore(int row, int col) {}
 		};
 		
 		return new CellIterator() {
@@ -1871,8 +1865,7 @@ public class BinaryMatrix implements Cloneable, Comparable<BinaryMatrix> {
 	 */
 	public IntSet involvedCols() {
 		IntSet res = template.empty();
-		for (int i = 0; i < rows.size(); i++)
-			res.addAll(rows.get(i));
+        for (IntSet row : rows) res.addAll(row);
 		return res;
 	}
 }

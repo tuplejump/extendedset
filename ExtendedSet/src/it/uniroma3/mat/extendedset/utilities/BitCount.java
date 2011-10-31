@@ -228,8 +228,7 @@ public class BitCount {
 				x[j] = rnd.nextInt(Integer.MAX_VALUE);
 
 			int size1 = 0;
-			for (int j = 0; j < x.length; j++)
-				size1 += count(x[j]);
+            for (int aX : x) size1 += count(aX);
 			int size2 = count(x);
 
 			if (size1 != size2) {
@@ -275,8 +274,7 @@ public class BitCount {
 				x[j] = rnd.nextInt(Integer.MAX_VALUE);
 
 			int size = 0;
-			for (int j = 0; j < x.length; j++)
-				size += count(x[j]);
+            for (int aX : x) size += count(aX);
 		}
 		System.out.println(System.currentTimeMillis() - t);
 

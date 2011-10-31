@@ -27,17 +27,7 @@ import it.uniroma3.mat.extendedset.wrappers.IntegerSet;
 import it.uniroma3.mat.extendedset.wrappers.matrix.BinaryMatrix.CellIterator;
 
 import java.io.Serializable;
-import java.util.AbstractCollection;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A set of pairs internally represented by a binary matrix. <p> This class can be used to represent a set of transactions, where each transaction is a set of items. Rows are transactions, columns are the items involved with each transaction.
@@ -76,13 +66,13 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Se
 	/** maps a transaction to its index and returns -1 if not found */
 	private int transactionToIndex(T t) {
 		Integer r = allTransactions.absoluteIndexOf(t);
-		return r == null ? -1 : r.intValue();
+		return r == null ? -1 : r;
 	}
 	
 	/** maps an item to its index and returns -1 if not found */
 	private int itemToIndex(I i) {
 		Integer r = allItems.absoluteIndexOf(i);
-		return r == null ? -1 : r.intValue();
+		return r == null ? -1 : r;
 	}
 
 	/** maps a pair of indices to the corresponding {@link Pair} */
@@ -799,7 +789,7 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Se
 
 		s.append("pairs:\n");
 		s.append(matrix.toString());
-		s.append("info: " + matrix.debugInfo());
+        s.append("info: ").append(matrix.debugInfo());
 		
 		return s.toString();
 	}
@@ -1004,7 +994,7 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Se
 	 */
 	@Override
 	public int differenceSize(Collection<? extends Pair<T, I>> other) {
-		return other == null ? (int) size() : (int) matrix.differenceSize(convert(other).matrix);
+		return other == null ? size() : matrix.differenceSize(convert(other).matrix);
 	}
 
 	/**
@@ -1095,7 +1085,7 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Se
 	 */
 	@Override
 	public int symmetricDifferenceSize(Collection<? extends Pair<T, I>> other) {
-		return other == null ? (int) size() : (int) matrix.symmetricDifferenceSize(convert(other).matrix);
+		return other == null ? size() : matrix.symmetricDifferenceSize(convert(other).matrix);
 	}
 
 	/**
@@ -1111,7 +1101,7 @@ public class PairSet<T, I> extends AbstractExtendedSet<Pair<T, I>> implements Se
 	 */
 	@Override
 	public int unionSize(Collection<? extends Pair<T, I>> other) {
-		return other == null ? (int) size() : (int) matrix.unionSize(convert(other).matrix);
+		return other == null ? size() : matrix.unionSize(convert(other).matrix);
 	}
 
 //	/**

@@ -20,13 +20,7 @@
 package it.uniroma3.mat.extendedset.intset;
 
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.SortedSet;
+import java.util.*;
 
 /**
  * {@link IntSet}-based class internally managed by a sorted array of
@@ -938,7 +932,7 @@ public class ArraySet extends AbstractIntSet {
 			} else {
 				sorted = new ArrayList<Integer>(c);
 				Collections.sort((List<Integer>) sorted);
-				int first = ((ArrayList<Integer>) sorted).get(0).intValue();
+				int first = ((ArrayList<Integer>) sorted).get(0);
 				if (first < 0)
 					throw new ArrayIndexOutOfBoundsException(Integer.toString(first));
 			}

@@ -20,13 +20,7 @@ package it.uniroma3.mat.extendedset.test;
 
 import it.uniroma3.mat.extendedset.ExtendedSet;
 import it.uniroma3.mat.extendedset.ExtendedSet.ExtendedIterator;
-import it.uniroma3.mat.extendedset.intset.AbstractIntSet;
-import it.uniroma3.mat.extendedset.intset.ArraySet;
-//import it.uniroma3.mat.extendedset.intset.Concise2Set;
-import it.uniroma3.mat.extendedset.intset.ConciseSet;
-import it.uniroma3.mat.extendedset.intset.FastSet;
-import it.uniroma3.mat.extendedset.intset.HashIntSet;
-import it.uniroma3.mat.extendedset.intset.IntSet;
+import it.uniroma3.mat.extendedset.intset.*;
 import it.uniroma3.mat.extendedset.utilities.IntSetStatistics;
 import it.uniroma3.mat.extendedset.utilities.random.MersenneTwister;
 import it.uniroma3.mat.extendedset.wrappers.GenericExtendedSet;
@@ -36,16 +30,9 @@ import it.uniroma3.mat.extendedset.wrappers.matrix.BinaryMatrix;
 import it.uniroma3.mat.extendedset.wrappers.matrix.BinaryMatrix.CellIterator;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
+
+//import it.uniroma3.mat.extendedset.intset.Concise2Set;
 
 
 /**
@@ -85,6 +72,7 @@ public class Debug {
 			return false;
 		if (!bits.first().equals(items.first()))
 			return false;
+        //
 		return true;
 	}
 	
@@ -1424,9 +1412,9 @@ public class Debug {
 		BinaryMatrix matrix = new BinaryMatrix(new FastSet());
 			
 		final static int COL_POW = 10;
-		final static int toInt(int row, int col) {return (row << COL_POW) + col;}
-		final static int toRow(int index) {return index >>> COL_POW;}
-		final static int toCol(int index) {return index & (0xFFFFFFFF >>> -COL_POW);}
+		static int toInt(int row, int col) {return (row << COL_POW) + col;}
+		static int toRow(int index) {return index >>> COL_POW;}
+		static int toCol(int index) {return index & (0xFFFFFFFF >>> -COL_POW);}
 		
 		IntSet convert(BinaryMatrix m) {
 			MatrixIntSet res = new MatrixIntSet();

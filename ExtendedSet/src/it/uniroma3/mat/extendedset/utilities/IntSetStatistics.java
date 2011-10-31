@@ -185,21 +185,21 @@ public class IntSetStatistics implements IntSet {
 		final StringBuilder s = new StringBuilder();
 		final Formatter f = new Formatter(s);
 		
-		f.format("unionCount: %d\n", Long.valueOf(unionCount));
-		f.format("intersectionCount: %d\n", Long.valueOf(intersectionCount));
-		f.format("differenceCount: %d\n", Long.valueOf(differenceCount));
-		f.format("symmetricDifferenceCount: %d\n", Long.valueOf(symmetricDifferenceCount));
-		f.format("complementCount: %d\n", Long.valueOf(complementCount));
-		f.format("unionSizeCount: %d\n", Long.valueOf(unionSizeCount));
-		f.format("intersectionSizeCount: %d\n", Long.valueOf(intersectionSizeCount));
-		f.format("differenceSizeCount: %d\n", Long.valueOf(differenceSizeCount));
-		f.format("symmetricDifferenceSizeCount: %d\n", Long.valueOf(symmetricDifferenceSizeCount));
-		f.format("complementSizeCount: %d\n", Long.valueOf(complementSizeCount));
-		f.format("equalsCount: %d\n", Long.valueOf(equalsCount));
-		f.format("hashCodeCount: %d\n", Long.valueOf(hashCodeCount));
-		f.format("containsAllCount: %d\n", Long.valueOf(containsAllCount));
-		f.format("containsAnyCount: %d\n", Long.valueOf(containsAnyCount));
-		f.format("containsAtLeastCount: %d\n", Long.valueOf(containsAtLeastCount));
+		f.format("unionCount: %d\n", unionCount);
+		f.format("intersectionCount: %d\n", intersectionCount);
+		f.format("differenceCount: %d\n", differenceCount);
+		f.format("symmetricDifferenceCount: %d\n", symmetricDifferenceCount);
+		f.format("complementCount: %d\n", complementCount);
+		f.format("unionSizeCount: %d\n", unionSizeCount);
+		f.format("intersectionSizeCount: %d\n", intersectionSizeCount);
+		f.format("differenceSizeCount: %d\n", differenceSizeCount);
+		f.format("symmetricDifferenceSizeCount: %d\n", symmetricDifferenceSizeCount);
+		f.format("complementSizeCount: %d\n", complementSizeCount);
+		f.format("equalsCount: %d\n", equalsCount);
+		f.format("hashCodeCount: %d\n", hashCodeCount);
+		f.format("containsAllCount: %d\n", containsAllCount);
+		f.format("containsAnyCount: %d\n", containsAnyCount);
+		f.format("containsAtLeastCount: %d\n", containsAtLeastCount);
 		
 		return s.toString();
 	}
