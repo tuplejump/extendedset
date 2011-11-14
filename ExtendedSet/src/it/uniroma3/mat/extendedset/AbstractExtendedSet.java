@@ -653,8 +653,8 @@ public abstract class AbstractExtendedSet<T> extends AbstractSet<T> implements E
 		 * operations by directly working on internal representation
 		 */
 		@Override public ExtendedSet<T> convert(Collection<?> c) {
-			if (c instanceof AbstractExtendedSet<?>.FilteredSet)
-				convert(((AbstractExtendedSet<?>.FilteredSet) c).raw());
+			if (c instanceof AbstractExtendedSet.FilteredSet)
+				convert(((AbstractExtendedSet.FilteredSet) c).raw());
 			return raw().convert(c);
 		}
 
