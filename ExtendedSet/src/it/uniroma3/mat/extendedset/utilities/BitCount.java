@@ -274,6 +274,7 @@ public class BitCount {
 			for (int j = 0; j < x.length; j++)
 				x[j] = rnd.nextInt(Integer.MAX_VALUE);
 
+			@SuppressWarnings("unused")
 			int size = 0;
 			for (int j = 0; j < x.length; j++)
 				size += count(x[j]);
@@ -299,6 +300,7 @@ public class BitCount {
 			for (int j = 1; j < x.length; j += 2)
 				x[j] = rnd.nextInt(Integer.MAX_VALUE);
 
+			@SuppressWarnings("unused")
 			int size = 0;
 			for (int j = 1; j < x.length; j += 2)
 				size += count(x[j]);
