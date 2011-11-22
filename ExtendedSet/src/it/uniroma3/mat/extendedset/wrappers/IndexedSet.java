@@ -24,15 +24,7 @@ import it.uniroma3.mat.extendedset.ExtendedSet;
 import it.uniroma3.mat.extendedset.intset.IntSet;
 import it.uniroma3.mat.extendedset.intset.IntSet.IntIterator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * An  {@link ExtendedSet}  implementation that maps each element of the universe (i.e., the collection of all possible elements) to an integer referred to as its "index".
@@ -80,7 +72,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 		indexToItem = universe instanceof Set ? (T[]) universe.toArray() : (T[]) (new LinkedHashSet<T>(universe)).toArray();
 		itemToIndex = new HashMap<T, Integer>(Math.max((int) (indexToItem.length / .75f) + 1, 16));
 		for (int i = 0; i < indexToItem.length; i++)
-			itemToIndex.put(indexToItem[i], Integer.valueOf(i));
+			itemToIndex.put(indexToItem[i], i);
 		this.indices = indices;
 	}
 
@@ -201,7 +193,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 		Integer index = itemToIndex.get(e);
 		if (index == null)
 			throw new IllegalArgumentException("element not in the current universe");
-		return indices.add(index.intValue());
+		return indices.add(index);
 	}
 
 	/**
@@ -225,7 +217,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 */
 	@Override
 	public void flip(T e) {
-		indices.flip(itemToIndex.get(e).intValue());
+		indices.flip(itemToIndex.get(e));
 	}
 	
 	/**
@@ -236,7 +228,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 		if (o == null)
 			return false;
 		Integer index = itemToIndex.get(o);
-		return index != null && indices.contains(index.intValue());
+		return index != null && indices.contains(index);
 	}
 
 	/**
@@ -280,7 +272,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 			final IntIterator itr = indices.iterator();
 			@Override public boolean hasNext() {return itr.hasNext();}
 			@Override public T next() {return indexToItem[itr.next()];}
-			@Override public void skipAllBefore(T element) {itr.skipAllBefore(itemToIndex.get(element).intValue());}
+			@Override public void skipAllBefore(T element) {itr.skipAllBefore(itemToIndex.get(element));}
 			@Override public void remove() {itr.remove();}
 		};
 	}
@@ -294,7 +286,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 			final IntIterator itr = indices.descendingIterator();
 			@Override public boolean hasNext() {return itr.hasNext();}
 			@Override public T next() {return indexToItem[itr.next()];}
-			@Override public void skipAllBefore(T element) {itr.skipAllBefore(itemToIndex.get(element).intValue());}
+			@Override public void skipAllBefore(T element) {itr.skipAllBefore(itemToIndex.get(element));}
 			@Override public void remove() {itr.remove();}
 		};
 	}
@@ -307,7 +299,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 		if (o == null)
 			return false;
 		Integer index = itemToIndex.get(o);
-		return index != null && indices.remove(index.intValue());
+		return index != null && indices.remove(index);
 	}
 
 	/**
@@ -620,7 +612,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 */
 	@Override
 	public int indexOf(T e) {
-		return indices.indexOf(itemToIndex.get(e).intValue());
+		return indices.indexOf(itemToIndex.get(e));
 	}
 	
 	/**
@@ -628,7 +620,7 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 */
 	@Override
 	public void clear(T from, T to) {
-		indices.clear(itemToIndex.get(from).intValue(), itemToIndex.get(to).intValue());
+		indices.clear(itemToIndex.get(from), itemToIndex.get(to));
 	}
 
 	/**
@@ -636,6 +628,6 @@ public class IndexedSet<T> extends AbstractExtendedSet<T> implements java.io.Ser
 	 */
 	@Override
 	public void fill(T from, T to) {
-		indices.fill(itemToIndex.get(from).intValue(), itemToIndex.get(to).intValue());
+		indices.fill(itemToIndex.get(from), itemToIndex.get(to));
 	}
 }

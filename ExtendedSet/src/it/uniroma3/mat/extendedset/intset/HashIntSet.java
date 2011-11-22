@@ -136,7 +136,7 @@ public class HashIntSet extends AbstractIntSet {
 	 *            element to search
 	 * @return index of the element in {@link #cells}
 	 */
-	private final int toIndex(int o) {
+	private int toIndex(int o) {
 		return (o & 0x7FFFFFFF) % cells.length;
 	}
 

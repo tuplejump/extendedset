@@ -20,18 +20,12 @@
 package it.uniroma3.mat.extendedset.intset;
 
 
-import it.uniroma3.mat.extendedset.intset.IntSet.IntIterator;
 import it.uniroma3.mat.extendedset.utilities.BitCount;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Collection;
-import java.util.Formatter;
-import java.util.Locale;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 /**
  * An {@link IntSet} implementation, representing a set of integers, based on an
@@ -1165,11 +1159,11 @@ public class FastSet extends AbstractIntSet implements java.io.Serializable {
 		
 		// raw representation of words
 		for (int i = 0; i < firstEmptyWord; i++)
-			f.format("words[%d] = %s (from %d to %d)\n", 
-					Integer.valueOf(i), 
-					toBinaryString(words[i]), 
-					Integer.valueOf(multiplyByWordSize(i)), 
-					Integer.valueOf(multiplyByWordSize(i + 1) - 1));
+			f.format("words[%d] = %s (from %d to %d)\n",
+                    i,
+					toBinaryString(words[i]),
+                    multiplyByWordSize(i),
+                    multiplyByWordSize(i + 1) - 1);
 		
 		// object attributes
 		f.format("wordsInUse: %d\n", firstEmptyWord);

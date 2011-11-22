@@ -25,16 +25,7 @@ import it.uniroma3.mat.extendedset.utilities.BitCount;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.ConcurrentModificationException;
-import java.util.Formatter;
-import java.util.List;
-import java.util.Locale;
-import java.util.NoSuchElementException;
-import java.util.SortedSet;
+import java.util.*;
 
 /**
  * This is CONCISE: COmpressed 'N' Composable Integer SEt.
@@ -2125,10 +2116,8 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 		// completely "covers" the second operator
 		if (isSequenceWithNoBits(this.words[0]) 
 				&& maxLiteralLengthMultiplication(getSequenceCount(this.words[0]) + 1) > other.last) {
-			if (isZeroSequence(this.words[0]))
-				return false;
-			return true;
-		}
+            return !isZeroSequence(this.words[0]);
+        }
 		if (isSequenceWithNoBits(other.words[0]) 
 				&& maxLiteralLengthMultiplication(getSequenceCount(other.words[0]) + 1) > this.last)
 			return false;
@@ -2192,16 +2181,12 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 		// disjoint sets
 		if (isSequenceWithNoBits(this.words[0]) 
 				&& maxLiteralLengthMultiplication(getSequenceCount(this.words[0]) + 1) > other.last) {
-			if (isZeroSequence(this.words[0]))
-				return false;
-			return true;
-		}
+            return !isZeroSequence(this.words[0]);
+        }
 		if (isSequenceWithNoBits(other.words[0]) 
 				&& maxLiteralLengthMultiplication(getSequenceCount(other.words[0]) + 1) > this.last) {
-			if (isZeroSequence(other.words[0]))
-				return false;
-			return true;
-		}
+            return !isZeroSequence(other.words[0]);
+        }
 
 		// scan "this" and "other"
 		WordIterator thisItr = new WordIterator();
@@ -2260,16 +2245,12 @@ public class ConciseSet extends AbstractIntSet implements java.io.Serializable {
 		// disjoint sets
 		if (isSequenceWithNoBits(this.words[0]) 
 				&& maxLiteralLengthMultiplication(getSequenceCount(this.words[0]) + 1) > other.last) {
-			if (isZeroSequence(this.words[0]))
-				return false;
-			return true;
-		}
+            return !isZeroSequence(this.words[0]);
+        }
 		if (isSequenceWithNoBits(other.words[0]) 
 				&& maxLiteralLengthMultiplication(getSequenceCount(other.words[0]) + 1) > this.last) {
-			if (isZeroSequence(other.words[0]))
-				return false;
-			return true;
-		}
+            return !isZeroSequence(other.words[0]);
+        }
 
 		// resulting size
 		int res = 0;

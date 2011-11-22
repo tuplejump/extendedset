@@ -23,17 +23,7 @@ import it.uniroma3.mat.extendedset.intset.ConciseSet;
 import it.uniroma3.mat.extendedset.intset.IntSet;
 import it.uniroma3.mat.extendedset.intset.IntSet.IntIterator;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.BitSet;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NavigableMap;
-import java.util.NoSuchElementException;
-import java.util.SortedSet;
-import java.util.TreeMap;
+import java.util.*;
 import java.util.Map.Entry;
 
 /**
@@ -559,11 +549,11 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 
 		// complement other blocks
 		NavigableMap<Long, IntSet> toAdd = new TreeMap<Long, IntSet>(); // avoid concurrent modification
-		for (long i = e.getKey().longValue() - SUBSET_SIZE; i > 0L; i -= SUBSET_SIZE) {
-			while (e != null && e.getKey().longValue() > i)
+		for (long i = e.getKey() - SUBSET_SIZE; i > 0L; i -= SUBSET_SIZE) {
+			while (e != null && e.getKey() > i)
 				e = itr.hasNext() ? itr.next() : null;
 
-			if (e != null && e.getKey().longValue() == i) {
+			if (e != null && e.getKey() == i) {
 				if (e.getValue().add(SUBSET_SIZE - 1)) {
 					e.getValue().complement();
 					e.getValue().add(SUBSET_SIZE - 1);
@@ -575,7 +565,7 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 			} else {
 				IntSet s = firstIndices.empty();
 				s.fill(0, SUBSET_SIZE - 1);
-				toAdd.put(Long.valueOf(i), s);
+				toAdd.put(i, s);
 			}
 		}
 		otherIndices.putAll(toAdd);
@@ -776,7 +766,7 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 			Entry<Long, IntSet> e = otherItrs.next();
 			current = e.getValue();
 			itr = e.getValue().iterator();
-			first = e.getKey().longValue();
+			first = e.getKey();
 		}
 
 		/**
@@ -863,7 +853,7 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 				Entry<Long, IntSet> e = otherItrs.next();
 				current = e.getValue();
 				itr = e.getValue().descendingIterator();
-				first = e.getKey().longValue();
+				first = e.getKey();
 			} else {
 				itr = firstIndices.descendingIterator();
 				current = null;
@@ -905,7 +895,7 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 		return new Iterator<Long>() {
 			final ExtendedLongIterator itr = longIterator();
 			@Override public boolean hasNext() {return itr.hasNext();}
-			@Override public Long next() {return Long.valueOf(itr.next());}
+			@Override public Long next() {return itr.next();}
 			@Override public void remove() {itr.remove();}
 		};
 	}
@@ -921,9 +911,9 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 
 		s.append("elements: ");
 		s.append(toString());
-		s.append("\nfirstIndices: " + firstIndices);
+        s.append("\nfirstIndices: ").append(firstIndices);
 		s.append('\n');
-		s.append("otherIndices: " + otherIndices.size());
+        s.append("otherIndices: ").append(otherIndices.size());
 		s.append('\n');
 		for (Entry<Long, IntSet> e : otherIndices.entrySet()) {
 			s.append('\t');
@@ -981,7 +971,7 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 			for (long i = firstBlockIndex + SUBSET_SIZE; i < lastBlockIndex; i += SUBSET_SIZE) {
 				IntSet s = firstIndices.empty();
 				s.fill(0, SUBSET_SIZE - 1);
-				otherIndices.put(Long.valueOf(i), s);
+				otherIndices.put(i, s);
 			}
 
 			// Handle last word
@@ -1039,7 +1029,7 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 
 			// Handle intermediate words, if any
 			for (long i = firstBlockIndex + SUBSET_SIZE; i < lastBlockIndex; i += SUBSET_SIZE)
-				otherIndices.remove(Long.valueOf(i));
+				otherIndices.remove(i);
 
 			// Handle last word
 			IntSet s = otherIndices.get(lastBlockIndex);
@@ -1090,7 +1080,7 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 		index -= firstIndices.size();
 		for (Entry<Long, IntSet> e : otherIndices.entrySet()) {
 			if (index < e.getValue().size())
-				return e.getKey().longValue() + e.getValue().get((int) index);
+				return e.getKey() + e.getValue().get((int) index);
 			index -= e.getValue().size();
 		}
 		throw new IndexOutOfBoundsException(Long.toString(index));
@@ -1110,8 +1100,8 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 			return firstIndices.indexOf((int) i);
 		long prev = firstIndices.size();
 		for (Entry<Long, IntSet> e : otherIndices.entrySet()) {
-			if (i < e.getKey().longValue() + SUBSET_SIZE)
-				return prev + e.getValue().indexOf((int) (i - e.getKey().longValue()));
+			if (i < e.getKey() + SUBSET_SIZE)
+				return prev + e.getValue().indexOf((int) (i - e.getKey()));
 			prev += e.getValue().size();			
 		}
 		return -1L;
@@ -1171,7 +1161,7 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 		if (otherIndices.isEmpty())
 			throw new NoSuchElementException();
 		Entry<Long, IntSet> e = otherIndices.firstEntry();
-		return e.getKey().longValue() + e.getValue().first();
+		return e.getKey() + e.getValue().first();
 	}
 
 
@@ -1187,7 +1177,7 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 			throw new NoSuchElementException();
 		if (!otherIndices.isEmpty()) {
 			Entry<Long, IntSet> e = otherIndices.lastEntry();
-			return e.getKey().longValue() + e.getValue().last();
+			return e.getKey() + e.getValue().last();
 		}
 		return firstIndices.last();
 	}
@@ -1245,6 +1235,7 @@ public class LongSet implements Cloneable, Comparable<LongSet>, java.io.Serializ
 		IntSet s = otherIndices.get(first);
 		if (s == null)
 			return false;
+        //
 		return s.contains((int) (i - first));
 	}
 
